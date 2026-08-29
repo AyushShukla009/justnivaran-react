@@ -1,0 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+  --ink: #12294A;
+  --ink-deep: #0B1B31;
+  --gold: #D19A34;
+  --gold-soft: #F0E0C2;
+  --paper: #EDF1F5;
+  --paper-hi: #F7F9FB;
+  --slate: #5A6B82;
+  --line: #D3DCE6;
+  --line-soft: #E2E9F0;
+
+  --serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", "SF Mono", Menlo, monospace;
+
+  --gut: clamp(20px, 5vw, 72px);
+  --rail: 1px solid var(--line);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+} 
