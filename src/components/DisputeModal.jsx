@@ -134,7 +134,7 @@ function DisputeModal({ isOpen, onClose }) {
           formData.reliefSought.trim() ||
           `Restitution and settlement of claimed sum ₹ ${Number(formData.claimAmount || 0).toLocaleString("en-IN")}`;
 
-        const { error: insertError } = await supabase.from("disputes").insert([
+        let { error: insertError } = await supabase.from("disputes").insert([
           {
             docket_number: generatedDocket,
             access_code: generatedPin,
@@ -152,6 +152,34 @@ function DisputeModal({ isOpen, onClose }) {
             status: "Notice Issued"
           }
         ]);
+
+        // Graceful automatic retry if access_code column has not yet been migrated in Supabase table
+        if (
+          insertError &&
+          (insertError.message?.toLowerCase().includes("access_code") ||
+            insertError.code === "PGRST204" ||
+            insertError.message?.toLowerCase().includes("schema cache"))
+        ) {
+          console.warn("Schema cache lacks access_code column. Retrying insert with embedded PIN tag...");
+          const { error: retryError } = await supabase.from("disputes").insert([
+            {
+              docket_number: generatedDocket,
+              claimant_name: formData.claimantName.trim(),
+              claimant_email: formData.claimantEmail.trim(),
+              claimant_phone: formData.claimantPhone.trim(),
+              respondent_name: formData.respondentName.trim(),
+              respondent_email: formData.respondentEmail.trim(),
+              respondent_phone: formData.respondentPhone.trim(),
+              claim_amount: Number(formData.claimAmount) || 0,
+              mode: formData.mode,
+              dispute_summary: `${defaultSummary}\n[Case Access PIN: ${generatedPin}]`,
+              relief_sought: defaultRelief,
+              evidence_file_path: uploadedStoragePath || null,
+              status: "Notice Issued"
+            }
+          ]);
+          insertError = retryError;
+        }
 
         if (insertError) {
           console.error("Database submission error:", insertError);

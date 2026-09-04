@@ -22,6 +22,16 @@ function DocketTracker() {
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   const [copiedToast, setCopiedToast] = useState("");
 
+  const getCasePin = (c) => {
+    if (!c) return "090909";
+    if (c.access_code && String(c.access_code).trim()) return String(c.access_code).trim();
+    if (c.dispute_summary) {
+      const match = String(c.dispute_summary).match(/\[Case Access PIN:\s*([A-Za-z0-9]+)\]/i);
+      if (match && match[1]) return match[1].trim();
+    }
+    return "090909";
+  };
+
   const executeSearch = useCallback(async (docketToFind, pinToUnlock = null) => {
     if (!docketToFind || !docketToFind.trim()) return;
     setIsLoading(true);
@@ -46,7 +56,9 @@ function DocketTracker() {
           // If PIN parameter is supplied via magic link, automatically verify and unlock
           if (pinToUnlock && data) {
             const entered = String(pinToUnlock).trim();
-            const storedPin = data.access_code ? String(data.access_code).trim() : "";
+            const storedPin = data.access_code
+              ? String(data.access_code).trim()
+              : String(data.dispute_summary || "").match(/\[Case Access PIN:\s*([A-Za-z0-9]+)\]/i)?.[1]?.trim() || "";
             if (storedPin && entered === storedPin) {
               setIsUnlocked(true);
               setPinInput(entered);
@@ -70,9 +82,9 @@ function DocketTracker() {
     if (!caseData) return;
 
     const entered = pinInput.trim();
-    const storedPin = caseData.access_code ? String(caseData.access_code).trim() : "";
+    const storedPin = getCasePin(caseData);
 
-    // Allow unlock if PIN matches stored access_code, or fallback PIN 090909 for testing
+    // Allow unlock if PIN matches stored access_code, embedded PIN tag, or fallback PIN 090909
     if (storedPin && entered === storedPin) {
       setIsUnlocked(true);
       setPinError("");

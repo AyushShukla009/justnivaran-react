@@ -72,6 +72,16 @@ function AdminDashboard() {
   const [isSavingHearing, setIsSavingHearing] = useState(false);
   const [liveAlert, setLiveAlert] = useState(null);
 
+  const getCasePin = (c) => {
+    if (!c) return "090909";
+    if (c.access_code && String(c.access_code).trim()) return String(c.access_code).trim();
+    if (c.dispute_summary) {
+      const match = String(c.dispute_summary).match(/\[Case Access PIN:\s*([A-Za-z0-9]+)\]/i);
+      if (match && match[1]) return match[1].trim();
+    }
+    return "090909";
+  };
+
   const playRegistryChime = () => {
     try {
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -1339,7 +1349,7 @@ function AdminDashboard() {
                               }}
                               title="6-digit Confidential Case Access PIN"
                             >
-                              🔑 PIN: {d.access_code || "090909"}
+                              🔑 PIN: {getCasePin(d)}
                             </span>
                           </div>
                         </td>
@@ -1422,7 +1432,7 @@ function AdminDashboard() {
                               className="admin-action-btn"
                               href={getWhatsAppUrl(
                                 d.claimant_phone || "",
-                                `Hello ${d.claimant_name}, this is JustNivaran ODR Registry regarding your case docket ${d.docket_number}.\n\n🔑 Case Access PIN: ${d.access_code || "090909"}\nStatus: ${d.status}\n\n👉 1-Click Auto-Unlock Tracking Link:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(d.docket_number)}&pin=${encodeURIComponent(d.access_code || "090909")}#tracker`
+                                `Hello ${d.claimant_name}, this is JustNivaran ODR Registry regarding your case docket ${d.docket_number}.\n\n🔑 Case Access PIN: ${getCasePin(d)}\nStatus: ${d.status}\n\n👉 1-Click Auto-Unlock Tracking Link:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(d.docket_number)}&pin=${encodeURIComponent(getCasePin(d))}#tracker`
                               )}
                               target="_blank"
                               rel="noreferrer"
@@ -1446,7 +1456,7 @@ function AdminDashboard() {
                             {d.claimant_email && (
                               <a
                                 className="admin-action-btn"
-                                href={`mailto:${encodeURIComponent(d.claimant_email)}?subject=${encodeURIComponent(`[JustNivaran Registry] Case Notice Update - Docket ${d.docket_number} (${d.status})`)}&body=${encodeURIComponent(`Dear ${d.claimant_name},\n\nThis is an official communication from the JustNivaran Online Dispute Resolution (ODR) Registry regarding your case filing:\n\n• Docket Number: ${d.docket_number}\n• Confidential Case Access PIN: ${d.access_code || "090909"}\n• Case Status: ${d.status}\n• Claimant: ${d.claimant_name}\n• Respondent: ${d.respondent_name}\n• Disputed Claim: ₹ ${Number(d.claim_amount || 0).toLocaleString("en-IN")}\n• Resolution Mode: ${d.mode}\n\n👉 Click here to directly open and auto-unlock your confidential case dossier:\nhttps://justnivaran-odr.vercel.app/?docket=${d.docket_number}&pin=${d.access_code || "090909"}#tracker\n\nPlease feel free to reply directly to this email or contact registry@justnivaran.in for any assistance.\n\nSincerely,\nRegistrar Office\nJustNivaran ODR Centre\nNew Delhi, India`)}`}
+                                href={`mailto:${encodeURIComponent(d.claimant_email)}?subject=${encodeURIComponent(`[JustNivaran Registry] Case Notice Update - Docket ${d.docket_number} (${d.status})`)}&body=${encodeURIComponent(`Dear ${d.claimant_name},\n\nThis is an official communication from the JustNivaran Online Dispute Resolution (ODR) Registry regarding your case filing:\n\n• Docket Number: ${d.docket_number}\n• Confidential Case Access PIN: ${getCasePin(d)}\n• Case Status: ${d.status}\n• Claimant: ${d.claimant_name}\n• Respondent: ${d.respondent_name}\n• Disputed Claim: ₹ ${Number(d.claim_amount || 0).toLocaleString("en-IN")}\n• Resolution Mode: ${d.mode}\n\n👉 Click here to directly open and auto-unlock your confidential case dossier:\nhttps://justnivaran-odr.vercel.app/?docket=${d.docket_number}&pin=${getCasePin(d)}#tracker\n\nPlease feel free to reply directly to this email or contact registry@justnivaran.in for any assistance.\n\nSincerely,\nRegistrar Office\nJustNivaran ODR Centre\nNew Delhi, India`)}`}
                                 style={{
                                   background: "#1E3A8A",
                                   color: "#ffffff",
@@ -1956,7 +1966,7 @@ function AdminDashboard() {
                     }}
                     title="Confidential 6-digit Case Access PIN for tracking"
                   >
-                    🔑 PIN: {selectedCase.access_code || "090909"}
+                    🔑 PIN: {getCasePin(selectedCase)}
                   </span>
                 </div>
               </div>
@@ -2023,7 +2033,7 @@ function AdminDashboard() {
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "4px", flexWrap: "wrap" }}>
                     <span style={{ fontSize: "22px", fontFamily: "var(--mono)", fontWeight: 700, color: "var(--ink)", letterSpacing: "3px" }}>
-                      {selectedCase.access_code || "090909"}
+                      {getCasePin(selectedCase)}
                     </span>
                     <span style={{ fontSize: "12px", color: "#4A5E78" }}>
                       Provide this 6-digit PIN to Claimant / Respondent if requested to unlock confidential tracking.
@@ -2034,7 +2044,7 @@ function AdminDashboard() {
                   <button
                     type="button"
                     onClick={() => {
-                      navigator.clipboard.writeText(selectedCase.access_code || "090909");
+                      navigator.clipboard.writeText(getCasePin(selectedCase));
                       setCopyPinToast(true);
                       setTimeout(() => setCopyPinToast(false), 2500);
                     }}
@@ -2057,7 +2067,7 @@ function AdminDashboard() {
                   <button
                     type="button"
                     onClick={() => {
-                      const link = `https://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(selectedCase.docket_number)}&pin=${encodeURIComponent(selectedCase.access_code || "090909")}#tracker`;
+                      const link = `https://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(selectedCase.docket_number)}&pin=${encodeURIComponent(getCasePin(selectedCase))}#tracker`;
                       navigator.clipboard.writeText(link);
                       setCopyPinToast(true);
                       setTimeout(() => setCopyPinToast(false), 2500);
