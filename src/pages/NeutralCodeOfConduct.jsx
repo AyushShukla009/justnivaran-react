@@ -40,7 +40,7 @@ function NeutralCodeOfConduct({ onOpenEmpanelmentModal }) {
         </div>
 
         <div style={{ background: "#f8fafc", padding: "16px 20px", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "12.5px", color: "var(--slate)" }}>
-          <strong>Neutral Code of Conduct:</strong> Version 2.4 &bull; Effective Date: 01 September 2026 &bull; Published by JustNivaran Dispute Resolution Technologies Pvt. Ltd. (CIN: U74999DL2026PTC001234), Level 4, Barakhamba Road, Connaught Place, New Delhi – 110001, India.
+          <strong>Neutral Code of Conduct:</strong> Version 2.4 &bull; Effective Date: 01 September 2026 &bull; Published by JustNivaran Private Limited (CIN: U62020DC2026PTC473641), New Delhi, India.
         </div>
       </section>
 

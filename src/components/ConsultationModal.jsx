@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase";
 
 function ConsultationModal({ isOpen, onClose }) {
+  const modalRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -15,6 +16,49 @@ function ConsultationModal({ isOpen, onClose }) {
     format: "Video Conference",
     notes: ""
   });
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const prevActive = document.activeElement;
+    if (modalRef.current) {
+      const focusables = modalRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusables.length > 0) {
+        focusables[0].focus();
+      }
+    }
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "Tab" && modalRef.current) {
+        const focusables = modalRef.current.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      if (prevActive && typeof prevActive.focus === "function") {
+        prevActive.focus();
+      }
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -120,7 +164,7 @@ function ConsultationModal({ isOpen, onClose }) {
       aria-modal="true"
       aria-labelledby="consultation-modal-title"
     >
-      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+      <div ref={modalRef} className="modal-card" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
             <span className="modal-subtitle">Registry Appointment</span>

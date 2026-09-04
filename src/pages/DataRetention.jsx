@@ -64,14 +64,14 @@ function DataRetention() {
           </p>
           <p style={{ marginTop: "8px", background: "#f8fafc", padding: "16px 20px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
             <strong>Registrar &amp; Legal Compliance Office</strong><br />
-            JustNivaran Dispute Resolution Technologies Pvt. Ltd. (CIN: U74999DL2026PTC001234)<br />
-            Level 4, Barakhamba Road, Connaught Place, New Delhi – 110001, India<br />
+            JustNivaran Private Limited (CIN: U62020DC2026PTC473641)<br />
+            New Delhi – 110001, India<br />
             Email: <a href="mailto:grievance@justnivaran.in" style={{ color: "var(--navy)", fontWeight: 600 }}>grievance@justnivaran.in</a> &bull; Telephone: <a href="tel:+911149876500" style={{ color: "var(--navy)", fontWeight: 600 }}>+91 11 4987 6500</a>
           </p>
         </div>
 
         <div style={{ fontSize: "12px", color: "var(--slate)", borderTop: "1px solid var(--line)", paddingTop: "14px" }}>
-          <strong>Data Retention Policy:</strong> Version 2.4 &bull; Effective Date: 01 September 2026 &bull; Published by JustNivaran Dispute Resolution Technologies Pvt. Ltd., New Delhi, India.
+          <strong>Data Retention Policy:</strong> Version 2.4 &bull; Effective Date: 01 September 2026 &bull; Published by JustNivaran Private Limited (CIN: U62020DC2026PTC473641), New Delhi, India.
         </div>
       </section>
     </main>

@@ -22,6 +22,9 @@ function DocketTracker() {
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   const [copiedToast, setCopiedToast] = useState("");
 
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockoutUntil, setLockoutUntil] = useState(0);
+
   const getCasePin = (c) => {
     if (!c) return "090909";
     if (c.access_code && String(c.access_code).trim()) return String(c.access_code).trim();
@@ -62,9 +65,11 @@ function DocketTracker() {
             if (storedPin && entered === storedPin) {
               setIsUnlocked(true);
               setPinInput(entered);
+              setFailedAttempts(0);
             } else if (entered === "090909" || entered === "123456") {
               setIsUnlocked(true);
               setPinInput(entered);
+              setFailedAttempts(0);
             }
           }
         }
@@ -81,6 +86,12 @@ function DocketTracker() {
     e.preventDefault();
     if (!caseData) return;
 
+    if (Date.now() < lockoutUntil) {
+      const remainingSec = Math.ceil((lockoutUntil - Date.now()) / 1000);
+      setPinError(`Access temporarily locked due to excessive failed attempts. Please retry in ${remainingSec} seconds.`);
+      return;
+    }
+
     const entered = pinInput.trim();
     const storedPin = getCasePin(caseData);
 
@@ -88,11 +99,20 @@ function DocketTracker() {
     if (storedPin && entered === storedPin) {
       setIsUnlocked(true);
       setPinError("");
+      setFailedAttempts(0);
     } else if (entered === "090909" || entered === "123456") {
       setIsUnlocked(true);
       setPinError("");
+      setFailedAttempts(0);
     } else {
-      setPinError("Invalid Case Access PIN. Please enter the 6-digit PIN issued at case registration.");
+      const nextAttempts = failedAttempts + 1;
+      setFailedAttempts(nextAttempts);
+      if (nextAttempts >= 5) {
+        setLockoutUntil(Date.now() + 300000); // 5 min lockout
+        setPinError("Security lockout: 5 consecutive incorrect PIN attempts. Tracking locked for 5 minutes.");
+      } else {
+        setPinError(`Invalid Case Access PIN. Authentication failed (${5 - nextAttempts} attempts remaining).`);
+      }
     }
   };
 
@@ -350,9 +370,14 @@ function DocketTracker() {
         <form onSubmit={(e) => { e.preventDefault(); executeSearch(docketInput); }} style={{ maxWidth: "640px", marginBottom: "32px" }}>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
             <div style={{ position: "relative", flex: "1 1 280px" }}>
+              <label htmlFor="docket-search-input" style={{ position: "absolute", width: "1px", height: "1px", padding: 0, margin: "-1px", overflow: "hidden", clip: "rect(0,0,0,0)", border: 0 }}>
+                Case Docket Number
+              </label>
               <input
+                id="docket-search-input"
                 type="text"
                 placeholder="Enter Docket (e.g. JN/ARB/2026/3207)..."
+                aria-label="Enter Case Docket Number"
                 value={docketInput}
                 onChange={handleInputChange}
                 style={{
@@ -371,6 +396,7 @@ function DocketTracker() {
                 <button
                   type="button"
                   onClick={handleClear}
+                  aria-label="Clear docket search"
                   style={{
                     position: "absolute",
                     right: "12px",

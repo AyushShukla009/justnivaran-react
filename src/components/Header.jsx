@@ -80,7 +80,7 @@ function Header({ onOpenFileModal }) {
             <span>LIVE ODR REGISTRY &bull; NEW DELHI SEAT &bull; <LiveClock /></span>
           </div>
           <div className="ticker-item">
-            <span>⚖️ MEDIATION ACT 2023 COMPLIANT</span>
+            <span>⚖️ STATUTORY MEDIATION &amp; ARBITRATION FRAMEWORK</span>
           </div>
           <div className="ticker-item">
             <span>📜 180-DAY FAST-TRACK ARBITRATION (S. 29B)</span>
@@ -96,7 +96,7 @@ function Header({ onOpenFileModal }) {
             <span>LIVE ODR REGISTRY &bull; NEW DELHI SEAT &bull; <LiveClock /></span>
           </div>
           <div className="ticker-item">
-            <span>⚖️ MEDIATION ACT 2023 COMPLIANT</span>
+            <span>⚖️ STATUTORY MEDIATION &amp; ARBITRATION FRAMEWORK</span>
           </div>
           <div className="ticker-item">
             <span>📜 180-DAY FAST-TRACK ARBITRATION (S. 29B)</span>

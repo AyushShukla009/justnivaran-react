@@ -55,7 +55,7 @@ function Hero({ onOpenFileModal }) {
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--ink)", fontWeight: 500 }}>
               <span style={{ fontSize: "15px" }}>⚖️</span>
-              <span>Mediation Act, 2023 Compliant</span>
+              <span>Mediation Act, 2023 Framework</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--ink)", fontWeight: 500 }}>
               <span style={{ fontSize: "15px" }}>📜</span>
@@ -87,7 +87,7 @@ function Hero({ onOpenFileModal }) {
             </div>
             <div>
               <dt>ARBITRAL AWARDS</dt>
-              <dd>S. 36 Enforceable <span style={{ fontSize: "11px", color: "var(--slate)", display: "block", fontWeight: 400 }}>Civil Court Decree</span></dd>
+              <dd>Enforceable under S. 36 <span style={{ fontSize: "11px", color: "var(--slate)", display: "block", fontWeight: 400 }}>Subject to applicable challenge/stay</span></dd>
             </div>
           </dl>
 

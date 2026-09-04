@@ -118,14 +118,24 @@ function SEOHead() {
 
   useEffect(() => {
     const pathname = location.pathname;
+    const isKnownRoute = Boolean(ROUTE_SEO[pathname]);
     const config = ROUTE_SEO[pathname] || {
-      title: "JustNivaran — Online Dispute Resolution Centre India",
-      description: "India's institutional Online Dispute Resolution platform for commercial, MSME, and civil disputes.",
-      keywords: "Online Dispute Resolution India, ODR, Arbitration Act 1996, Mediation Act 2023"
+      title: "404 - Page Not Found | JustNivaran ODR",
+      description: "The requested dispute resolution route, statutory rule, or case docket could not be located in the JustNivaran institutional index.",
+      keywords: "404, not found, JustNivaran"
     };
 
     // Update document title
     document.title = config.title;
+
+    // Update or set Robots meta tag (noindex, nofollow for 404s)
+    let robotsMeta = document.querySelector('meta[name="robots"]');
+    if (!robotsMeta) {
+      robotsMeta = document.createElement("meta");
+      robotsMeta.name = "robots";
+      document.head.appendChild(robotsMeta);
+    }
+    robotsMeta.content = isKnownRoute ? "index, follow" : "noindex, nofollow";
 
     // Update or set Meta Description
     let metaDesc = document.querySelector('meta[name="description"]');
@@ -145,14 +155,14 @@ function SEOHead() {
     }
     metaKeywords.content = config.keywords;
 
-    // Update Canonical URL
+    // Update Canonical URL (point to base if 404 to avoid indexing invalid paths)
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement("link");
       canonical.rel = "canonical";
       document.head.appendChild(canonical);
     }
-    canonical.href = `${BASE_URL}${pathname === "/" ? "" : pathname}`;
+    canonical.href = isKnownRoute ? `${BASE_URL}${pathname === "/" ? "" : pathname}` : `${BASE_URL}/`;
 
     // Update Open Graph tags
     const ogTitle = document.querySelector('meta[property="og:title"]');
@@ -162,7 +172,7 @@ function SEOHead() {
     if (ogDesc) ogDesc.content = config.description;
 
     const ogUrl = document.querySelector('meta[property="og:url"]');
-    if (ogUrl) ogUrl.content = `${BASE_URL}${pathname === "/" ? "" : pathname}`;
+    if (ogUrl) ogUrl.content = isKnownRoute ? `${BASE_URL}${pathname === "/" ? "" : pathname}` : `${BASE_URL}/`;
 
     // Update Twitter tags
     const twitterTitle = document.querySelector('meta[property="twitter:title"]');

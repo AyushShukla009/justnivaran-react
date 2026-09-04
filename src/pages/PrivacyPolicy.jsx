@@ -91,15 +91,15 @@ function PrivacyPolicy() {
           <h3 style={{ fontSize: "16px", color: "var(--ink)", margin: "0 0 8px" }}>Designated Grievance &amp; Data Protection Officer</h3>
           <p style={{ margin: "0 0 6px", fontSize: "14px", lineHeight: "1.6" }}>
             <strong>Officer:</strong> Adv. Rajeshwar Sharma, Registrar &amp; Legal Compliance Counsel<br />
-            <strong>Entity:</strong> JustNivaran Dispute Resolution Technologies Pvt. Ltd. (CIN: U74999DL2026PTC001234)<br />
+            <strong>Entity:</strong> JustNivaran Private Limited (CIN: U62020DC2026PTC473641)<br />
             <strong>Email:</strong> <a href="mailto:grievance@justnivaran.in" style={{ color: "var(--gold-deep)" }}>grievance@justnivaran.in</a> &bull; <strong>Direct Helpline:</strong> <a href="tel:+911149876500" style={{ color: "var(--gold-deep)" }}>+91 11 4987 6500</a><br />
-            <strong>Notice Address:</strong> Level 4, Barakhamba Road, Connaught Place, New Delhi – 110001, India<br />
+            <strong>Notice Address:</strong> New Delhi – 110001, India<br />
             <strong>Statutory SLA:</strong> Acknowledgment within <strong>24 hours</strong> &bull; Resolution within <strong>15 calendar days</strong> under DPDP Act 2023 &amp; IT Rules 2021.
           </p>
         </div>
 
         <div style={{ fontSize: "12px", color: "var(--slate)", borderTop: "1px solid var(--line)", paddingTop: "14px" }}>
-          <strong>Policy Metadata:</strong> Version 2.4 &bull; Effective Date: 01 September 2026 &bull; Last Updated: 04 September 2026 &bull; Published by JustNivaran Dispute Resolution Technologies Pvt. Ltd.
+          <strong>Policy Metadata:</strong> Version 2.4 &bull; Effective Date: 01 September 2026 &bull; Last Updated: 04 September 2026 &bull; Published by JustNivaran Private Limited (CIN: U62020DC2026PTC473641).
         </div>
       </section>
     </main>

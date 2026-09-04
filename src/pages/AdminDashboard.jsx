@@ -739,6 +739,7 @@ function AdminDashboard() {
                 id="admin-login-email"
                 type="email"
                 required
+                autoComplete="username"
                 placeholder="admin@justnivaran.in"
                 value={adminEmail}
                 onChange={(e) => setAdminEmail(e.target.value)}
@@ -764,6 +765,7 @@ function AdminDashboard() {
                 id="admin-login-password"
                 type="password"
                 required
+                autoComplete="current-password"
                 placeholder="Enter administrator password"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}

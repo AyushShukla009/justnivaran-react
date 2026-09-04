@@ -40,10 +40,10 @@ function Contact({ onOpenConsultationModal, onOpenFileModal }) {
           <h4 style={{ fontSize: "16px", marginBottom: "12px", color: "var(--ink)" }}>Institutional Notice Office</h4>
           <div style={{ fontSize: "13.5px", color: "#3B4E68", display: "grid", gap: "8px", lineHeight: "1.6" }}>
             <div>
-              🏛️ <strong>Entity:</strong> JustNivaran Dispute Resolution Technologies Pvt. Ltd. (CIN: U74999DL2026PTC001234)
+              🏛️ <strong>Entity:</strong> JustNivaran Private Limited (CIN: U62020DC2026PTC473641)
             </div>
             <div>
-              📍 <strong>Registered Office:</strong> Level 4, Barakhamba Road, Connaught Place, New Delhi – 110001, India
+              📍 <strong>Registered Office:</strong> New Delhi – 110001, India
             </div>
             <div>
               👤 <strong>Registrar &amp; Compliance Officer:</strong> Adv. Rajeshwar Sharma

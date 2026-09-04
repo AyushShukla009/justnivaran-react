@@ -33,8 +33,8 @@ function Grievance() {
           </div>
           <div>
             <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>Registered Notice Address</span>
-            <div style={{ fontWeight: 600, color: "var(--ink)", marginTop: "4px" }}>JustNivaran Dispute Resolution Technologies Pvt. Ltd.</div>
-            <div style={{ fontSize: "12px", color: "#4A5E78", marginTop: "2px" }}>Level 4, Barakhamba Road, Connaught Place, New Delhi – 110001, India</div>
+            <div style={{ fontWeight: 600, color: "var(--ink)", marginTop: "4px" }}>JustNivaran Private Limited</div>
+            <div style={{ fontSize: "12px", color: "#4A5E78", marginTop: "2px" }}>New Delhi – 110001, India</div>
           </div>
         </div>
       </div>
@@ -59,7 +59,7 @@ function Grievance() {
         </div>
 
         <div style={{ fontSize: "12px", color: "var(--slate)", borderTop: "1px solid var(--line)", paddingTop: "14px" }}>
-          <strong>Grievance Redressal Policy:</strong> Version 2.4 &bull; Effective Date: 01 September 2026 &bull; Published by JustNivaran Dispute Resolution Technologies Pvt. Ltd. (CIN: U74999DL2026PTC001234), New Delhi, India.
+          <strong>Grievance Redressal Policy:</strong> Version 2.4 &bull; Effective Date: 01 September 2026 &bull; Published by JustNivaran Private Limited (CIN: U62020DC2026PTC473641), New Delhi, India.
         </div>
       </section>
     </main>
