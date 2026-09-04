@@ -126,17 +126,22 @@ function DisputeModal({ isOpen, onClose }) {
           }
         }
 
-        const defaultSummary =
-          (formData.disputeSummary.trim() ||
-            "Dispute submitted via JustNivaran Portal regarding contractual breach / unpaid invoices.") +
-          uploadedFileNotice;
+        let fullSummary =
+          formData.disputeSummary.trim() ||
+          "Dispute submitted via JustNivaran Portal regarding contractual breach / unpaid invoices.";
+        if (uploadedFileNotice) {
+          fullSummary += uploadedFileNotice;
+        }
+        if (!fullSummary.includes(generatedPin)) {
+          fullSummary += `\n[Case Access PIN: ${generatedPin}]`;
+        }
+
         const defaultRelief =
           formData.reliefSought.trim() ||
           `Restitution and settlement of claimed sum ₹ ${Number(formData.claimAmount || 0).toLocaleString("en-IN")}`;
 
-        let currentPayload = {
+        const basePayload = {
           docket_number: generatedDocket,
-          access_code: generatedPin,
           claimant_name: formData.claimantName.trim(),
           claimant_email: formData.claimantEmail.trim(),
           claimant_phone: formData.claimantPhone.trim(),
@@ -145,80 +150,29 @@ function DisputeModal({ isOpen, onClose }) {
           respondent_phone: formData.respondentPhone.trim(),
           claim_amount: Number(formData.claimAmount) || 0,
           mode: formData.mode,
-          dispute_summary: defaultSummary,
+          dispute_summary: fullSummary,
           relief_sought: defaultRelief,
-          evidence_file_path: uploadedStoragePath || null,
           status: "Notice Issued"
         };
 
         let insertError = null;
-        let attempts = 0;
-        const maxAttempts = 6;
 
-        while (attempts < maxAttempts) {
-          attempts++;
-          const res = await supabase.from("disputes").insert([currentPayload]);
-          insertError = res.error;
-
-          if (!insertError) {
-            break; // Insert successful!
+        // Try primary insert with optional extra columns if available in Supabase schema
+        const { error: primaryError } = await supabase.from("disputes").insert([
+          {
+            ...basePayload,
+            access_code: generatedPin,
+            evidence_file_path: uploadedStoragePath || null
           }
+        ]);
 
-          const errMsg = insertError.message || "";
-          console.warn(`Dispute insert attempt ${attempts} encountered schema error:`, errMsg);
-
-          // Detect missing column from PostgreSQL / PostgREST error messages
-          const colMatch =
-            errMsg.match(/Could not find the '([^']+)' column of/i) ||
-            errMsg.match(/column "([^"]+)" of relation/i) ||
-            errMsg.match(/column '([^']+)' does not exist/i) ||
-            errMsg.match(/Could not find column '([^']+)'/i);
-
-          if (colMatch && colMatch[1]) {
-            const missingCol = colMatch[1];
-            console.warn(`Schema cache lacks column '${missingCol}'. Preserving data and adapting payload...`);
-
-            // Preserve vital metadata in dispute_summary before omitting column
-            if (missingCol === "access_code" && !currentPayload.dispute_summary.includes(generatedPin)) {
-              currentPayload.dispute_summary = `${currentPayload.dispute_summary}\n[Case Access PIN: ${generatedPin}]`;
-            }
-            if (missingCol === "evidence_file_path" && (uploadedStoragePath || attachedFile)) {
-              const fileDesc = attachedFile ? `${attachedFile.name} (${(attachedFile.size / (1024 * 1024)).toFixed(2)} MB)` : uploadedStoragePath;
-              if (!currentPayload.dispute_summary.includes(fileDesc)) {
-                currentPayload.dispute_summary = `${currentPayload.dispute_summary}\n[Attached Evidence: ${fileDesc}${uploadedStoragePath ? ` | Storage: ${uploadedStoragePath}` : ""}]`;
-              }
-            }
-            if (missingCol === "relief_sought" && defaultRelief && !currentPayload.dispute_summary.includes(defaultRelief)) {
-              currentPayload.dispute_summary = `${currentPayload.dispute_summary}\n[Relief Sought: ${defaultRelief}]`;
-            }
-            if (missingCol === "mode" && formData.mode && !currentPayload.dispute_summary.includes(formData.mode)) {
-              currentPayload.dispute_summary = `[Mode: ${formData.mode}]\n${currentPayload.dispute_summary}`;
-            }
-
-            delete currentPayload[missingCol];
-            continue;
-          }
-
-          // Generic PostgREST schema cache error fallback
-          if (insertError.code === "PGRST204" || errMsg.toLowerCase().includes("schema cache")) {
-            if ("evidence_file_path" in currentPayload) {
-              if (attachedFile && !currentPayload.dispute_summary.includes(attachedFile.name)) {
-                currentPayload.dispute_summary = `${currentPayload.dispute_summary}\n[Attached Evidence: ${attachedFile.name} (${(attachedFile.size / (1024 * 1024)).toFixed(2)} MB)]`;
-              }
-              delete currentPayload.evidence_file_path;
-              continue;
-            }
-            if ("access_code" in currentPayload) {
-              if (!currentPayload.dispute_summary.includes(generatedPin)) {
-                currentPayload.dispute_summary = `${currentPayload.dispute_summary}\n[Case Access PIN: ${generatedPin}]`;
-              }
-              delete currentPayload.access_code;
-              continue;
-            }
-          }
-
-          // Unrecoverable non-schema error
-          break;
+        if (!primaryError) {
+          insertError = null;
+        } else {
+          console.warn("Primary insert notice, applying guaranteed base payload:", primaryError.message);
+          // Immediate fallback using standard base columns
+          const { error: fallbackError } = await supabase.from("disputes").insert([basePayload]);
+          insertError = fallbackError;
         }
 
         if (insertError) {
