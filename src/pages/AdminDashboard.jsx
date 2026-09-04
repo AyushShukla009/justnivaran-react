@@ -34,8 +34,23 @@ function AdminDashboard() {
   const [authError, setAuthError] = useState("");
   const [authSuccessMsg, setAuthSuccessMsg] = useState("");
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem("justnivaran_admin_session");
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // ignore
+    }
+    return null;
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem("justnivaran_admin_session");
+      return !!saved;
+    } catch {
+      return false;
+    }
+  });
   const [activeTab, setActiveTab] = useState("disputes");
   const [disputes, setDisputes] = useState([]);
   const [neutrals, setNeutrals] = useState([]);
@@ -131,14 +146,20 @@ function AdminDashboard() {
     }
   }, []);
 
-  // Check existing Supabase session on load
+  // Check existing Supabase session or sessionStorage on load
   useEffect(() => {
     let isMounted = true;
+
     if (supabase) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session && isMounted) {
           setCurrentUser(session.user);
           setIsAuthenticated(true);
+          try {
+            sessionStorage.setItem("justnivaran_admin_session", JSON.stringify(session.user));
+          } catch {
+            // ignore
+          }
         }
       });
 
@@ -147,9 +168,17 @@ function AdminDashboard() {
           if (session && isMounted) {
             setCurrentUser(session.user);
             setIsAuthenticated(true);
+            try {
+              sessionStorage.setItem("justnivaran_admin_session", JSON.stringify(session.user));
+            } catch {
+              // ignore
+            }
           } else if (isMounted) {
-            setCurrentUser(null);
-            setIsAuthenticated(false);
+            const saved = sessionStorage.getItem("justnivaran_admin_session");
+            if (!saved) {
+              setCurrentUser(null);
+              setIsAuthenticated(false);
+            }
           }
         }
       );
@@ -187,6 +216,11 @@ function AdminDashboard() {
         if (!error && data?.user) {
           setCurrentUser(data.user);
           setIsAuthenticated(true);
+          try {
+            sessionStorage.setItem("justnivaran_admin_session", JSON.stringify(data.user));
+          } catch {
+            // ignore
+          }
           setAdminPassword("");
           fetchData();
           return;
@@ -194,8 +228,14 @@ function AdminDashboard() {
 
         // Standard registry administrator fallback verification
         if ((email === "admin@justnivaran.in" || email === "admin@justnivaran.com") && (pwd === "Admin@JN2026!" || pwd === "090909" || pwd === "admin123")) {
-          setCurrentUser({ email: "admin@justnivaran.in", role: "authenticated" });
+          const adminObj = { email: "admin@justnivaran.in", role: "authenticated", name: "Registry Administrator" };
+          setCurrentUser(adminObj);
           setIsAuthenticated(true);
+          try {
+            sessionStorage.setItem("justnivaran_admin_session", JSON.stringify(adminObj));
+          } catch {
+            // ignore
+          }
           setAdminPassword("");
           fetchData();
           return;
@@ -211,8 +251,14 @@ function AdminDashboard() {
       console.error("Admin login exception:", err);
       // Fallback for registry administrator
       if ((email === "admin@justnivaran.in" || email === "admin@justnivaran.com") && (pwd === "Admin@JN2026!" || pwd === "090909" || pwd === "admin123")) {
-        setCurrentUser({ email: "admin@justnivaran.in", role: "authenticated" });
+        const adminObj = { email: "admin@justnivaran.in", role: "authenticated", name: "Registry Administrator" };
+        setCurrentUser(adminObj);
         setIsAuthenticated(true);
+        try {
+          sessionStorage.setItem("justnivaran_admin_session", JSON.stringify(adminObj));
+        } catch {
+          // ignore
+        }
         setAdminPassword("");
         fetchData();
         return;
@@ -225,12 +271,14 @@ function AdminDashboard() {
 
   const handleLogout = async () => {
     try {
+      sessionStorage.removeItem("justnivaran_admin_session");
       if (supabase) {
         await supabase.auth.signOut();
       }
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
+      sessionStorage.removeItem("justnivaran_admin_session");
       setIsAuthenticated(false);
       setCurrentUser(null);
       setAdminEmail("");
