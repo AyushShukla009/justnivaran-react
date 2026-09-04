@@ -223,14 +223,13 @@ function ConsultationModal({ isOpen, onClose }) {
               </div>
 
               <div style={{ marginTop: "14px" }}>
-                <label htmlFor="consultation-dpdp-consent" style={{ display: "flex", gap: "8px", alignItems: "flex-start", cursor: "pointer", fontSize: "12px", color: "var(--ink)", lineHeight: "1.4" }}>
+                <label htmlFor="consultation-dpdp-consent" className="modal-checkbox-label">
                   <input
                     id="consultation-dpdp-consent"
                     type="checkbox"
                     required
                     checked={dpdpConsent}
                     onChange={(e) => setDpdpConsent(e.target.checked)}
-                    style={{ marginTop: "2px" }}
                   />
                   <span>
                     I consent to the collection and processing of my contact information strictly for scheduling this case consultation in accordance with the <strong>DPDP Act, 2023</strong>.

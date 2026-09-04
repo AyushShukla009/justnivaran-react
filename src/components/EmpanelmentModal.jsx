@@ -260,7 +260,7 @@ function EmpanelmentModal({ isOpen, onClose }) {
                   borderRadius: "4px"
                 }}
               >
-                <label htmlFor="empanelment-standing" style={{ display: "flex", gap: "8px", alignItems: "flex-start", marginBottom: "8px", cursor: "pointer", fontSize: "12px", color: "var(--ink)", lineHeight: "1.4" }}>
+                <label htmlFor="empanelment-standing" className="modal-checkbox-label">
                   <input
                     id="empanelment-standing"
                     type="checkbox"
@@ -268,14 +268,13 @@ function EmpanelmentModal({ isOpen, onClose }) {
                     required
                     checked={consents.goodStanding}
                     onChange={handleConsentChange}
-                    style={{ marginTop: "2px" }}
                   />
                   <span>
                     I affirm that I am an enrolled advocate / accredited mediator / arbitrator in good standing with no adverse ethical findings.
                   </span>
                 </label>
 
-                <label htmlFor="empanelment-dpdp" style={{ display: "flex", gap: "8px", alignItems: "flex-start", cursor: "pointer", fontSize: "12px", color: "var(--ink)", lineHeight: "1.4" }}>
+                <label htmlFor="empanelment-dpdp" className="modal-checkbox-label" style={{ marginBottom: 0 }}>
                   <input
                     id="empanelment-dpdp"
                     type="checkbox"
@@ -283,7 +282,6 @@ function EmpanelmentModal({ isOpen, onClose }) {
                     required
                     checked={consents.dpdpConsent}
                     onChange={handleConsentChange}
-                    style={{ marginTop: "2px" }}
                   />
                   <span>
                     I consent to the verification and processing of my credentials for institutional empanelment under the <strong>DPDP Act, 2023</strong>.

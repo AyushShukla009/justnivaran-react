@@ -489,7 +489,7 @@ function DisputeModal({ isOpen, onClose }) {
                   📜 Statutory Declarations &amp; DPDP Consent
                 </div>
 
-                <label htmlFor="dispute-truth-consent" style={{ display: "flex", gap: "10px", alignItems: "flex-start", marginBottom: "10px", cursor: "pointer", fontSize: "12px", color: "var(--ink)", lineHeight: "1.4" }}>
+                <label htmlFor="dispute-truth-consent" className="modal-checkbox-label">
                   <input
                     id="dispute-truth-consent"
                     type="checkbox"
@@ -497,14 +497,13 @@ function DisputeModal({ isOpen, onClose }) {
                     required
                     checked={consents.truthAndAuthority}
                     onChange={handleConsentChange}
-                    style={{ marginTop: "2px" }}
                   />
                   <span>
                     I declare under Indian law that the statements of claim made herein are true and accurate to the best of my knowledge, and I possess verified authority to file this matter.
                   </span>
                 </label>
 
-                <label htmlFor="dispute-dpdp-consent" style={{ display: "flex", gap: "10px", alignItems: "flex-start", marginBottom: "10px", cursor: "pointer", fontSize: "12px", color: "var(--ink)", lineHeight: "1.4" }}>
+                <label htmlFor="dispute-dpdp-consent" className="modal-checkbox-label">
                   <input
                     id="dispute-dpdp-consent"
                     type="checkbox"
@@ -512,14 +511,13 @@ function DisputeModal({ isOpen, onClose }) {
                     required
                     checked={consents.dpdpConsent}
                     onChange={handleConsentChange}
-                    style={{ marginTop: "2px" }}
                   />
                   <span>
                     I explicitly consent to the collection, processing, and encrypted storage of personal and case data strictly in accordance with the <strong>Digital Personal Data Protection (DPDP) Act, 2023</strong> and JustNivaran Dispute Resolution Rules.
                   </span>
                 </label>
 
-                <label htmlFor="dispute-service-consent" style={{ display: "flex", gap: "10px", alignItems: "flex-start", cursor: "pointer", fontSize: "12px", color: "var(--ink)", lineHeight: "1.4" }}>
+                <label htmlFor="dispute-service-consent" className="modal-checkbox-label" style={{ marginBottom: 0 }}>
                   <input
                     id="dispute-service-consent"
                     type="checkbox"
@@ -527,7 +525,6 @@ function DisputeModal({ isOpen, onClose }) {
                     required
                     checked={consents.electronicService}
                     onChange={handleConsentChange}
-                    style={{ marginTop: "2px" }}
                   />
                   <span>
                     I consent to electronic transmission and service of all institutional notices, procedural orders, and pleadings via registered Email, WhatsApp, and SMS.

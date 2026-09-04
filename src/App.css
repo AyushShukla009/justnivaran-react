@@ -1226,7 +1226,7 @@ footer a:hover {
   }
 }
 
-.modal-body label {
+.modal-body label:not(.modal-checkbox-label) {
   display: block;
   font-family: var(--mono);
   font-size: 10.5px;
@@ -1235,7 +1235,7 @@ footer a:hover {
   margin-bottom: 5px;
 }
 
-.modal-body input,
+.modal-body input:not([type="checkbox"]):not([type="radio"]),
 .modal-body select,
 .modal-body textarea {
   width: 100%;
@@ -1250,12 +1250,51 @@ footer a:hover {
   transition: all .2s ease;
 }
 
-.modal-body input:focus,
+.modal-body input:not([type="checkbox"]):not([type="radio"]):focus,
 .modal-body select:focus,
 .modal-body textarea:focus {
   outline: 2px solid var(--gold);
   background: #fff;
   box-shadow: 0 0 0 4px rgba(209, 154, 52, .12);
+}
+
+.modal-body input[type="checkbox"],
+.modal-body input[type="radio"] {
+  width: 16px !important;
+  min-width: 16px !important;
+  height: 16px !important;
+  margin: 2px 0 0 0 !important;
+  padding: 0 !important;
+  flex: 0 0 16px !important;
+  accent-color: var(--gold);
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.modal-checkbox-label {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+  font-family: var(--sans) !important;
+  font-size: 12px !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  color: var(--ink) !important;
+  line-height: 1.45 !important;
+  cursor: pointer !important;
+  margin-bottom: 10px !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+.modal-checkbox-label span {
+  flex: 1 1 auto !important;
+  font-family: var(--sans) !important;
+  font-size: 12px !important;
+  color: var(--ink) !important;
+  line-height: 1.45 !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
 }
 
 .modal-actions {
