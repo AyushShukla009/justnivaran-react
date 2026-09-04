@@ -43,23 +43,46 @@ function EmpanelmentModal({ isOpen, onClose }) {
 
     try {
       if (supabase) {
-        const { error } = await supabase.from("neutrals").insert([
-          {
-            full_name: formData.fullName.trim(),
-            email: formData.email.trim(),
-            phone: formData.phone.trim(),
-            role: formData.role,
-            bar_council_id: formData.barCouncilId.trim(),
-            experience_years: Number(formData.experienceYears) || 0,
-            specialization: formData.specialization.trim(),
-            languages: formData.languages.trim(),
-            status: "Under Review"
-          }
-        ]);
+        let currentPayload = {
+          full_name: formData.fullName.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          role: formData.role,
+          bar_council_id: formData.barCouncilId.trim(),
+          experience_years: Number(formData.experienceYears) || 0,
+          specialization: formData.specialization.trim(),
+          languages: formData.languages.trim(),
+          status: "Under Review"
+        };
 
-        if (error) {
-          console.error("Empanelment submission error:", error.message);
-          setErrorMessage(`Application submission failed: ${error.message}. Please try again.`);
+        let insertError = null;
+        let attempts = 0;
+        const maxAttempts = 5;
+
+        while (attempts < maxAttempts) {
+          attempts++;
+          const res = await supabase.from("neutrals").insert([currentPayload]);
+          insertError = res.error;
+          if (!insertError) break;
+
+          const errMsg = insertError.message || "";
+          const colMatch =
+            errMsg.match(/Could not find the '([^']+)' column of/i) ||
+            errMsg.match(/column "([^"]+)" of relation/i) ||
+            errMsg.match(/column '([^']+)' does not exist/i) ||
+            errMsg.match(/Could not find column '([^']+)'/i);
+
+          if (colMatch && colMatch[1]) {
+            const missingCol = colMatch[1];
+            delete currentPayload[missingCol];
+            continue;
+          }
+          break;
+        }
+
+        if (insertError) {
+          console.error("Empanelment submission error:", insertError.message);
+          setErrorMessage(`Application submission failed: ${insertError.message}. Please try again.`);
           setIsSubmitting(false);
           return;
         }

@@ -601,7 +601,7 @@ function DocketTracker() {
                   <button
                     type="button"
                     onClick={() => {
-                      const link = `https://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(caseData.docket_number)}&pin=${encodeURIComponent(caseData.access_code || pinInput || "090909")}#tracker`;
+                      const link = `https://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(caseData.docket_number)}&pin=${encodeURIComponent(getCasePin(caseData) || pinInput || "090909")}#tracker`;
                       navigator.clipboard.writeText(link);
                       setCopiedToast("✓ 1-Click Auto-Unlock Link Copied!");
                       setTimeout(() => setCopiedToast(""), 3000);

@@ -35,22 +35,51 @@ function ConsultationModal({ isOpen, onClose }) {
 
     try {
       if (supabase) {
-        const { error } = await supabase.from("consultations").insert([
-          {
-            name: formData.name.trim(),
-            email: formData.email.trim(),
-            phone: formData.phone.trim(),
-            preferred_date: formData.preferredDate || new Date().toISOString().split("T")[0],
-            preferred_time: formData.preferredTime,
-            format: formData.format,
-            notes: formData.notes.trim(),
-            status: "Pending Verification"
-          }
-        ]);
+        let currentPayload = {
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          preferred_date: formData.preferredDate || new Date().toISOString().split("T")[0],
+          preferred_time: formData.preferredTime,
+          format: formData.format,
+          notes: formData.notes.trim(),
+          status: "Pending Verification"
+        };
 
-        if (error) {
-          console.error("Consultation submission error:", error.message);
-          setErrorMessage(`Appointment request failed: ${error.message}. Please try again.`);
+        let insertError = null;
+        let attempts = 0;
+        const maxAttempts = 5;
+
+        while (attempts < maxAttempts) {
+          attempts++;
+          const res = await supabase.from("consultations").insert([currentPayload]);
+          insertError = res.error;
+          if (!insertError) break;
+
+          const errMsg = insertError.message || "";
+          const colMatch =
+            errMsg.match(/Could not find the '([^']+)' column of/i) ||
+            errMsg.match(/column "([^"]+)" of relation/i) ||
+            errMsg.match(/column '([^']+)' does not exist/i) ||
+            errMsg.match(/Could not find column '([^']+)'/i);
+
+          if (colMatch && colMatch[1]) {
+            const missingCol = colMatch[1];
+            if (missingCol === "format" && formData.format) {
+              currentPayload.notes = `[Format: ${formData.format}] ${currentPayload.notes || ""}`.trim();
+            }
+            if (missingCol === "preferred_time" && formData.preferredTime) {
+              currentPayload.notes = `[Time: ${formData.preferredTime}] ${currentPayload.notes || ""}`.trim();
+            }
+            delete currentPayload[missingCol];
+            continue;
+          }
+          break;
+        }
+
+        if (insertError) {
+          console.error("Consultation submission error:", insertError.message);
+          setErrorMessage(`Appointment request failed: ${insertError.message}. Please try again.`);
           setIsSubmitting(false);
           return;
         }
