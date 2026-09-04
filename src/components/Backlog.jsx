@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from "react";
 
 function Backlog() {
   const [isVisible, setIsVisible] = useState(false);
-  const [countCr, setCountCr] = useState(5);
-  const [count12, setCount12] = useState(12);
-  const [count6, setCount6] = useState(6);
+  const [countCr, setCountCr] = useState(1);
+  const [count12, setCount12] = useState(1);
+  const [count6, setCount6] = useState(1);
   const sectionRef = useRef(null);
 
   useEffect(() => {
@@ -12,6 +12,7 @@ function Backlog() {
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
+          observer.disconnect(); // Fire only once per visit
         }
       },
       { threshold: 0.2 }
@@ -27,7 +28,17 @@ function Backlog() {
   useEffect(() => {
     if (!isVisible) return;
 
-    const duration = 1000;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      const t = setTimeout(() => {
+        setCountCr(5);
+        setCount12(12);
+        setCount6(6);
+      }, 0);
+      return () => clearTimeout(t);
+    }
+
+    const duration = 900;
     const stepTime = 30;
     const totalSteps = duration / stepTime;
 

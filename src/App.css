@@ -1589,6 +1589,143 @@ footer a:hover {
   }
 }
 
+/* ==========================================================================
+   Restricted 3D Card Tilt & Institutional Visual Styles
+   ========================================================================== */
+.tilt-card {
+  perspective: 900px;
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, border-color 0.25s ease;
+  transform: perspective(900px) rotateX(var(--tilt-rx, 0deg)) rotateY(var(--tilt-ry, 0deg)) translateZ(var(--tilt-tz, 0px)) scale(var(--tilt-scale, 1));
+  position: relative;
+  overflow: hidden;
+}
+
+.tilt-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at var(--glare-x, 50%) var(--glare-y, 50%),
+    rgba(209, 154, 52, 0.16),
+    transparent 65%
+  );
+  opacity: var(--glare-opacity, 0);
+  transition: opacity 0.25s ease;
+  mix-blend-mode: overlay;
+  z-index: 5;
+}
+
+@media (hover: none), (max-width: 768px) {
+  .tilt-card {
+    transform: none !important;
+    perspective: none !important;
+  }
+  .tilt-card::after {
+    display: none !important;
+  }
+}
+
+/* ---------- Lightweight 3D Justice Emblem ---------- */
+.justice-emblem-graphic {
+  position: relative;
+  animation: emblemIdleFloat 10s infinite ease-in-out;
+  transform-origin: center center;
+}
+
+@keyframes emblemIdleFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(1.5deg);
+  }
+}
+
+.emblem-orbit-outer {
+  animation: emblemOuterOrbit 24s linear infinite;
+  transform-origin: 120px 100px;
+}
+
+.emblem-orbit-inner {
+  animation: emblemInnerOrbit 18s ease-in-out infinite alternate;
+  transform-origin: 120px 100px;
+}
+
+@keyframes emblemOuterOrbit {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes emblemInnerOrbit {
+  0% {
+    transform: rotate(-15deg);
+  }
+  100% {
+    transform: rotate(-5deg);
+  }
+}
+
+/* ---------- Case Journey Progressive Process ---------- */
+.process-journey-wrap {
+  position: relative;
+}
+
+.process-track-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--gold), #e0b462, var(--gold));
+  z-index: 3;
+  transition: width 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 8px rgba(209, 154, 52, 0.5);
+}
+
+.process-track-line.animated {
+  width: 100%;
+}
+
+.process-cell {
+  opacity: 0.9;
+  transform: translateY(0);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, border-color 0.2s ease, background-color 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.process-cell.revealed {
+  animation: processCellFade 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes processCellFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.process-cell:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 8px 20px rgba(18, 41, 74, 0.08);
+  border-color: rgba(209, 154, 52, 0.4);
+}
+
+.process-cell.active-stage {
+  border-color: var(--gold) !important;
+  background: #ffffff !important;
+}
+
 /* Accessible Reduced Motion Mode */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -1598,5 +1735,21 @@ footer a:hover {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  .tilt-card {
+    transform: none !important;
+    perspective: none !important;
+  }
+  .tilt-card::after {
+    display: none !important;
+  }
+  .justice-emblem-graphic,
+  .emblem-orbit-outer,
+  .emblem-orbit-inner {
+    animation: none !important;
+  }
+  .process-track-line {
+    width: 100% !important;
+    transition: none !important;
   }
 }

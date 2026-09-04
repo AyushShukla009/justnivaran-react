@@ -3,6 +3,7 @@ import Backlog from "../components/Backlog";
 import Process from "../components/Process";
 import ADRVisualizer from "../components/ADRVisualizer";
 import Platform from "../components/Platform";
+import InstitutionalVision from "../components/InstitutionalVision";
 import Confidentiality from "../components/Confidentiality";
 import CostCalculator from "../components/CostCalculator";
 import Neutrals from "../components/Neutrals";
@@ -29,7 +30,10 @@ function Home({ onOpenFileModal, onOpenEmpanelmentModal, onOpenConsultationModal
       {/* 5. 03 Platform (Dark Luxury Capabilities) */}
       <Platform />
 
-      {/* 6. 04 Confidentiality (Closed Room Rebuilt Online) */}
+      {/* 6. Institutional Vision (Structured ODR Environment & Trust Pillars) */}
+      <InstitutionalVision onOpenFileModal={onOpenFileModal} />
+
+      {/* 7. 04 Confidentiality (Closed Room Rebuilt Online) */}
       <Confidentiality />
 
       {/* 7. Cost Schedule / Dispute Cost Comparison */}

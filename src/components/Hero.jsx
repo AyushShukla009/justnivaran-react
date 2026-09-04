@@ -1,5 +1,6 @@
 import { useState } from "react";
 import paths from "../data/paths";
+import JusticeConstellation from "./JusticeConstellation";
 
 function Hero({ onOpenFileModal }) {
   const [activeKey, setActiveKey] = useState("NEG");
@@ -16,6 +17,7 @@ function Hero({ onOpenFileModal }) {
 
   return (
     <section className="hero">
+      <JusticeConstellation />
       <div className="wrap hero-grid">
         {/* Left Column: Core Value Proposition & Statutory Trust */}
         <div>
