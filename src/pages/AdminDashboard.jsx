@@ -315,6 +315,36 @@ function AdminDashboard() {
     }
   };
 
+  const handleGenerateNewPin = async (disputeId) => {
+    if (!disputeId) return;
+    const newPin = String(Math.floor(100000 + Math.random() * 900000));
+    try {
+      if (supabase) {
+        const { error } = await supabase
+          .from("disputes")
+          .update({ access_code: newPin })
+          .eq("id", disputeId);
+
+        if (!error) {
+          setDisputes((prev) =>
+            prev.map((d) => (d.id === disputeId ? { ...d, access_code: newPin } : d))
+          );
+          if (selectedCase && selectedCase.id === disputeId) {
+            setSelectedCase((prev) => ({ ...prev, access_code: newPin }));
+          }
+          setCopyPinToast(true);
+          setTimeout(() => setCopyPinToast(false), 3000);
+          alert(`Success: Fresh 6-digit Case Access PIN (${newPin}) generated & saved to database!`);
+        } else {
+          alert("Failed to update PIN in database: " + error.message);
+        }
+      }
+    } catch (err) {
+      console.error("PIN generation error:", err);
+      alert("Error generating PIN: " + err.message);
+    }
+  };
+
   const handleSaveHearing = async () => {
     if (!selectedCase) return;
     setIsSavingHearing(true);
@@ -1344,7 +1374,7 @@ function AdminDashboard() {
                               className="admin-action-btn"
                               href={getWhatsAppUrl(
                                 d.claimant_phone || "",
-                                `Hello ${d.claimant_name}, this is JustNivaran ODR Registry regarding your case docket ${d.docket_number}.\n\n🔑 Case Access PIN: ${d.access_code || "090909"}\nStatus: ${d.status}\n\nTrack your case dossier securely at:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(d.docket_number)}#tracker\n(Enter Docket Number & PIN to unlock full case details)`
+                                `Hello ${d.claimant_name}, this is JustNivaran ODR Registry regarding your case docket ${d.docket_number}.\n\n🔑 Case Access PIN: ${d.access_code || "090909"}\nStatus: ${d.status}\n\n👉 1-Click Auto-Unlock Tracking Link:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(d.docket_number)}&pin=${encodeURIComponent(d.access_code || "090909")}#tracker`
                               )}
                               target="_blank"
                               rel="noreferrer"
@@ -1368,7 +1398,7 @@ function AdminDashboard() {
                             {d.claimant_email && (
                               <a
                                 className="admin-action-btn"
-                                href={`mailto:${encodeURIComponent(d.claimant_email)}?subject=${encodeURIComponent(`[JustNivaran Registry] Case Notice Update - Docket ${d.docket_number} (${d.status})`)}&body=${encodeURIComponent(`Dear ${d.claimant_name},\n\nThis is an official communication from the JustNivaran Online Dispute Resolution (ODR) Registry regarding your case filing:\n\n• Docket Number: ${d.docket_number}\n• Confidential Case Access PIN: ${d.access_code || "090909"}\n• Case Status: ${d.status}\n• Claimant: ${d.claimant_name}\n• Respondent: ${d.respondent_name}\n• Disputed Claim: ₹ ${Number(d.claim_amount || 0).toLocaleString("en-IN")}\n• Resolution Mode: ${d.mode}\n\nYou can track the live proceedings and access confidential case records at:\nhttps://justnivaran-odr.vercel.app/?docket=${d.docket_number}#tracker\n(Use your Docket Number and 6-digit Case Access PIN above to unlock the case)\n\nPlease feel free to reply directly to this email or contact registry@justnivaran.in for any assistance.\n\nSincerely,\nRegistrar Office\nJustNivaran ODR Centre\nNew Delhi, India`)}`}
+                                href={`mailto:${encodeURIComponent(d.claimant_email)}?subject=${encodeURIComponent(`[JustNivaran Registry] Case Notice Update - Docket ${d.docket_number} (${d.status})`)}&body=${encodeURIComponent(`Dear ${d.claimant_name},\n\nThis is an official communication from the JustNivaran Online Dispute Resolution (ODR) Registry regarding your case filing:\n\n• Docket Number: ${d.docket_number}\n• Confidential Case Access PIN: ${d.access_code || "090909"}\n• Case Status: ${d.status}\n• Claimant: ${d.claimant_name}\n• Respondent: ${d.respondent_name}\n• Disputed Claim: ₹ ${Number(d.claim_amount || 0).toLocaleString("en-IN")}\n• Resolution Mode: ${d.mode}\n\n👉 Click here to directly open and auto-unlock your confidential case dossier:\nhttps://justnivaran-odr.vercel.app/?docket=${d.docket_number}&pin=${d.access_code || "090909"}#tracker\n\nPlease feel free to reply directly to this email or contact registry@justnivaran.in for any assistance.\n\nSincerely,\nRegistrar Office\nJustNivaran ODR Centre\nNew Delhi, India`)}`}
                                 style={{
                                   background: "#1E3A8A",
                                   color: "#ffffff",
@@ -1952,7 +1982,7 @@ function AdminDashboard() {
                     </span>
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: "8px" }}>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                   <button
                     type="button"
                     onClick={() => {
@@ -1965,7 +1995,7 @@ function AdminDashboard() {
                       color: "#ffffff",
                       border: "none",
                       borderRadius: "4px",
-                      padding: "7px 14px",
+                      padding: "7px 12px",
                       fontSize: "11.5px",
                       fontFamily: "var(--mono)",
                       cursor: "pointer",
@@ -1979,11 +2009,31 @@ function AdminDashboard() {
                   <button
                     type="button"
                     onClick={() => {
-                      const link = `https://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(selectedCase.docket_number)}#tracker`;
-                      navigator.clipboard.writeText(`Docket: ${selectedCase.docket_number}\nPIN: ${selectedCase.access_code || "090909"}\nTrack: ${link}`);
+                      const link = `https://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(selectedCase.docket_number)}&pin=${encodeURIComponent(selectedCase.access_code || "090909")}#tracker`;
+                      navigator.clipboard.writeText(link);
                       setCopyPinToast(true);
                       setTimeout(() => setCopyPinToast(false), 2500);
                     }}
+                    style={{
+                      background: "var(--gold)",
+                      color: "#241703",
+                      border: "none",
+                      borderRadius: "4px",
+                      padding: "7px 12px",
+                      fontSize: "11.5px",
+                      fontFamily: "var(--mono)",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px"
+                    }}
+                  >
+                    🔗 Copy 1-Click Magic Link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleGenerateNewPin(selectedCase.id)}
                     style={{
                       background: "#ffffff",
                       color: "var(--ink)",
@@ -1997,8 +2047,9 @@ function AdminDashboard() {
                       alignItems: "center",
                       gap: "4px"
                     }}
+                    title="Generate fresh 6-digit PIN and update database"
                   >
-                    🔗 Copy Link &amp; PIN
+                    ⚡ Generate / Reset PIN
                   </button>
                 </div>
               </div>
@@ -2318,8 +2369,8 @@ function AdminDashboard() {
                     href={getWhatsAppUrl(
                       selectedCase.respondent_phone || selectedCase.claimant_phone || "",
                       selectedCase.hearing_date
-                        ? `JustNivaran Official Statutory Notice - Case Docket ${selectedCase.docket_number}\n\n🔑 Case Access PIN: ${selectedCase.access_code || "090909"}\n• Claimant: ${selectedCase.claimant_name}\n• Respondent: ${selectedCase.respondent_name}\n• Presiding Neutral: ${selectedCase.assigned_neutral || "Registry Sole Arbitrator"}\n• Status: ${selectedCase.status}\n\n📅 SCHEDULED VIRTUAL HEARING:\n• Date: ${selectedCase.hearing_date}\n• Time: ${selectedCase.hearing_time || "11:00 AM IST"}\n• Encrypted Hearing Room: ${selectedCase.hearing_room_url || `https://meet.jit.si/JustNivaran-Hearing-${selectedCase.docket_number.replace(/[^a-zA-Z0-9]/g, "-")}`}\n\nLive Case Dossier: https://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(selectedCase.docket_number)}#tracker\n(Enter Docket Number & Case Access PIN to unlock)`
-                        : `JustNivaran Official ODR Notice - Case Docket ${selectedCase.docket_number}\n\n🔑 Case Access PIN: ${selectedCase.access_code || "090909"}\n• Claimant: ${selectedCase.claimant_name}\n• Respondent: ${selectedCase.respondent_name}\n• Claim Value: ₹${Number(selectedCase.claim_amount || 0).toLocaleString("en-IN")}\n• Status: ${selectedCase.status}\n\nTrack Case Live: https://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(selectedCase.docket_number)}#tracker\n(Enter Docket Number & Case Access PIN to unlock confidential records)`
+                        ? `JustNivaran Official Statutory Notice - Case Docket ${selectedCase.docket_number}\n\n🔑 Case Access PIN: ${selectedCase.access_code || "090909"}\n• Claimant: ${selectedCase.claimant_name}\n• Respondent: ${selectedCase.respondent_name}\n• Presiding Neutral: ${selectedCase.assigned_neutral || "Registry Sole Arbitrator"}\n• Status: ${selectedCase.status}\n\n📅 SCHEDULED VIRTUAL HEARING:\n• Date: ${selectedCase.hearing_date}\n• Time: ${selectedCase.hearing_time || "11:00 AM IST"}\n• Encrypted Hearing Room: ${selectedCase.hearing_room_url || `https://meet.jit.si/JustNivaran-Hearing-${selectedCase.docket_number.replace(/[^a-zA-Z0-9]/g, "-")}`}\n\n👉 1-Click Live Case Dossier:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(selectedCase.docket_number)}&pin=${encodeURIComponent(selectedCase.access_code || "090909")}#tracker`
+                        : `JustNivaran Official ODR Notice - Case Docket ${selectedCase.docket_number}\n\n🔑 Case Access PIN: ${selectedCase.access_code || "090909"}\n• Claimant: ${selectedCase.claimant_name}\n• Respondent: ${selectedCase.respondent_name}\n• Claim Value: ₹${Number(selectedCase.claim_amount || 0).toLocaleString("en-IN")}\n• Status: ${selectedCase.status}\n\n👉 1-Click Auto-Unlock Tracking Link:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(selectedCase.docket_number)}&pin=${encodeURIComponent(selectedCase.access_code || "090909")}#tracker`
                     )}
                     target="_blank"
                     rel="noreferrer"
@@ -2346,8 +2397,8 @@ function AdminDashboard() {
                         `[JustNivaran Registry] ${selectedCase.hearing_date ? "Virtual Hearing Notice" : "Statutory Case Notice"} - Docket ${selectedCase.docket_number} (${selectedCase.status})`
                       )}&body=${encodeURIComponent(
                         selectedCase.hearing_date
-                          ? `Dear Parties / Legal Counsel,\n\nThis is an official hearing notice from the JustNivaran Online Dispute Resolution (ODR) Registry:\n\n• Case Docket Number: ${selectedCase.docket_number}\n• Case Access PIN: ${selectedCase.access_code || "090909"}\n• Status: ${selectedCase.status}\n• Claimant: ${selectedCase.claimant_name}\n• Respondent: ${selectedCase.respondent_name}\n• Presiding Neutral: ${selectedCase.assigned_neutral || "Registry Sole Arbitrator"}\n• Disputed Sum: ₹ ${Number(selectedCase.claim_amount || 0).toLocaleString("en-IN")}\n• Resolution Framework: ${selectedCase.mode}\n\n=========================================\n📅 SCHEDULED VIRTUAL HEARING DETAILS\n=========================================\n• Hearing Date: ${selectedCase.hearing_date}\n• Time Slot: ${selectedCase.hearing_time || "11:00 AM IST"}\n• Virtual Hearing Room: ${selectedCase.hearing_room_url || `https://meet.jit.si/JustNivaran-Hearing-${selectedCase.docket_number.replace(/[^a-zA-Z0-9]/g, "-")}`}\n\nPlease join the virtual hearing room at least 5 minutes prior to the scheduled session time.\n\nYou may view your live case dossier, unlock confidential evidence, and access audit records at:\nhttps://justnivaran-odr.vercel.app/?docket=${selectedCase.docket_number}#tracker\n(Enter Docket Number and Case Access PIN when prompted)\n\nSincerely,\nRegistrar Office\nJustNivaran ODR Centre\nNew Delhi, India`
-                          : `Dear Parties / Legal Counsel,\n\nThis is an official statutory notice from the JustNivaran Online Dispute Resolution (ODR) Registry:\n\n• Case Docket Number: ${selectedCase.docket_number}\n• Case Access PIN: ${selectedCase.access_code || "090909"}\n• Status: ${selectedCase.status}\n• Claimant: ${selectedCase.claimant_name}\n• Respondent: ${selectedCase.respondent_name}\n• Disputed Sum: ₹ ${Number(selectedCase.claim_amount || 0).toLocaleString("en-IN")}\n• Resolution Framework: ${selectedCase.mode}\n\nYou may view your case record and hearing dates securely at:\nhttps://justnivaran-odr.vercel.app/?docket=${selectedCase.docket_number}#tracker\n(Enter Docket Number and Case Access PIN when prompted)\n\nFor any procedural queries, reply directly to this notice or contact registry@justnivaran.in.\n\nSincerely,\nRegistrar Office\nJustNivaran ODR Centre\nNew Delhi, India`
+                          ? `Dear Parties / Legal Counsel,\n\nThis is an official hearing notice from the JustNivaran Online Dispute Resolution (ODR) Registry:\n\n• Case Docket Number: ${selectedCase.docket_number}\n• Case Access PIN: ${selectedCase.access_code || "090909"}\n• Status: ${selectedCase.status}\n• Claimant: ${selectedCase.claimant_name}\n• Respondent: ${selectedCase.respondent_name}\n• Presiding Neutral: ${selectedCase.assigned_neutral || "Registry Sole Arbitrator"}\n• Disputed Sum: ₹ ${Number(selectedCase.claim_amount || 0).toLocaleString("en-IN")}\n• Resolution Framework: ${selectedCase.mode}\n\n=========================================\n📅 SCHEDULED VIRTUAL HEARING DETAILS\n=========================================\n• Hearing Date: ${selectedCase.hearing_date}\n• Time Slot: ${selectedCase.hearing_time || "11:00 AM IST"}\n• Virtual Hearing Room: ${selectedCase.hearing_room_url || `https://meet.jit.si/JustNivaran-Hearing-${selectedCase.docket_number.replace(/[^a-zA-Z0-9]/g, "-")}`}\n\nPlease join the virtual hearing room at least 5 minutes prior to the scheduled session time.\n\n👉 Click here to directly open & auto-unlock your live case dossier:\nhttps://justnivaran-odr.vercel.app/?docket=${selectedCase.docket_number}&pin=${selectedCase.access_code || "090909"}#tracker\n\nSincerely,\nRegistrar Office\nJustNivaran ODR Centre\nNew Delhi, India`
+                          : `Dear Parties / Legal Counsel,\n\nThis is an official statutory notice from the JustNivaran Online Dispute Resolution (ODR) Registry:\n\n• Case Docket Number: ${selectedCase.docket_number}\n• Case Access PIN: ${selectedCase.access_code || "090909"}\n• Status: ${selectedCase.status}\n• Claimant: ${selectedCase.claimant_name}\n• Respondent: ${selectedCase.respondent_name}\n• Disputed Sum: ₹ ${Number(selectedCase.claim_amount || 0).toLocaleString("en-IN")}\n• Resolution Framework: ${selectedCase.mode}\n\n👉 Click here to directly open & auto-unlock your case record:\nhttps://justnivaran-odr.vercel.app/?docket=${selectedCase.docket_number}&pin=${selectedCase.access_code || "090909"}#tracker\n\nFor any procedural queries, reply directly to this notice or contact registry@justnivaran.in.\n\nSincerely,\nRegistrar Office\nJustNivaran ODR Centre\nNew Delhi, India`
                       )}`}
                       style={{
                         background: "#1E3A8A",

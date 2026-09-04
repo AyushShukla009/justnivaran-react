@@ -628,28 +628,76 @@ function DisputeModal({ isOpen, onClose }) {
                 >
                   {accessPin}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(accessPin, "pin")}
-                  style={{
-                    background: "var(--ink)",
-                    color: "#ffffff",
-                    border: "none",
-                    borderRadius: "4px",
-                    padding: "5px 12px",
-                    fontSize: "11.5px",
-                    fontFamily: "var(--mono)",
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "5px",
-                    marginBottom: "6px"
-                  }}
-                >
-                  {copiedPinToast ? "✓ PIN Copied!" : "📋 Copy PIN"}
-                </button>
+                <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap", marginBottom: "8px" }}>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(accessPin, "pin")}
+                    style={{
+                      background: "var(--ink)",
+                      color: "#ffffff",
+                      border: "none",
+                      borderRadius: "4px",
+                      padding: "6px 14px",
+                      fontSize: "11.5px",
+                      fontFamily: "var(--mono)",
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "5px"
+                    }}
+                  >
+                    {copiedPinToast ? "✓ PIN Copied!" : "📋 Copy PIN"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const link = `https://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(docketNumber)}&pin=${encodeURIComponent(accessPin)}#tracker`;
+                      copyToClipboard(link, "link");
+                      setCopiedPinToast(true);
+                      setTimeout(() => setCopiedPinToast(false), 3000);
+                    }}
+                    style={{
+                      background: "#ffffff",
+                      color: "var(--ink)",
+                      border: "1px solid var(--line)",
+                      borderRadius: "4px",
+                      padding: "6px 14px",
+                      fontSize: "11.5px",
+                      fontFamily: "var(--mono)",
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "5px"
+                    }}
+                  >
+                    🔗 Copy 1-Click Magic Link
+                  </button>
+                  <a
+                    href={`/?docket=${encodeURIComponent(docketNumber)}&pin=${encodeURIComponent(accessPin)}#tracker`}
+                    onClick={() => {
+                      onClose();
+                    }}
+                    style={{
+                      background: "var(--gold)",
+                      color: "#241703",
+                      border: "none",
+                      borderRadius: "4px",
+                      padding: "6px 14px",
+                      fontSize: "11.5px",
+                      fontFamily: "var(--mono)",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      textDecoration: "none"
+                    }}
+                  >
+                    🚀 Track Case Live
+                  </a>
+                </div>
                 <div style={{ fontSize: "11.5px", color: "#4A5E78", lineHeight: "1.4" }}>
-                  Save this PIN! You will need both your <strong>Docket Number</strong> and <strong>Case Access PIN</strong> to unlock full confidential case details and virtual hearing rooms in the Public Docket Tracker.
+                  Save this PIN or copy the <strong>1-Click Magic Link</strong>! You can share this direct link with parties or use your PIN on the Public Docket Tracker to instantly auto-unlock confidential case details.
                 </div>
               </div>
 

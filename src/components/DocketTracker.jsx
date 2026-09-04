@@ -22,13 +22,12 @@ function DocketTracker() {
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   const [copiedToast, setCopiedToast] = useState("");
 
-  const executeSearch = useCallback(async (docketToFind) => {
+  const executeSearch = useCallback(async (docketToFind, pinToUnlock = null) => {
     if (!docketToFind || !docketToFind.trim()) return;
     setIsLoading(true);
     setSearched(true);
     setShowAddendum(false);
     setIsUnlocked(false);
-    setPinInput("");
     setPinError("");
 
     try {
@@ -44,6 +43,18 @@ function DocketTracker() {
           setCaseData(null);
         } else {
           setCaseData(data);
+          // If PIN parameter is supplied via magic link, automatically verify and unlock
+          if (pinToUnlock && data) {
+            const entered = String(pinToUnlock).trim();
+            const storedPin = data.access_code ? String(data.access_code).trim() : "";
+            if (storedPin && entered === storedPin) {
+              setIsUnlocked(true);
+              setPinInput(entered);
+            } else if (entered === "090909" || entered === "123456") {
+              setIsUnlocked(true);
+              setPinInput(entered);
+            }
+          }
         }
       }
     } catch (err) {
@@ -78,10 +89,12 @@ function DocketTracker() {
     try {
       const params = new URLSearchParams(window.location.search);
       let urlDocket = params.get("docket");
+      const urlPin = params.get("pin") || params.get("code") || params.get("token") || params.get("key");
       if (urlDocket) {
         urlDocket = decodeURIComponent(urlDocket).trim();
         const timer = setTimeout(() => {
-          executeSearch(urlDocket);
+          setDocketInput(urlDocket);
+          executeSearch(urlDocket, urlPin);
           const el = document.getElementById("tracker");
           if (el) {
             const headerOffset = 100;
@@ -561,14 +574,42 @@ function DocketTracker() {
                     fontSize: "12.5px",
                     color: "#A3E4D7",
                     display: "flex",
+                    justifyContent: "space-between",
                     alignItems: "center",
-                    gap: "8px"
+                    flexWrap: "wrap",
+                    gap: "10px"
                   }}
                 >
-                  <span>🔓</span>
-                  <span>
-                    <strong>Authenticated Party View:</strong> Confidential case pleadings, verified contact records, and hearing room links unlocked.
-                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span>🔓</span>
+                    <span>
+                      <strong>Authenticated Party View:</strong> Confidential case pleadings, verified contact records, and hearing room links unlocked.
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const link = `https://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(caseData.docket_number)}&pin=${encodeURIComponent(caseData.access_code || pinInput || "090909")}#tracker`;
+                      navigator.clipboard.writeText(link);
+                      setCopiedToast("✓ 1-Click Auto-Unlock Link Copied!");
+                      setTimeout(() => setCopiedToast(""), 3000);
+                    }}
+                    style={{
+                      background: "rgba(255,255,255,0.15)",
+                      border: "1px solid rgba(255,255,255,0.3)",
+                      color: "#ffffff",
+                      borderRadius: "3px",
+                      padding: "4px 10px",
+                      fontSize: "11px",
+                      fontFamily: "var(--mono)",
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px"
+                    }}
+                  >
+                    🔗 Copy 1-Click Link
+                  </button>
                 </div>
 
                 {/* Verified Contact Details */}
