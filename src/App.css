@@ -6,7 +6,8 @@
   height: 3px;
   background: linear-gradient(90deg, var(--gold), #f3c775, var(--gold));
   z-index: 1000;
-  transition: width 0.1s ease-out;
+  pointer-events: none;
+  will-change: width;
   box-shadow: 0 0 12px rgba(209, 154, 52, 0.85);
 }
 
@@ -16,6 +17,18 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+section[id],
+#tracker,
+#clause,
+#calculator,
+#faq,
+#process,
+#why,
+#platform,
+#neutrals {
+  scroll-margin-top: 105px;
 }
 
 /* ---------- Shared Primitives ---------- */
@@ -182,6 +195,8 @@ input[type="range"]::-webkit-slider-thumb:active {
   padding-block: clamp(52px, 7vw, 116px);
   border-top: var(--rail);
   transition: opacity .5s ease, transform .5s ease;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 500px;
 }
 
 /* ---------- Header ---------- */
@@ -430,6 +445,19 @@ h1 em {
   font-size: 18px;
 }
 
+.hero-ambient-glow {
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  bottom: -15px;
+  left: -15px;
+  background: radial-gradient(circle at 60% 35%, rgba(209, 154, 52, 0.22), transparent 70%);
+  filter: blur(32px);
+  z-index: 1;
+  pointer-events: none;
+  border-radius: 20px;
+}
+
 /* ---------- Resolution Explorer Panel ---------- */
 .panel {
   background: var(--paper-hi);
@@ -515,6 +543,18 @@ h1 em {
 
 .path-body {
   padding: 20px 16px 22px;
+  animation: pathFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pathFadeIn {
+  from {
+    opacity: 0.6;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .path-meta {
@@ -1226,4 +1266,298 @@ footer a:hover {
   margin-top: 20px;
   padding-top: 14px;
   border-top: var(--rail);
+}
+
+/* ==========================================================================
+   Best-in-Class Institutional Animations & Visual Enhancements
+   ========================================================================== */
+
+/* Top Institutional Status Ticker Marquee */
+.institutional-ticker-bar {
+  background: #061120;
+  color: #E2E8F0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(209, 154, 52, 0.28);
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+  z-index: 90;
+}
+
+.ticker-track {
+  display: inline-flex;
+  gap: 40px;
+  animation: tickerScroll 32s linear infinite;
+  align-items: center;
+}
+
+.ticker-track:hover {
+  animation-play-state: paused;
+}
+
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ticker-dot {
+  width: 6px;
+  height: 6px;
+  background: #27AE60;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #27AE60;
+  display: inline-block;
+  animation: pulseDot 2s infinite ease-in-out;
+}
+
+@keyframes tickerScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 6px rgba(39, 174, 96, 0.8); }
+  50% { transform: scale(1.3); opacity: 0.7; box-shadow: 0 0 12px rgba(39, 174, 96, 1); }
+}
+
+/* Official Digital Registry Seal Badge with Shimmer */
+.registry-seal-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(209, 154, 52, 0.12);
+  border: 1px solid rgba(209, 154, 52, 0.4);
+  border-radius: 4px;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.registry-seal-badge::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(209, 154, 52, 0.22),
+    transparent
+  );
+  transform: skewX(-25deg);
+  animation: sealShimmer 6s infinite ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes sealShimmer {
+  0% { left: -150%; }
+  22%, 100% { left: 250%; }
+}
+
+.registry-seal-badge .seal-emblem {
+  width: 34px;
+  height: 34px;
+  background: rgba(209, 154, 52, 0.2);
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.registry-seal-badge .seal-title {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.registry-seal-badge .seal-sub {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.04em;
+}
+
+/* Floating Action Toast */
+.floating-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: #0B1B31;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 13.5px;
+  font-weight: 500;
+  box-shadow: 0 12px 32px rgba(11, 27, 49, 0.4);
+  border: 1px solid rgba(209, 154, 52, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 999;
+  animation: toastRise 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes toastRise {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.copy-toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0B1B31;
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--gold);
+  z-index: 9999;
+  animation: toastRise 0.25s ease-out;
+}
+
+/* ---------- Admin Dashboard Interactive Polish & Animations ---------- */
+.admin-stat-card {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  padding: 20px 22px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(18, 41, 74, 0.03);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(18, 41, 74, 0.08);
+  border-color: rgba(18, 41, 74, 0.2);
+}
+
+.admin-stat-card.gold-card {
+  border-color: rgba(209, 154, 52, 0.4);
+  background: linear-gradient(180deg, #ffffff 0%, #FFFDF9 100%);
+}
+
+.admin-stat-card.gold-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 8px 24px rgba(209, 154, 52, 0.15);
+}
+
+.admin-tab-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-tab-btn:hover {
+  transform: translateY(-1.5px);
+}
+
+.admin-tab-btn:active {
+  transform: scale(0.97);
+}
+
+.admin-filter-pill {
+  border-radius: 16px;
+  padding: 4px 11px;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-filter-pill:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+.admin-filter-pill:active {
+  transform: scale(0.95);
+}
+
+.admin-table-row {
+  transition: background-color 0.15s ease;
+  animation: adminRowFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.admin-table-row:hover {
+  background-color: rgba(18, 41, 74, 0.025) !important;
+}
+
+@keyframes adminRowFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-action-btn {
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.admin-action-btn:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  filter: brightness(1.05);
+}
+
+.admin-action-btn:active {
+  transform: scale(0.95) translateY(0);
+}
+
+.admin-modal-zoom {
+  animation: adminModalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes adminModalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Accessible Reduced Motion Mode */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

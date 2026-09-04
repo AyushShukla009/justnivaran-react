@@ -1,0 +1,25 @@
+{
+  "short_name": "JustNivaran",
+  "name": "JustNivaran — Online Dispute Resolution Platform",
+  "description": "Institutional ODR for commercial, MSME, and civil claims in India.",
+  "icons": [
+    {
+      "src": "/logo-20aTnqbq.jpeg",
+      "type": "image/jpeg",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-20aTnqbq.jpeg",
+      "type": "image/jpeg",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0B1B31",
+  "theme_color": "#0B1B31",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/"
+}

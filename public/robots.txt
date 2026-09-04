@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+
+Sitemap: https://justnivaran.in/sitemap.xml
+Sitemap: https://justnivaran-odr.vercel.app/sitemap.xml

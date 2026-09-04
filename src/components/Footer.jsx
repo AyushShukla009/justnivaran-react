@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="f-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "36px", marginBottom: "48px" }}>
           
           {/* Brand & Registry Overview */}
-          <div className="f-brand" style={{ maxWidth: "320px" }}>
+          <div className="f-brand" style={{ maxWidth: "340px" }}>
             <Link to="/" style={{ display: "inline-block", marginBottom: "16px" }}>
               <img
                 src={logo}
@@ -23,55 +23,58 @@ export default function Footer() {
                 }}
               />
             </Link>
-            <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "13.5px", lineHeight: "1.6", margin: "0 0 12px" }}>
-              India&apos;s institutional Online Dispute Resolution (ODR) Centre for commercial, MSME, and civil disputes.
+            <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "13px", lineHeight: "1.6", margin: "0 0 12px" }}>
+              <strong>JustNivaran Dispute Resolution Technologies Pvt. Ltd.</strong><br />
+              Administered Institutional Online Dispute Resolution (ODR) Platform under the Arbitration &amp; Conciliation Act 1996 and Mediation Act 2023.
             </p>
-            <div style={{ fontSize: "12px", color: "var(--gold)", fontFamily: "var(--mono)" }}>
-              🏛️ Seat of Registry: New Delhi, India
+            <div style={{ fontSize: "11.5px", color: "var(--gold)", fontFamily: "var(--mono)", lineHeight: "1.6" }}>
+              🏛️ <strong>Registered Office:</strong> Level 4, Barakhamba Road, Connaught Place, New Delhi – 110001, India<br />
+              📞 <strong>Helpline:</strong> <a href="tel:+911149876500" style={{ color: "var(--gold)", textDecoration: "none" }}>+91 11 4987 6500</a><br />
+              ✉️ <strong>Registry:</strong> <a href="mailto:registry@justnivaran.in" style={{ color: "var(--gold)", textDecoration: "none" }}>registry@justnivaran.in</a> &bull; <strong>Grievance:</strong> <a href="mailto:grievance@justnivaran.in" style={{ color: "var(--gold)", textDecoration: "none" }}>grievance@justnivaran.in</a>
             </div>
           </div>
 
           {/* Platform Navigation */}
           <div>
-            <h4 style={{ color: "var(--gold)", fontSize: "13px", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "16px" }}>
+            <h4 style={{ color: "var(--gold)", fontSize: "12px", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "16px" }}>
               Centre &amp; Services
             </h4>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: "13.5px", lineHeight: "2" }}>
               <li><Link to="/" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Home</Link></li>
-              <li><Link to="/for-neutrals" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Panel of Neutrals &amp; Empanelment</Link></li>
+              <li><Link to="/for-neutrals" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Panel of Neutrals</Link></li>
+              <li><Link to="/fee-schedule" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Institutional Fee Schedule</Link></li>
               <li><a href="/#tracker" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Live Docket Tracker</a></li>
               <li><a href="/#calculator" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Cost &amp; Savings Calculator</a></li>
-              <li><Link to="/contact" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Contact &amp; Consultation</Link></li>
+              <li><Link to="/contact" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Registry Contact</Link></li>
             </ul>
           </div>
 
           {/* Procedural Rules */}
           <div>
-            <h4 style={{ color: "var(--gold)", fontSize: "13px", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "16px" }}>
-              Statutory Rules &amp; Codes
+            <h4 style={{ color: "var(--gold)", fontSize: "12px", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "16px" }}>
+              Procedural Framework
             </h4>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: "13.5px", lineHeight: "2" }}>
               <li><Link to="/negotiation-guidelines" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Negotiation Guidelines</Link></li>
               <li><Link to="/mediation-rules" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Mediation Rules (2023 Act)</Link></li>
-              <li><Link to="/arbitration-rules" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Arbitration Rules (s. 29A/29B)</Link></li>
+              <li><Link to="/arbitration-rules" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Arbitration Rules (s. 29B)</Link></li>
+              <li><Link to="/neutral-code-of-conduct" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Neutral Ethics &amp; Conflicts</Link></li>
               <li><a href="/#clause" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Model Contract Clause</a></li>
             </ul>
           </div>
 
           {/* Legal & Compliance */}
           <div>
-            <h4 style={{ color: "var(--gold)", fontSize: "13px", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "16px" }}>
-              Legal &amp; Compliance
+            <h4 style={{ color: "var(--gold)", fontSize: "12px", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "16px" }}>
+              Legal &amp; Privacy
             </h4>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: "13.5px", lineHeight: "2" }}>
-              <li style={{ color: "rgba(255,255,255,0.65)", fontSize: "12.5px" }}>🔒 DPDP Act 2023 Compliant</li>
-              <li style={{ color: "rgba(255,255,255,0.65)", fontSize: "12.5px" }}>📜 Section 65B Electronic Records</li>
-              <li style={{ color: "rgba(255,255,255,0.65)", fontSize: "12.5px" }}>⚖️ UNCITRAL &amp; NITI Aayog Aligned</li>
-              <li style={{ marginTop: "8px" }}>
-                <a href="mailto:jnivaran@gmail.com" style={{ color: "var(--gold)", textDecoration: "none", fontSize: "13px" }}>
-                  ✉️ registry@justnivaran.in
-                </a>
-              </li>
+              <li><Link to="/privacy-policy" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Privacy Policy (DPDP Act)</Link></li>
+              <li><Link to="/terms-of-use" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Terms of Use</Link></li>
+              <li><Link to="/refund-policy" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Refund &amp; Cancellation</Link></li>
+              <li><Link to="/data-retention" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Data Retention Policy</Link></li>
+              <li><Link to="/grievance" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Grievance Redressal</Link></li>
+              <li><Link to="/legal-disclaimer" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none" }}>Legal Disclaimer</Link></li>
             </ul>
           </div>
         </div>
@@ -90,8 +93,8 @@ export default function Footer() {
             color: "rgba(255,255,255,0.5)"
           }}
         >
-          <span>© 2026 JustNivaran Online Dispute Resolution Centre. All rights reserved.</span>
-          <span>Digital dispute proceedings administered under Indian statutory law.</span>
+          <span>&copy; {new Date().getFullYear()} JustNivaran Online Dispute Resolution Centre. All rights reserved.</span>
+          <span>Administered under the Arbitration &amp; Conciliation Act, 1996 and Mediation Act, 2023.</span>
         </div>
       </div>
     </footer>

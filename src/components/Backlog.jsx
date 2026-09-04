@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from "react";
 
 function Backlog() {
   const [isVisible, setIsVisible] = useState(false);
-  const [countCr, setCountCr] = useState(0);
-  const [count12, setCount12] = useState(0);
-  const [count6, setCount6] = useState(0);
+  const [countCr, setCountCr] = useState(5);
+  const [count12, setCount12] = useState(12);
+  const [count6, setCount6] = useState(6);
   const sectionRef = useRef(null);
 
   useEffect(() => {
@@ -27,7 +27,7 @@ function Backlog() {
   useEffect(() => {
     if (!isVisible) return;
 
-    const duration = 1200;
+    const duration = 1000;
     const stepTime = 30;
     const totalSteps = duration / stepTime;
 
@@ -35,9 +35,9 @@ function Backlog() {
     const timer = setInterval(() => {
       step++;
       const progress = step / totalSteps;
-      setCountCr(Math.min(5, Math.floor(progress * 5)));
-      setCount12(Math.min(12, Math.floor(progress * 12)));
-      setCount6(Math.min(6, Math.floor(progress * 6)));
+      setCountCr(Math.max(1, Math.min(5, Math.round(progress * 5))));
+      setCount12(Math.max(1, Math.min(12, Math.round(progress * 12))));
+      setCount6(Math.max(1, Math.min(6, Math.round(progress * 6))));
 
       if (step >= totalSteps) {
         clearInterval(timer);
@@ -73,18 +73,18 @@ function Backlog() {
         <div className="figs">
           <div className="fig">
             <div className="n">
-              {isVisible ? countCr : 0}
+              {countCr}
               <small>cr+</small>
             </div>
             <p>
               Cases pending across Indian courts, district to Supreme Court.
-              <cite>Source: National Judicial Data Grid — verify current figure</cite>
+              <cite>Source: National Judicial Data Grid (NJDG)</cite>
             </p>
           </div>
 
           <div className="fig">
             <div className="n">
-              {isVisible ? count12 : 0}
+              {count12}
               <small>mo</small>
             </div>
             <p>
@@ -96,7 +96,7 @@ function Backlog() {
 
           <div className="fig">
             <div className="n">
-              {isVisible ? count6 : 0}
+              {count6}
               <small>mo</small>
             </div>
             <p>
@@ -108,12 +108,12 @@ function Backlog() {
 
           <div className="fig">
             <div className="n">
-              0<small style={{ color: "var(--slate)", opacity: 0.6 }}>days</small>
+              100<small>%</small>
             </div>
             <p>
-              Travel days. Every stage — filing, notice, evidence, hearing,
-              award — happens on the platform.
-              <cite>End-to-end digital</cite>
+              Digital proceedings. Every stage — filing, notice, evidence, virtual hearing,
+              and award — administered 100% online.
+              <cite>Zero physical travel</cite>
             </p>
           </div>
         </div>

@@ -7,6 +7,8 @@ const STAGES = [
     badge: "Automated Dispatch",
     icon: "📨",
     desc: "Claimant files the dispute. The platform instantly issues a digitally verifiable notice to the respondent via encrypted email, WhatsApp, and SMS with a SHA-256 audit timestamp.",
+    cta: "⚡ File Stage 1: Issue Digital Notice & Claim →",
+    mode: "NEG",
     preview: {
       tag: "Proof of Notice Delivered",
       docket: "JN/NOT/2026/0417",
@@ -20,6 +22,8 @@ const STAGES = [
     badge: "Party Autonomy",
     icon: "🤝",
     desc: "Both parties agree to the negotiation window (15–30 days). No public court filings, no lawyers required unless requested by the parties.",
+    cta: "🤝 Initiate Stage 2: 21-Day Negotiation Window →",
+    mode: "NEG",
     preview: {
       tag: "Window Active",
       docket: "Negotiation Window: 21 Days",
@@ -33,6 +37,8 @@ const STAGES = [
     badge: "Without Prejudice",
     icon: "🔒",
     desc: "Parties exchange offers, counter-offers, and invoice records in an encrypted digital room. All discussions are strictly confidential and inadmissible in subsequent litigation.",
+    cta: "🔒 Launch Stage 3: Encrypted Negotiation Room →",
+    mode: "MED",
     preview: {
       tag: "Live Room Active",
       docket: "Offer: ₹ 14,50,000 (30-day payment term)",
@@ -46,6 +52,8 @@ const STAGES = [
     badge: "Enforceable Contract",
     icon: "✍️",
     desc: "Upon mutual agreement, JustNivaran drafts the formal settlement terms. Both parties execute via Aadhaar e-Sign or digital signatures, creating a legally binding contract.",
+    cta: "✍️ Execute Stage 4: Enforceable Settlement & e-Sign →",
+    mode: "MED",
     preview: {
       tag: "Settlement Executed",
       docket: "Enforceable Settlement Agreement",
@@ -59,6 +67,8 @@ const STAGES = [
     badge: "Zero Time Lost",
     icon: "⚖️",
     desc: "If negotiation does not settle within the window, the matter seamlessly transitions to Institutional Mediation (Mediation Act 2023) or Fast-Track Arbitration (s. 29B) without refiling fees.",
+    cta: "⚖️ Fast-Track Stage 5: Escalate to Sole Arbitrator →",
+    mode: "FTA",
     preview: {
       tag: "Seamless Escalation",
       docket: "Auto-Transferred to Fast-Track Panel",
@@ -181,8 +191,13 @@ function ADRVisualizer({ onOpenFileModal }) {
               {current.desc}
             </p>
 
-            <button className="btn gold" onClick={onOpenFileModal} type="button" style={{ width: "100%", justifyContent: "center" }}>
-              Start a Dispute on this Stage →
+            <button
+              className="btn gold"
+              onClick={() => onOpenFileModal && onOpenFileModal()}
+              type="button"
+              style={{ width: "100%", justifyContent: "center" }}
+            >
+              File a Dispute →
             </button>
           </div>
 

@@ -79,11 +79,11 @@ const GUIDELINES_DATA = {
       },
       {
         heading: "2. Digital Pleadings & Evidentiary Timestamping",
-        body: "Statements of claim, defense, and counterclaims are submitted through the cryptographic digital docket compliant with Section 65B of the Indian Evidence Act."
+        body: "Statements of claim, defense, and counterclaims are submitted through the cryptographic digital docket compliant with Section 63 of the Bharatiya Sakshya Adhiniyam (BSA), 2023."
       },
       {
         heading: "3. Encrypted Virtual Hearings & AI Transcription",
-        body: "Oral hearings (where required) take place via secure encrypted video rooms with real-time bilingual transcription attached directly to the case file."
+        body: "Oral hearings (where required) take place via secure encrypted video rooms with real-time transcription attached directly to the case docket."
       },
       {
         heading: "4. Final Arbitral Award & Execution (Section 36)",
@@ -101,14 +101,20 @@ function GuidelinesModal({ isOpen, onClose, defaultMode = "NEG" }) {
   const current = GUIDELINES_DATA[activeTab] || GUIDELINES_DATA.NEG;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div
+      className="modal-overlay"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="guidelines-modal-title"
+    >
       <div className="modal-card" style={{ maxWidth: "680px" }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
             <span className="modal-subtitle">JustNivaran Procedural Guidelines</span>
-            <h3>{current.title}</h3>
+            <h3 id="guidelines-modal-title">{current.title}</h3>
           </div>
-          <button className="modal-close" onClick={onClose} type="button">
+          <button className="modal-close" onClick={onClose} type="button" aria-label="Close guidelines modal">
             &times;
           </button>
         </div>

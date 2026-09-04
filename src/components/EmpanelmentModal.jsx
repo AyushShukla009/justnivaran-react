@@ -4,6 +4,11 @@ import { supabase } from "../lib/supabase";
 function EmpanelmentModal({ isOpen, onClose }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [consents, setConsents] = useState({
+    goodStanding: false,
+    dpdpConsent: false
+  });
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -21,38 +26,60 @@ function EmpanelmentModal({ isOpen, onClose }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleConsentChange = (e) => {
+    setConsents({ ...consents, [e.target.name]: e.target.checked });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage("");
+
+    if (!consents.goodStanding || !consents.dpdpConsent) {
+      setErrorMessage("Please confirm both the professional standing declaration and DPDP consent.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       if (supabase) {
         const { error } = await supabase.from("neutrals").insert([
           {
-            full_name: formData.fullName,
-            email: formData.email,
-            phone: formData.phone,
+            full_name: formData.fullName.trim(),
+            email: formData.email.trim(),
+            phone: formData.phone.trim(),
             role: formData.role,
-            bar_council_id: formData.barCouncilId,
+            bar_council_id: formData.barCouncilId.trim(),
             experience_years: Number(formData.experienceYears) || 0,
-            specialization: formData.specialization,
-            languages: formData.languages,
+            specialization: formData.specialization.trim(),
+            languages: formData.languages.trim(),
             status: "Under Review"
           }
         ]);
 
-        if (error) console.error("Empanelment submission error:", error.message);
+        if (error) {
+          console.error("Empanelment submission error:", error.message);
+          setErrorMessage(`Application submission failed: ${error.message}. Please try again.`);
+          setIsSubmitting(false);
+          return;
+        }
+
+        setIsSuccess(true);
+      } else {
+        setErrorMessage("Database service is offline.");
       }
     } catch (err) {
       console.error("Submission failed:", err);
+      setErrorMessage(`Unexpected error: ${err.message}. Please retry.`);
     } finally {
       setIsSubmitting(false);
-      setIsSuccess(true);
     }
   };
 
   const handleReset = () => {
     setIsSuccess(false);
+    setErrorMessage("");
+    setConsents({ goodStanding: false, dpdpConsent: false });
     setFormData({
       fullName: "",
       email: "",
@@ -67,14 +94,20 @@ function EmpanelmentModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div
+      className="modal-overlay"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="empanelment-modal-title"
+    >
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
             <span className="modal-subtitle">Panel of Neutrals</span>
-            <h3>{isSuccess ? "Application Received" : "Apply for Neutral Empanelment"}</h3>
+            <h3 id="empanelment-modal-title">{isSuccess ? "Application Received" : "Apply for Neutral Empanelment"}</h3>
           </div>
-          <button className="modal-close" onClick={handleReset} type="button">
+          <button className="modal-close" onClick={handleReset} type="button" aria-label="Close empanelment modal">
             &times;
           </button>
         </div>
@@ -114,19 +147,21 @@ function EmpanelmentModal({ isOpen, onClose }) {
 
               <div className="form-grid">
                 <div>
-                  <label>Full Legal Name</label>
+                  <label htmlFor="empanelment-fullname">Full Legal Name</label>
                   <input
+                    id="empanelment-fullname"
                     type="text"
                     name="fullName"
+                    autoComplete="name"
                     required
-                    placeholder="Adv. Rajesh Sharma"
+                    placeholder="Enter full legal name"
                     value={formData.fullName}
                     onChange={handleChange}
                   />
                 </div>
                 <div>
-                  <label>Primary Role</label>
-                  <select name="role" value={formData.role} onChange={handleChange}>
+                  <label htmlFor="empanelment-role">Primary Role</label>
+                  <select id="empanelment-role" name="role" value={formData.role} onChange={handleChange}>
                     <option value="Arbitrator">Sole Arbitrator</option>
                     <option value="Mediator">Commercial Mediator (Mediation Act 2023)</option>
                     <option value="Conciliator">Conciliator</option>
@@ -136,23 +171,27 @@ function EmpanelmentModal({ isOpen, onClose }) {
 
               <div className="form-grid" style={{ marginTop: "10px" }}>
                 <div>
-                  <label>Official Email</label>
+                  <label htmlFor="empanelment-email">Official Email</label>
                   <input
+                    id="empanelment-email"
                     type="email"
                     name="email"
+                    autoComplete="email"
                     required
-                    placeholder="sharma@delhibar.org"
+                    placeholder="Enter official email address"
                     value={formData.email}
                     onChange={handleChange}
                   />
                 </div>
                 <div>
-                  <label>Contact Phone</label>
+                  <label htmlFor="empanelment-phone">Contact Phone</label>
                   <input
+                    id="empanelment-phone"
                     type="tel"
                     name="phone"
+                    autoComplete="tel"
                     required
-                    placeholder="+91 98111 22334"
+                    placeholder="Enter 10-digit mobile number"
                     value={formData.phone}
                     onChange={handleChange}
                   />
@@ -161,19 +200,21 @@ function EmpanelmentModal({ isOpen, onClose }) {
 
               <div className="form-grid" style={{ marginTop: "10px" }}>
                 <div>
-                  <label>Bar Council / Accreditation ID</label>
+                  <label htmlFor="empanelment-bar-id">Bar Council / Accreditation ID</label>
                   <input
+                    id="empanelment-bar-id"
                     type="text"
                     name="barCouncilId"
                     required
-                    placeholder="D/1234/2012"
+                    placeholder="Enter Bar Council / Enrollment ID"
                     value={formData.barCouncilId}
                     onChange={handleChange}
                   />
                 </div>
                 <div>
-                  <label>Years of Practice / Experience</label>
+                  <label htmlFor="empanelment-experience">Years of Practice / Experience</label>
                   <input
+                    id="empanelment-experience"
                     type="number"
                     name="experienceYears"
                     required
@@ -185,8 +226,9 @@ function EmpanelmentModal({ isOpen, onClose }) {
               </div>
 
               <div style={{ marginTop: "10px" }}>
-                <label>Domain Specialization</label>
+                <label htmlFor="empanelment-specialization">Domain Specialization</label>
                 <input
+                  id="empanelment-specialization"
                   type="text"
                   name="specialization"
                   required
@@ -197,8 +239,9 @@ function EmpanelmentModal({ isOpen, onClose }) {
               </div>
 
               <div style={{ marginTop: "10px" }}>
-                <label>Languages for Hearing</label>
+                <label htmlFor="empanelment-languages">Languages for Hearing</label>
                 <input
+                  id="empanelment-languages"
                   type="text"
                   name="languages"
                   required
@@ -207,6 +250,62 @@ function EmpanelmentModal({ isOpen, onClose }) {
                   onChange={handleChange}
                 />
               </div>
+
+              <div
+                style={{
+                  marginTop: "16px",
+                  padding: "12px 14px",
+                  background: "rgba(11, 27, 49, 0.03)",
+                  border: "1px solid var(--line)",
+                  borderRadius: "4px"
+                }}
+              >
+                <label htmlFor="empanelment-standing" style={{ display: "flex", gap: "8px", alignItems: "flex-start", marginBottom: "8px", cursor: "pointer", fontSize: "12px", color: "var(--ink)", lineHeight: "1.4" }}>
+                  <input
+                    id="empanelment-standing"
+                    type="checkbox"
+                    name="goodStanding"
+                    required
+                    checked={consents.goodStanding}
+                    onChange={handleConsentChange}
+                    style={{ marginTop: "2px" }}
+                  />
+                  <span>
+                    I affirm that I am an enrolled advocate / accredited mediator / arbitrator in good standing with no adverse ethical findings.
+                  </span>
+                </label>
+
+                <label htmlFor="empanelment-dpdp" style={{ display: "flex", gap: "8px", alignItems: "flex-start", cursor: "pointer", fontSize: "12px", color: "var(--ink)", lineHeight: "1.4" }}>
+                  <input
+                    id="empanelment-dpdp"
+                    type="checkbox"
+                    name="dpdpConsent"
+                    required
+                    checked={consents.dpdpConsent}
+                    onChange={handleConsentChange}
+                    style={{ marginTop: "2px" }}
+                  />
+                  <span>
+                    I consent to the verification and processing of my credentials for institutional empanelment under the <strong>DPDP Act, 2023</strong>.
+                  </span>
+                </label>
+              </div>
+
+              {errorMessage && (
+                <div
+                  style={{
+                    marginTop: "12px",
+                    background: "#FDEDEC",
+                    color: "#C0392B",
+                    border: "1px solid #F5B7B1",
+                    padding: "8px 12px",
+                    borderRadius: "4px",
+                    fontSize: "12px"
+                  }}
+                >
+                  ⚠️ {errorMessage}
+                </div>
+              )}
 
               <div className="modal-actions">
                 <button className="btn ghost" type="button" onClick={onClose} disabled={isSubmitting}>

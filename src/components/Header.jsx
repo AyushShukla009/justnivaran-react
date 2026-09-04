@@ -1,6 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect, memo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/logo1.jpeg";
+
+const LiveClock = memo(function LiveClock() {
+  const [currentTime, setCurrentTime] = useState(() => {
+    return new Date().toLocaleTimeString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true
+    });
+  });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(
+        new Date().toLocaleTimeString("en-IN", {
+          timeZone: "Asia/Kolkata",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true
+        })
+      );
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return <span>{currentTime} IST</span>;
+});
 
 function Header({ onOpenFileModal }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -16,29 +45,81 @@ function Header({ onOpenFileModal }) {
   });
 
   const scrollToTracker = () => {
-    if (location.pathname !== "/") {
-      navigate("/");
-      setTimeout(() => {
-        const el = document.getElementById("tracker");
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }, 150);
-    } else {
+    const performScroll = () => {
       const el = document.getElementById("tracker");
       if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        const headerOffset = 100;
+        const elementPosition = el.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+        });
+        const input = el.querySelector("input");
+        if (input) {
+          setTimeout(() => input.focus(), 450);
+        }
       }
+    };
+
+    if (location.pathname !== "/") {
+      navigate("/");
+      setTimeout(performScroll, 200);
+    } else {
+      performScroll();
     }
   };
 
   return (
     <header>
+      {/* Top Institutional Live Status Marquee with Real-Time IST Clock */}
+      <div className="institutional-ticker-bar" aria-label="Institutional Live Ticker">
+        <div className="ticker-track">
+          <div className="ticker-item">
+            <span className="ticker-dot"></span>
+            <span>LIVE ODR REGISTRY &bull; NEW DELHI SEAT &bull; <LiveClock /></span>
+          </div>
+          <div className="ticker-item">
+            <span>⚖️ MEDIATION ACT 2023 COMPLIANT</span>
+          </div>
+          <div className="ticker-item">
+            <span>📜 180-DAY FAST-TRACK ARBITRATION (S. 29B)</span>
+          </div>
+          <div className="ticker-item">
+            <span>🔒 AES-256 ENCRYPTED CASE DOSSIER</span>
+          </div>
+          <div className="ticker-item">
+            <span>🇮🇳 ADMINISTERED COMMERCIAL ODR PROCEEDINGS</span>
+          </div>
+          <div className="ticker-item">
+            <span className="ticker-dot"></span>
+            <span>LIVE ODR REGISTRY &bull; NEW DELHI SEAT &bull; <LiveClock /></span>
+          </div>
+          <div className="ticker-item">
+            <span>⚖️ MEDIATION ACT 2023 COMPLIANT</span>
+          </div>
+          <div className="ticker-item">
+            <span>📜 180-DAY FAST-TRACK ARBITRATION (S. 29B)</span>
+          </div>
+          <div className="ticker-item">
+            <span>🔒 AES-256 ENCRYPTED CASE DOSSIER</span>
+          </div>
+          <div className="ticker-item">
+            <span>🇮🇳 ADMINISTERED COMMERCIAL ODR PROCEEDINGS</span>
+          </div>
+        </div>
+      </div>
+
       <div className="wrap nav" style={{ height: "90px" }}>
         <Link to="/" className="brand" aria-label="JustNivaran home">
           <img
             src={logo}
-            alt="JustNivaran"
+            alt="JustNivaran Legal ODR"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+            width="200"
+            height="100"
             style={{
               height: "100px",
               width: "auto",
