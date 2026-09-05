@@ -15,7 +15,7 @@ function CostCalculator({ onOpenFileModal }) {
           {/* Left Column: Heading, Lede, and Accessible Slider */}
           <div>
             <p className="eyebrow">
-              <b>07</b> Resolution Velocity &amp; Economics
+              <b>Resolution Velocity</b> Economic Value &amp; Comparison
             </p>
             <h2>Compare Court Litigation vs. JustNivaran ODR</h2>
             <p className="lede" style={{ margin: "16px 0 20px" }}>
