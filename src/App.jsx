@@ -63,7 +63,7 @@ const ROUTE_SEO = {
   },
   "/contact": {
     title: "Contact Institutional Registry — JustNivaran ODR",
-    description: "Official contact channels, registered notices desk, and registry support for JustNivaran Dispute Resolution Technologies Pvt. Ltd., New Delhi.",
+    description: "Official contact channels, registered notices desk, and registry support for JustNivaran Online Dispute Resolution Platform, New Delhi.",
     keywords: "Contact JustNivaran, ODR registry, legal notices, New Delhi arbitration"
   },
   "/admin": {

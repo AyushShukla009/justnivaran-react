@@ -22,7 +22,7 @@ function PrivacyPolicy() {
       }}>
         <div>
           <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>Data Fiduciary</span>
-          <div style={{ fontWeight: 600, color: "var(--ink)", marginTop: "4px" }}>JustNivaran Dispute Resolution Technologies Pvt. Ltd.</div>
+          <div style={{ fontWeight: 600, color: "var(--ink)", marginTop: "4px" }}>JustNivaran</div>
         </div>
         <div>
           <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>Governing Law</span>

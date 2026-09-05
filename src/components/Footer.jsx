@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="wrap">
         <div className="f-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "36px", marginBottom: "48px" }}>
           
-          {/* Brand & Registry Overview */}
+          {/* Brand Overview */}
           <div className="f-brand" style={{ maxWidth: "340px" }}>
             <Link to="/" style={{ display: "inline-block", marginBottom: "16px" }}>
               <img
@@ -24,11 +24,11 @@ export default function Footer() {
               />
             </Link>
             <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "13px", lineHeight: "1.6", margin: "0 0 12px" }}>
-              <strong>JustNivaran Dispute Resolution Technologies Pvt. Ltd.</strong><br />
-              Administered Institutional Online Dispute Resolution (ODR) Platform under the Arbitration &amp; Conciliation Act 1996 and Mediation Act 2023.
+              <strong>JustNivaran</strong><br />
+              Online Dispute Resolution Platform<br />
+              Supporting negotiation, mediation, conciliation and arbitration through secure digital processes.
             </p>
             <div style={{ fontSize: "11.5px", color: "var(--gold)", fontFamily: "var(--mono)", lineHeight: "1.6" }}>
-              🏛️ <strong>Registered Office:</strong> Level 4, Barakhamba Road, Connaught Place, New Delhi – 110001, India<br />
               📞 <strong>Helpline:</strong> <a href="tel:+911149876500" style={{ color: "var(--gold)", textDecoration: "none" }}>+91 11 4987 6500</a><br />
               ✉️ <strong>Registry:</strong> <a href="mailto:registry@justnivaran.in" style={{ color: "var(--gold)", textDecoration: "none" }}>registry@justnivaran.in</a> &bull; <strong>Grievance:</strong> <a href="mailto:grievance@justnivaran.in" style={{ color: "var(--gold)", textDecoration: "none" }}>grievance@justnivaran.in</a>
             </div>
@@ -63,7 +63,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Legal & Compliance */}
+          {/* Legal & Privacy */}
           <div>
             <h4 style={{ color: "var(--gold)", fontSize: "12px", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "16px" }}>
               Legal &amp; Privacy
@@ -93,10 +93,10 @@ export default function Footer() {
             color: "rgba(255,255,255,0.5)"
           }}
         >
-          <span>&copy; {new Date().getFullYear()} JustNivaran Online Dispute Resolution Centre. All rights reserved.</span>
-          <span>Administered under the Arbitration &amp; Conciliation Act, 1996 and Mediation Act, 2023.</span>
+          <span>&copy; 2026 JustNivaran. All rights reserved.</span>
+          <span>Online Dispute Resolution Platform</span>
         </div>
       </div>
     </footer>
   );
-}  
+}
