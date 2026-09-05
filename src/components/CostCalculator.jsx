@@ -198,7 +198,7 @@ function CostCalculator({ onOpenFileModal }) {
               <h3 style={{ fontSize: "22px", margin: "0 0 12px", color: "#fff" }}>
                 ₹ {odrCost.toLocaleString("en-IN")}{" "}
                 <small style={{ fontSize: "11px", color: "var(--gold-soft)", fontWeight: "normal" }}>
-                  statutory capped scale
+                  illustrative institutional fee estimate
                 </small>
               </h3>
               <div style={{ fontSize: "13px", color: "#AEC0D6", display: "grid", gap: "8px" }}>
@@ -215,7 +215,31 @@ function CostCalculator({ onOpenFileModal }) {
           </div>
         </div>
 
-        <p style={{ fontSize: "11px", color: "var(--slate)", margin: "16px 0 0", lineHeight: "1.5" }}>
+        {/* Visible Source & Methodology Disclosure */}
+        <div
+          style={{
+            marginTop: "20px",
+            padding: "14px 16px",
+            background: "#ffffff",
+            border: "1px solid var(--line)",
+            borderRadius: "4px",
+            fontSize: "11px",
+            color: "var(--slate)",
+            lineHeight: "1.6"
+          }}
+        >
+          <strong style={{ color: "var(--ink)", display: "block", marginBottom: "4px" }}>
+            Source &amp; Calculation Methodology:
+          </strong>
+          <div>
+            • <strong>Court Litigation Estimates:</strong> Duration modeled from National Judicial Data Grid (NJDG) commercial dispute disposal metrics across Indian District &amp; High Courts (typically averaging 3–5 years from filing to final decree). Court expenses are estimated based on state ad-valorem court fee enactments plus standard per-hearing legal representation and procedural compliance expenses.
+          </div>
+          <div style={{ marginTop: "4px" }}>
+            • <strong>JustNivaran Fee Estimate:</strong> Dynamic calculation provides an illustrative institutional fee estimate. Actual administrative and neutral fees are determined strictly as per the published institutional fee schedule below upon formal matter registration.
+          </div>
+        </div>
+
+        <p style={{ fontSize: "11px", color: "var(--slate)", margin: "14px 0 0", lineHeight: "1.5" }}>
           *Disclaimer: Traditional litigation costs and timeframes are illustrative estimates derived from National Judicial Data Grid (NJDG) commercial dispute averages and statutory court fee ad-valorem schedules. JustNivaran timelines represent target administrative benchmarks and do not constitute a legal guarantee of dispute duration or outcome.
         </p>
 
