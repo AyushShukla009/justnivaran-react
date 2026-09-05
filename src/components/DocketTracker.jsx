@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase";
+import VerifiedCaseJourney from "./VerifiedCaseJourney";
 
 function DocketTracker() {
   const [docketInput, setDocketInput] = useState(() => {
@@ -501,6 +502,9 @@ function DocketTracker() {
                 <div className="seal-sub">STATUTORY FAST-TRACK MANDATE &bull; NEW DELHI SEAT &bull; VERIFIED ODR PROCEEDING</div>
               </div>
             </div>
+
+            {/* Verified Case Journey 3D Stages */}
+            <VerifiedCaseJourney caseData={caseData} />
 
             {/* Tier 1: Public Summary Grid (Always Visible) */}
             <div
