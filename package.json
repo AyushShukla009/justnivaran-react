@@ -7,10 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint src",
+    "test:db": "node tests/database/ai-telemetry-migration.test.js && node tests/database/ai-telemetry-roles.test.js && node tests/database/ai-rate-limit-concurrency.test.js && node tests/database/groq-provider.test.js",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@google/genai": "^2.21.0",
     "@supabase/supabase-js": "^2.112.4",
+    "@vercel/speed-insights": "^2.0.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2"
@@ -24,6 +27,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",
+    "pg-mem": "^3.0.14",
     "vite": "^8.2.0"
   }
 }

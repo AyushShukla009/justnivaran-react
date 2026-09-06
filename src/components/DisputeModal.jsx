@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase";
+import { submitDisputeFiling } from "../lib/api";
 
 const INITIAL_FORM_DATA = {
   claimantName: "",
@@ -135,102 +136,66 @@ function DisputeModal({ isOpen, onClose }) {
     }
 
     setIsSubmitting(true);
-    const currentYear = new Date().getFullYear();
-    const randomEntropy = Math.floor(1000 + Math.random() * 9000);
-    const generatedDocket = `JN/${formData.mode}/${currentYear}/${randomEntropy}`;
-    const generatedPin = String(Math.floor(100000 + Math.random() * 900000));
-    setDocketNumber(generatedDocket);
-    setAccessPin(generatedPin);
 
     try {
-      if (supabase) {
-        let uploadedStoragePath = "";
-        let uploadedFileNotice = "";
+      let uploadedStoragePath = "";
+      let uploadedFileNotice = "";
 
-        // Real Supabase Storage Upload if file attached
-        if (attachedFile) {
-          setUploadProgress("Uploading encrypted evidence file...");
-          const cleanFileName = attachedFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-          const storagePath = `evidence/${generatedDocket.replace(/[^a-zA-Z0-9]/g, "-")}_${Date.now()}_${cleanFileName}`;
+      // Real Supabase Storage Upload if file attached
+      if (attachedFile && supabase) {
+        setUploadProgress("Uploading encrypted evidence file...");
+        const cleanFileName = attachedFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const storagePath = `evidence/${Date.now()}_${cleanFileName}`;
 
-          const { error: uploadError } = await supabase.storage
-            .from("dispute-evidence")
-            .upload(storagePath, attachedFile, {
-              cacheControl: "3600",
-              upsert: false
-            });
+        const { error: uploadError } = await supabase.storage
+          .from("dispute-evidence")
+          .upload(storagePath, attachedFile, {
+            cacheControl: "3600",
+            upsert: false
+          });
 
-          if (uploadError) {
-            console.warn("Storage bucket upload notice:", uploadError.message);
-            // Fallback metadata note if storage bucket policy is provisioning
-            uploadedFileNotice = `\n\n[📎 Evidence Document Logged]: ${attachedFile.name} (${(attachedFile.size / (1024 * 1024)).toFixed(2)} MB)`;
-          } else {
-            uploadedStoragePath = storagePath;
-            uploadedFileNotice = `\n\n[🔒 Stored Evidence File]: ${cleanFileName} (${(attachedFile.size / (1024 * 1024)).toFixed(2)} MB, Path: ${storagePath})`;
-          }
-        }
-
-        let fullSummary =
-          formData.disputeSummary.trim() ||
-          "Dispute submitted via JustNivaran Portal regarding contractual breach / unpaid invoices.";
-        if (uploadedFileNotice) {
-          fullSummary += uploadedFileNotice;
-        }
-        if (!fullSummary.includes(generatedPin)) {
-          fullSummary += `\n[Case Access PIN: ${generatedPin}]`;
-        }
-
-        const defaultRelief =
-          formData.reliefSought.trim() ||
-          `Restitution and settlement of claimed sum ₹ ${Number(formData.claimAmount || 0).toLocaleString("en-IN")}`;
-
-        const basePayload = {
-          docket_number: generatedDocket,
-          claimant_name: formData.claimantName.trim(),
-          claimant_email: formData.claimantEmail.trim(),
-          claimant_phone: formData.claimantPhone.trim(),
-          respondent_name: formData.respondentName.trim(),
-          respondent_email: formData.respondentEmail.trim(),
-          respondent_phone: formData.respondentPhone.trim(),
-          claim_amount: Number(formData.claimAmount) || 0,
-          mode: formData.mode,
-          dispute_summary: fullSummary,
-          relief_sought: defaultRelief,
-          status: "Notice Issued"
-        };
-
-        let insertError = null;
-
-        // Try primary insert with optional extra columns if available in Supabase schema
-        const { error: primaryError } = await supabase.from("disputes").insert([
-          {
-            ...basePayload,
-            access_code: generatedPin,
-            evidence_file_path: uploadedStoragePath || null
-          }
-        ]);
-
-        if (!primaryError) {
-          insertError = null;
+        if (!uploadError) {
+          uploadedStoragePath = storagePath;
+          uploadedFileNotice = `\n\n[🔒 Attached Evidence]: ${cleanFileName} (${(attachedFile.size / (1024 * 1024)).toFixed(2)} MB)`;
         } else {
-          console.warn("Primary insert notice, applying guaranteed base payload:", primaryError.message);
-          // Immediate fallback using standard base columns
-          const { error: fallbackError } = await supabase.from("disputes").insert([basePayload]);
-          insertError = fallbackError;
+          console.warn("Storage upload notice:", uploadError.message);
+          uploadedFileNotice = `\n\n[📎 Document Logged]: ${attachedFile.name} (${(attachedFile.size / (1024 * 1024)).toFixed(2)} MB)`;
         }
-
-        if (insertError) {
-          console.error("Database submission error:", insertError);
-          setSubmissionError(`Submission failed: ${insertError.message || "Database insert rejected"}. Your data has been preserved. Please try again.`);
-          setIsSubmitting(false);
-          return;
-        }
-
-        // Only transition to Success Screen on verified database insertion
-        setStep(3);
-      } else {
-        setSubmissionError("Database client is offline. Please check connection.");
       }
+
+      const fullSummary = (
+        (formData.disputeSummary.trim() || "Dispute submitted via JustNivaran Portal regarding contractual breach / unpaid dues.") +
+        (uploadedFileNotice || "")
+      ).trim();
+
+      const defaultRelief =
+        formData.reliefSought.trim() ||
+        `Restitution and settlement of claimed sum ₹ ${Number(formData.claimAmount || 0).toLocaleString("en-IN")}`;
+
+      const payload = {
+        mode: formData.mode,
+        claimant_name: formData.claimantName.trim(),
+        claimant_email: formData.claimantEmail.trim(),
+        claimant_phone: formData.claimantPhone.trim(),
+        respondent_name: formData.respondentName.trim(),
+        respondent_email: formData.respondentEmail.trim(),
+        respondent_phone: formData.respondentPhone.trim(),
+        claim_amount: Number(formData.claimAmount) || 0,
+        dispute_summary: fullSummary,
+        relief_sought: defaultRelief,
+        evidence_file_path: uploadedStoragePath || null
+      };
+
+      const result = await submitDisputeFiling(payload);
+
+      if (!result.success || !result.data) {
+        setSubmissionError(result.error || "Dispute filing could not be completed. Please check your data and retry.");
+        return;
+      }
+
+      setDocketNumber(result.data.docket_number);
+      setAccessPin(result.data.access_pin || "");
+      setStep(3);
     } catch (err) {
       console.error("Submission failed:", err);
       setSubmissionError(`Unexpected error during submission: ${err.message || "Network timeout"}. Please retry.`);

@@ -3,6 +3,7 @@ import Backlog from "../components/Backlog";
 import Process from "../components/Process";
 import ADRVisualizer from "../components/ADRVisualizer";
 import Platform from "../components/Platform";
+import AdvancedResolutionCapabilities from "../components/AdvancedResolutionCapabilities";
 import InstitutionalVision from "../components/InstitutionalVision";
 import Confidentiality from "../components/Confidentiality";
 import CostCalculator from "../components/CostCalculator";
@@ -29,6 +30,9 @@ function Home({ onOpenFileModal, onOpenEmpanelmentModal, onOpenConsultationModal
 
       {/* 5. 03 Platform (Dark Luxury Capabilities) */}
       <Platform />
+
+      {/* Advanced Resolution Capabilities (Unnumbered: AI Assessment, Fast-Track 29B, Emergency Relief) */}
+      <AdvancedResolutionCapabilities />
 
       {/* 6. Institutional Vision (Structured ODR Environment & Trust Pillars) */}
       <InstitutionalVision onOpenFileModal={onOpenFileModal} />

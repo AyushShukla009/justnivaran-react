@@ -31,6 +31,11 @@ const CONSULTATION_STATUS_OPTIONS = Object.keys(CONSULTATION_STATUS_CONFIG);
 function AdminDashboard() {
   const [adminEmail, setAdminEmail] = useState("admin@justnivaran.in");
   const [adminPassword, setAdminPassword] = useState("");
+  const [totpCode, setTotpCode] = useState("");
+  const [mfaStep, setMfaStep] = useState("none"); // 'none' | 'totp'
+  const [mfaFactorId, setMfaFactorId] = useState("");
+  const [mfaChallengeId, setMfaChallengeId] = useState("");
+  const [assuranceLevel, setAssuranceLevel] = useState("aal1");
   const [authError, setAuthError] = useState("");
   const [authSuccessMsg, setAuthSuccessMsg] = useState("");
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -55,6 +60,8 @@ function AdminDashboard() {
   const [disputes, setDisputes] = useState([]);
   const [neutrals, setNeutrals] = useState([]);
   const [consultations, setConsultations] = useState([]);
+  const [noticeDeliveries, setNoticeDeliveries] = useState([]);
+  const [caseAuditLogs, setCaseAuditLogs] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -73,13 +80,13 @@ function AdminDashboard() {
   const [liveAlert, setLiveAlert] = useState(null);
 
   const getCasePin = (c) => {
-    if (!c) return "090909";
+    if (!c) return "—";
     if (c.access_code && String(c.access_code).trim()) return String(c.access_code).trim();
     if (c.dispute_summary) {
       const match = String(c.dispute_summary).match(/\[Case Access PIN:\s*([A-Za-z0-9]+)\]/i);
       if (match && match[1]) return match[1].trim();
     }
-    return "090909";
+    return "Protected (Hashed)";
   };
 
   const playRegistryChime = () => {
@@ -148,6 +155,18 @@ function AdminDashboard() {
           .select("*")
           .order("created_at", { ascending: false });
         if (cData) setConsultations(cData);
+
+        const { data: notifData } = await supabase
+          .from("notice_deliveries")
+          .select("*")
+          .order("dispatched_at", { ascending: false });
+        if (notifData) setNoticeDeliveries(notifData);
+
+        const { data: auditData } = await supabase
+          .from("case_audit_logs")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (auditData) setCaseAuditLogs(auditData);
       }
     } catch (err) {
       console.error("Data fetch error:", err);
@@ -184,11 +203,8 @@ function AdminDashboard() {
               // ignore
             }
           } else if (isMounted) {
-            const saved = sessionStorage.getItem("justnivaran_admin_session");
-            if (!saved) {
-              setCurrentUser(null);
-              setIsAuthenticated(false);
-            }
+            setCurrentUser(null);
+            setIsAuthenticated(false);
           }
         }
       );
@@ -223,57 +239,99 @@ function AdminDashboard() {
           password: pwd
         });
 
-        if (!error && data?.user) {
-          setCurrentUser(data.user);
-          setIsAuthenticated(true);
-          try {
-            sessionStorage.setItem("justnivaran_admin_session", JSON.stringify(data.user));
-          } catch {
-            // ignore
-          }
-          setAdminPassword("");
-          fetchData();
+        if (error || !data?.user) {
+          setAuthError(error?.message || "Invalid administrative credentials or unauthorized account.");
+          setIsAuthenticating(false);
           return;
         }
 
-        // Standard registry administrator fallback verification
-        if ((email === "admin@justnivaran.in" || email === "admin@justnivaran.com") && (pwd === "Admin@JN2026!" || pwd === "090909" || pwd === "admin123")) {
-          const adminObj = { email: "admin@justnivaran.in", role: "authenticated", name: "Registry Administrator" };
-          setCurrentUser(adminObj);
-          setIsAuthenticated(true);
-          try {
-            sessionStorage.setItem("justnivaran_admin_session", JSON.stringify(adminObj));
-          } catch {
-            // ignore
+        // Check Multi-Factor Authentication (MFA / TOTP) level
+        try {
+          const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+          if (aalData?.nextLevel === "aal2" && aalData?.currentLevel === "aal1") {
+            // Admin has MFA enabled - initiate TOTP challenge
+            const { data: factors, error: factorsErr } = await supabase.auth.mfa.listFactors();
+            if (!factorsErr && factors?.totp?.length > 0) {
+              const verifiedTotp = factors.totp.find((f) => f.status === "verified") || factors.totp[0];
+              const challenge = await supabase.auth.mfa.challenge({ factorId: verifiedTotp.id });
+              if (challenge.data) {
+                setMfaFactorId(verifiedTotp.id);
+                setMfaChallengeId(challenge.data.id);
+                setMfaStep("totp");
+                setAuthSuccessMsg("Password verified. Please enter the 6-digit TOTP code from your Authenticator App.");
+                setIsAuthenticating(false);
+                return;
+              }
+            }
           }
-          setAdminPassword("");
-          fetchData();
-          return;
+          setAssuranceLevel(aalData?.currentLevel || "aal1");
+        } catch (mfaErr) {
+          console.warn("MFA check notice:", mfaErr);
         }
 
-        if (error) {
-          setAuthError(error.message || "Invalid administrative credentials or unauthorized account.");
-        } else {
-          setAuthError("Invalid administrative credentials or unauthorized account.");
-        }
-      }
-    } catch (err) {
-      console.error("Admin login exception:", err);
-      // Fallback for registry administrator
-      if ((email === "admin@justnivaran.in" || email === "admin@justnivaran.com") && (pwd === "Admin@JN2026!" || pwd === "090909" || pwd === "admin123")) {
-        const adminObj = { email: "admin@justnivaran.in", role: "authenticated", name: "Registry Administrator" };
-        setCurrentUser(adminObj);
+        setCurrentUser(data.user);
         setIsAuthenticated(true);
         try {
-          sessionStorage.setItem("justnivaran_admin_session", JSON.stringify(adminObj));
+          sessionStorage.setItem("justnivaran_admin_session", JSON.stringify(data.user));
         } catch {
           // ignore
         }
         setAdminPassword("");
+        setMfaStep("none");
         fetchData();
-        return;
       }
+    } catch (err) {
+      console.error("Admin login exception:", err);
       setAuthError("Authentication failed: " + err.message);
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  const handleMfaVerify = async (e) => {
+    e.preventDefault();
+    setAuthError("");
+    setIsAuthenticating(true);
+
+    const cleanCode = totpCode.trim();
+    if (!cleanCode || cleanCode.length < 6) {
+      setAuthError("Please enter a valid 6-digit TOTP verification code.");
+      setIsAuthenticating(false);
+      return;
+    }
+
+    try {
+      if (supabase && mfaFactorId && mfaChallengeId) {
+        const { error } = await supabase.auth.mfa.verify({
+          factorId: mfaFactorId,
+          challengeId: mfaChallengeId,
+          code: cleanCode
+        });
+
+        if (error) {
+          setAuthError(error.message || "Invalid or expired TOTP code. Please try again.");
+          setIsAuthenticating(false);
+          return;
+        }
+
+        const { data: { user } } = await supabase.auth.getUser();
+        setCurrentUser(user);
+        setIsAuthenticated(true);
+        try {
+          sessionStorage.setItem("justnivaran_admin_session", JSON.stringify(user));
+        } catch {
+          // ignore
+        }
+        setAdminPassword("");
+        setTotpCode("");
+        setMfaStep("none");
+        setAssuranceLevel("aal2");
+        setAuthSuccessMsg("MFA verified successfully.");
+        fetchData();
+      }
+    } catch (err) {
+      console.error("MFA verification error:", err);
+      setAuthError("MFA Verification failed: " + err.message);
     } finally {
       setIsAuthenticating(false);
     }
@@ -293,6 +351,8 @@ function AdminDashboard() {
       setCurrentUser(null);
       setAdminEmail("");
       setAdminPassword("");
+      setTotpCode("");
+      setMfaStep("none");
     }
   };
 
@@ -730,68 +790,132 @@ function AdminDashboard() {
             </div>
           )}
 
-          <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: "14px" }}>
-              <label htmlFor="admin-login-email" style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
-                Admin Email
-              </label>
-              <input
-                id="admin-login-email"
-                type="email"
-                required
-                autoComplete="username"
-                placeholder="admin@justnivaran.in"
-                value={adminEmail}
-                onChange={(e) => setAdminEmail(e.target.value)}
+          {mfaStep === "totp" ? (
+            <form onSubmit={handleMfaVerify}>
+              <div style={{ marginBottom: "18px" }}>
+                <label htmlFor="admin-totp-code" style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                  6-Digit Authenticator Code (TOTP)
+                </label>
+                <input
+                  id="admin-totp-code"
+                  type="text"
+                  maxLength="6"
+                  required
+                  autoFocus
+                  autoComplete="one-time-code"
+                  placeholder="000000"
+                  value={totpCode}
+                  onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ""))}
+                  style={{
+                    width: "100%",
+                    padding: "12px 14px",
+                    border: "1px solid var(--gold)",
+                    borderRadius: "6px",
+                    fontSize: "20px",
+                    letterSpacing: "4px",
+                    textAlign: "center",
+                    fontFamily: "var(--mono)",
+                    background: "var(--paper-hi)",
+                    outline: "none",
+                    boxSizing: "border-box"
+                  }}
+                />
+              </div>
+
+              <button
+                className="btn gold"
+                type="submit"
+                disabled={isAuthenticating}
+                style={{ width: "100%", padding: "12px", borderRadius: "6px", fontSize: "14px", justifyContent: "center", marginBottom: "10px" }}
+              >
+                {isAuthenticating ? "Verifying MFA..." : "Verify TOTP & Sign In →"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMfaStep("none");
+                  setTotpCode("");
+                  setAuthError("");
+                  setAuthSuccessMsg("");
+                }}
                 style={{
                   width: "100%",
-                  padding: "12px 14px",
-                  border: "1px solid var(--line)",
-                  borderRadius: "6px",
-                  fontSize: "14px",
-                  fontFamily: "var(--sans)",
-                  background: "var(--paper-hi)",
-                  outline: "none",
-                  boxSizing: "border-box"
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--slate)",
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  padding: "6px"
                 }}
-              />
-            </div>
+              >
+                ← Back to Password Login
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleLogin}>
+              <div style={{ marginBottom: "14px" }}>
+                <label htmlFor="admin-login-email" style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                  Admin Email
+                </label>
+                <input
+                  id="admin-login-email"
+                  type="email"
+                  required
+                  autoComplete="username"
+                  placeholder="admin@justnivaran.in"
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "12px 14px",
+                    border: "1px solid var(--line)",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    fontFamily: "var(--sans)",
+                    background: "var(--paper-hi)",
+                    outline: "none",
+                    boxSizing: "border-box"
+                  }}
+                />
+              </div>
 
-            <div style={{ marginBottom: "18px" }}>
-              <label htmlFor="admin-login-password" style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
-                Password / Master Key
-              </label>
-              <input
-                id="admin-login-password"
-                type="password"
-                required
-                autoComplete="current-password"
-                placeholder="Enter administrator password"
-                value={adminPassword}
-                onChange={(e) => setAdminPassword(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  border: "1px solid var(--line)",
-                  borderRadius: "6px",
-                  fontSize: "14px",
-                  fontFamily: "var(--sans)",
-                  background: "var(--paper-hi)",
-                  outline: "none",
-                  boxSizing: "border-box"
-                }}
-              />
-            </div>
+              <div style={{ marginBottom: "18px" }}>
+                <label htmlFor="admin-login-password" style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                  Password / Master Key
+                </label>
+                <input
+                  id="admin-login-password"
+                  type="password"
+                  required
+                  autoComplete="current-password"
+                  placeholder="Enter administrator password"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "12px 14px",
+                    border: "1px solid var(--line)",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    fontFamily: "var(--sans)",
+                    background: "var(--paper-hi)",
+                    outline: "none",
+                    boxSizing: "border-box"
+                  }}
+                />
+              </div>
 
-            <button
-              className="btn gold"
-              type="submit"
-              disabled={isAuthenticating}
-              style={{ width: "100%", padding: "12px", borderRadius: "6px", fontSize: "14px", justifyContent: "center" }}
-            >
-              {isAuthenticating ? "Authenticating Session..." : "Secure Registry Sign-In →"}
-            </button>
-          </form>
+              <button
+                className="btn gold"
+                type="submit"
+                disabled={isAuthenticating}
+                style={{ width: "100%", padding: "12px", borderRadius: "6px", fontSize: "14px", justifyContent: "center" }}
+              >
+                {isAuthenticating ? "Authenticating Session..." : "Secure Registry Sign-In →"}
+              </button>
+            </form>
+          )}
 
           <div
             style={{
@@ -885,6 +1009,30 @@ function AdminDashboard() {
       d.respondent_name?.toLowerCase().includes(q) ||
       d.assigned_neutral?.toLowerCase().includes(q) ||
       d.hearing_date?.toLowerCase().includes(q)
+    );
+  });
+
+  const filteredNotices = noticeDeliveries.filter((n) => {
+    const matchesStatus = statusFilter === "ALL" || n.status === statusFilter;
+    if (!matchesStatus) return false;
+    if (!q) return true;
+    return (
+      n.docket_number?.toLowerCase().includes(q) ||
+      n.recipient_contact?.toLowerCase().includes(q) ||
+      n.channel?.toLowerCase().includes(q) ||
+      n.status?.toLowerCase().includes(q) ||
+      n.recipient_type?.toLowerCase().includes(q) ||
+      n.provider_msg_id?.toLowerCase().includes(q)
+    );
+  });
+
+  const filteredAuditLogs = caseAuditLogs.filter((a) => {
+    if (!q) return true;
+    return (
+      a.docket_number?.toLowerCase().includes(q) ||
+      a.event_type?.toLowerCase().includes(q) ||
+      a.actor_type?.toLowerCase().includes(q) ||
+      a.change_summary?.toLowerCase().includes(q)
     );
   });
 
@@ -1232,6 +1380,96 @@ function AdminDashboard() {
             }}
           >
             {consultations.length}
+          </span>
+        </button>
+
+        <button
+          className="admin-tab-btn"
+          type="button"
+          onClick={() => {
+            setActiveTab("notices");
+            setStatusFilter("ALL");
+          }}
+          style={{
+            background: activeTab === "notices" ? "var(--ink)" : "transparent",
+            color: activeTab === "notices" ? "#ffffff" : "var(--slate)",
+            border: "1px solid",
+            borderColor: activeTab === "notices" ? "var(--ink)" : "var(--line)"
+          }}
+        >
+          📨 Notice Deliveries
+          <span
+            style={{
+              background: activeTab === "notices" ? "var(--gold)" : "rgba(18,41,74,.08)",
+              color: activeTab === "notices" ? "#241703" : "var(--slate)",
+              fontSize: "10.5px",
+              fontFamily: "var(--mono)",
+              padding: "1px 6px",
+              borderRadius: "2px",
+              fontWeight: 500
+            }}
+          >
+            {noticeDeliveries.length}
+          </span>
+        </button>
+
+        <button
+          className="admin-tab-btn"
+          type="button"
+          onClick={() => {
+            setActiveTab("audit");
+            setStatusFilter("ALL");
+          }}
+          style={{
+            background: activeTab === "audit" ? "var(--ink)" : "transparent",
+            color: activeTab === "audit" ? "#ffffff" : "var(--slate)",
+            border: "1px solid",
+            borderColor: activeTab === "audit" ? "var(--ink)" : "var(--line)"
+          }}
+        >
+          📜 Case Audit Trail
+          <span
+            style={{
+              background: activeTab === "audit" ? "var(--gold)" : "rgba(18,41,74,.08)",
+              color: activeTab === "audit" ? "#241703" : "var(--slate)",
+              fontSize: "10.5px",
+              fontFamily: "var(--mono)",
+              padding: "1px 6px",
+              borderRadius: "2px",
+              fontWeight: 500
+            }}
+          >
+            {caseAuditLogs.length}
+          </span>
+        </button>
+
+        <button
+          className="admin-tab-btn"
+          type="button"
+          onClick={() => {
+            setActiveTab("security");
+            setStatusFilter("ALL");
+          }}
+          style={{
+            background: activeTab === "security" ? "var(--ink)" : "transparent",
+            color: activeTab === "security" ? "#ffffff" : "var(--slate)",
+            border: "1px solid",
+            borderColor: activeTab === "security" ? "var(--ink)" : "var(--line)"
+          }}
+        >
+          🔐 MFA &amp; Security
+          <span
+            style={{
+              background: assuranceLevel === "aal2" ? "#27AE60" : "var(--gold)",
+              color: "#ffffff",
+              fontSize: "10px",
+              fontFamily: "var(--mono)",
+              padding: "1px 6px",
+              borderRadius: "2px",
+              fontWeight: 600
+            }}
+          >
+            {assuranceLevel.toUpperCase()}
           </span>
         </button>
       </div>
@@ -1761,7 +1999,7 @@ function AdminDashboard() {
               </tbody>
             </table>
           </div>
-        ) : (
+        ) : activeTab === "consultations" ? (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13.5px", textAlign: "left" }}>
               <thead>
@@ -1919,6 +2157,201 @@ function AdminDashboard() {
                 )}
               </tbody>
             </table>
+          </div>
+        ) : activeTab === "notices" ? (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", textAlign: "left" }}>
+              <thead>
+                <tr style={{ background: "var(--paper-hi)", borderBottom: "1px solid var(--line)" }}>
+                  <th style={{ padding: "12px 14px", color: "var(--slate)", fontSize: "10.5px", fontFamily: "var(--mono)", textTransform: "uppercase" }}>Docket Number</th>
+                  <th style={{ padding: "12px 14px", color: "var(--slate)", fontSize: "10.5px", fontFamily: "var(--mono)", textTransform: "uppercase" }}>Channel</th>
+                  <th style={{ padding: "12px 14px", color: "var(--slate)", fontSize: "10.5px", fontFamily: "var(--mono)", textTransform: "uppercase" }}>Recipient</th>
+                  <th style={{ padding: "12px 14px", color: "var(--slate)", fontSize: "10.5px", fontFamily: "var(--mono)", textTransform: "uppercase" }}>Delivery Status</th>
+                  <th style={{ padding: "12px 14px", color: "var(--slate)", fontSize: "10.5px", fontFamily: "var(--mono)", textTransform: "uppercase" }}>Provider Msg ID</th>
+                  <th style={{ padding: "12px 14px", color: "var(--slate)", fontSize: "10.5px", fontFamily: "var(--mono)", textTransform: "uppercase" }}>Dispatched At</th>
+                  <th style={{ padding: "12px 14px", color: "var(--slate)", fontSize: "10.5px", fontFamily: "var(--mono)", textTransform: "uppercase" }}>Delivered At</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredNotices.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" style={{ padding: "36px", textAlign: "center", color: "var(--slate)" }}>
+                      {search ? "No matching notice delivery logs." : "No notice delivery logs recorded yet."}
+                    </td>
+                  </tr>
+                ) : (
+                  filteredNotices.map((n) => {
+                    const statusBg =
+                      n.status === "Delivered" ? "#E9F7EF" :
+                      n.status === "Sent" ? "#EBF5FB" :
+                      n.status === "Failed" ? "#FDEDEC" : "#FEF9E7";
+                    const statusColor =
+                      n.status === "Delivered" ? "#1E8449" :
+                      n.status === "Sent" ? "#2471A3" :
+                      n.status === "Failed" ? "#C0392B" : "#B7950B";
+
+                    return (
+                      <tr key={n.id} className="admin-table-row" style={{ borderBottom: "1px solid var(--line-soft)" }}>
+                        <td style={{ padding: "12px 14px", fontFamily: "var(--mono)", fontWeight: 500, color: "var(--ink)", fontSize: "12px" }}>
+                          {n.docket_number}
+                        </td>
+                        <td style={{ padding: "12px 14px" }}>
+                          <span
+                            style={{
+                              background: n.channel === "whatsapp" ? "rgba(37, 211, 102, 0.12)" : "rgba(30, 58, 138, 0.08)",
+                              color: n.channel === "whatsapp" ? "#128C7E" : "#1E3A8A",
+                              padding: "2px 8px",
+                              borderRadius: "3px",
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              fontFamily: "var(--mono)",
+                              textTransform: "uppercase"
+                            }}
+                          >
+                            {n.channel === "whatsapp" ? "💬 WhatsApp" : n.channel === "email" ? "✉️ Email" : n.channel}
+                          </span>
+                        </td>
+                        <td style={{ padding: "12px 14px" }}>
+                          <span style={{ fontWeight: 500, display: "block", color: "var(--ink)" }}>{n.recipient_contact}</span>
+                          <span style={{ fontSize: "10.5px", color: "var(--slate)", textTransform: "uppercase", fontFamily: "var(--mono)" }}>{n.recipient_type}</span>
+                        </td>
+                        <td style={{ padding: "12px 14px" }}>
+                          <span
+                            style={{
+                              background: statusBg,
+                              color: statusColor,
+                              padding: "3px 8px",
+                              borderRadius: "3px",
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              border: `1px solid ${statusColor}40`
+                            }}
+                          >
+                            ● {n.status}
+                          </span>
+                        </td>
+                        <td style={{ padding: "12px 14px", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--slate)" }}>
+                          {n.provider_msg_id || "—"}
+                        </td>
+                        <td style={{ padding: "12px 14px", fontSize: "11.5px", color: "var(--slate)" }}>
+                          {n.dispatched_at ? new Date(n.dispatched_at).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" }) : "—"}
+                        </td>
+                        <td style={{ padding: "12px 14px", fontSize: "11.5px", color: "var(--slate)" }}>
+                          {n.delivered_at ? new Date(n.delivered_at).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" }) : "—"}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : activeTab === "audit" ? (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", textAlign: "left" }}>
+              <thead>
+                <tr style={{ background: "var(--paper-hi)", borderBottom: "1px solid var(--line)" }}>
+                  <th style={{ padding: "12px 14px", color: "var(--slate)", fontSize: "10.5px", fontFamily: "var(--mono)", textTransform: "uppercase" }}>Event Timestamp (IST)</th>
+                  <th style={{ padding: "12px 14px", color: "var(--slate)", fontSize: "10.5px", fontFamily: "var(--mono)", textTransform: "uppercase" }}>Docket Number</th>
+                  <th style={{ padding: "12px 14px", color: "var(--slate)", fontSize: "10.5px", fontFamily: "var(--mono)", textTransform: "uppercase" }}>Event Type</th>
+                  <th style={{ padding: "12px 14px", color: "var(--slate)", fontSize: "10.5px", fontFamily: "var(--mono)", textTransform: "uppercase" }}>Actor</th>
+                  <th style={{ padding: "12px 14px", color: "var(--slate)", fontSize: "10.5px", fontFamily: "var(--mono)", textTransform: "uppercase" }}>Evidentiary Audit Summary</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredAuditLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" style={{ padding: "36px", textAlign: "center", color: "var(--slate)" }}>
+                      {search ? "No matching audit log entries." : "No audit trail logs recorded yet."}
+                    </td>
+                  </tr>
+                ) : (
+                  filteredAuditLogs.map((a) => (
+                    <tr key={a.id} className="admin-table-row" style={{ borderBottom: "1px solid var(--line-soft)" }}>
+                      <td style={{ padding: "12px 14px", fontSize: "11.5px", fontFamily: "var(--mono)", color: "var(--slate)" }}>
+                        {a.created_at ? new Date(a.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }) : "—"}
+                      </td>
+                      <td style={{ padding: "12px 14px", fontFamily: "var(--mono)", fontWeight: 500, color: "var(--ink)", fontSize: "12px" }}>
+                        {a.docket_number}
+                      </td>
+                      <td style={{ padding: "12px 14px" }}>
+                        <span
+                          style={{
+                            background: "rgba(11, 27, 49, 0.08)",
+                            color: "var(--ink)",
+                            padding: "2px 6px",
+                            borderRadius: "3px",
+                            fontFamily: "var(--mono)",
+                            fontSize: "10.5px",
+                            fontWeight: 600
+                          }}
+                        >
+                          {a.event_type}
+                        </span>
+                      </td>
+                      <td style={{ padding: "12px 14px", fontFamily: "var(--mono)", fontSize: "11px", color: "var(--slate)" }}>
+                        {a.actor_type}
+                      </td>
+                      <td style={{ padding: "12px 14px", fontSize: "12.5px", color: "var(--ink)" }}>
+                        {a.change_summary}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          /* activeTab === "security" */
+          <div style={{ padding: "24px 20px" }}>
+            <h3 style={{ fontSize: "18px", color: "var(--ink)", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span>🔐</span> Institutional Security &amp; MFA Assurance
+            </h3>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "18px", marginBottom: "24px" }}>
+              <div style={{ background: "#ffffff", border: "1px solid var(--line)", padding: "18px", borderRadius: "6px" }}>
+                <span style={{ fontSize: "10.5px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>Session Security Level</span>
+                <div style={{ fontSize: "20px", fontWeight: 600, color: assuranceLevel === "aal2" ? "#1E8449" : "var(--gold-deep)", margin: "6px 0 4px" }}>
+                  {assuranceLevel === "aal2" ? "🛡️ AAL2 (MFA Verified)" : "⚠️ AAL1 (Password Only)"}
+                </div>
+                <p style={{ fontSize: "12px", color: "var(--slate)", margin: 0, lineHeight: "1.4" }}>
+                  {assuranceLevel === "aal2"
+                    ? "Your session is fully secured with two-factor authentication (TOTP)."
+                    : "Two-factor authentication is recommended for institutional registry administrators."}
+                </p>
+              </div>
+
+              <div style={{ background: "#ffffff", border: "1px solid var(--line)", padding: "18px", borderRadius: "6px" }}>
+                <span style={{ fontSize: "10.5px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>Database RLS Hardening</span>
+                <div style={{ fontSize: "20px", fontWeight: 600, color: "#1E8449", margin: "6px 0 4px" }}>
+                  ✅ Active &amp; Enforced
+                </div>
+                <p style={{ fontSize: "12px", color: "var(--slate)", margin: 0, lineHeight: "1.4" }}>
+                  Direct anon SELECT and INSERT access is permanently revoked. All docket searches execute through rate-limited Edge Functions.
+                </p>
+              </div>
+
+              <div style={{ background: "#ffffff", border: "1px solid var(--line)", padding: "18px", borderRadius: "6px" }}>
+                <span style={{ fontSize: "10.5px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>DPDP Act 2023 Compliance</span>
+                <div style={{ fontSize: "20px", fontWeight: 600, color: "#1E8449", margin: "6px 0 4px" }}>
+                  ✅ Compliant
+                </div>
+                <p style={{ fontSize: "12px", color: "var(--slate)", margin: 0, lineHeight: "1.4" }}>
+                  Party PII is masked from public registry queries. Temporary evidence access is issued via 300s short-lived signed URLs.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ background: "var(--paper-hi)", border: "1px solid var(--line)", borderRadius: "6px", padding: "18px" }}>
+              <h4 style={{ fontSize: "14px", margin: "0 0 8px", color: "var(--ink)" }}>Administrator Multi-Factor Authentication (MFA / TOTP)</h4>
+              <p style={{ fontSize: "13px", color: "var(--slate)", margin: "0 0 14px", lineHeight: "1.5" }}>
+                To configure or update your TOTP authenticator (Google Authenticator, Microsoft Authenticator, Apple Passwords, 1Password), manage your user profile in Supabase Auth Console or scan your enrollment key.
+              </p>
+              <div style={{ display: "inline-flex", gap: "10px", alignItems: "center", background: "#ffffff", border: "1px solid var(--line)", padding: "8px 12px", borderRadius: "4px", fontSize: "12px", fontFamily: "var(--mono)" }}>
+                <span>Active Admin:</span>
+                <strong style={{ color: "var(--ink)" }}>{currentUser?.email || adminEmail}</strong>
+              </div>
+            </div>
           </div>
         )}
       </div>

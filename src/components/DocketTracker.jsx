@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase";
+import { getPublicDocketStatus, verifyDocketPin } from "../lib/api";
 import VerifiedCaseJourney from "./VerifiedCaseJourney";
 
 function DocketTracker() {
@@ -26,16 +27,6 @@ function DocketTracker() {
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [lockoutUntil, setLockoutUntil] = useState(0);
 
-  const getCasePin = (c) => {
-    if (!c) return "090909";
-    if (c.access_code && String(c.access_code).trim()) return String(c.access_code).trim();
-    if (c.dispute_summary) {
-      const match = String(c.dispute_summary).match(/\[Case Access PIN:\s*([A-Za-z0-9]+)\]/i);
-      if (match && match[1]) return match[1].trim();
-    }
-    return "090909";
-  };
-
   const executeSearch = useCallback(async (docketToFind, pinToUnlock = null) => {
     if (!docketToFind || !docketToFind.trim()) return;
     setIsLoading(true);
@@ -45,35 +36,21 @@ function DocketTracker() {
     setPinError("");
 
     try {
-      if (supabase) {
-        const { data, error } = await supabase
-          .from("disputes")
-          .select("*")
-          .ilike("docket_number", docketToFind.trim())
-          .maybeSingle();
-
-        if (error) {
-          console.error("Search error:", error.message);
-          setCaseData(null);
-        } else {
-          setCaseData(data);
-          // If PIN parameter is supplied via magic link, automatically verify and unlock
-          if (pinToUnlock && data) {
-            const entered = String(pinToUnlock).trim();
-            const storedPin = data.access_code
-              ? String(data.access_code).trim()
-              : String(data.dispute_summary || "").match(/\[Case Access PIN:\s*([A-Za-z0-9]+)\]/i)?.[1]?.trim() || "";
-            if (storedPin && entered === storedPin) {
-              setIsUnlocked(true);
-              setPinInput(entered);
-              setFailedAttempts(0);
-            } else if (entered === "090909" || entered === "123456") {
-              setIsUnlocked(true);
-              setPinInput(entered);
-              setFailedAttempts(0);
-            }
+      const res = await getPublicDocketStatus(docketToFind.trim());
+      if (res?.success && res.data) {
+        setCaseData(res.data);
+        // If PIN parameter is supplied via magic link or URL param, automatically verify and unlock
+        if (pinToUnlock) {
+          const pinRes = await verifyDocketPin(res.data.docket_number, String(pinToUnlock).trim());
+          if (pinRes?.success && pinRes.data) {
+            setCaseData(pinRes.data);
+            setIsUnlocked(true);
+            setPinInput(String(pinToUnlock).trim());
+            setFailedAttempts(0);
           }
         }
+      } else {
+        setCaseData(null);
       }
     } catch (err) {
       console.error("Fetch error:", err);
@@ -83,9 +60,9 @@ function DocketTracker() {
     }
   }, []);
 
-  const handlePinUnlock = (e) => {
+  const handlePinUnlock = async (e) => {
     e.preventDefault();
-    if (!caseData) return;
+    if (!caseData?.docket_number) return;
 
     if (Date.now() < lockoutUntil) {
       const remainingSec = Math.ceil((lockoutUntil - Date.now()) / 1000);
@@ -94,26 +71,48 @@ function DocketTracker() {
     }
 
     const entered = pinInput.trim();
-    const storedPin = getCasePin(caseData);
+    if (!entered || entered.length < 4) {
+      setPinError("Please enter your 6-digit Case Access PIN.");
+      return;
+    }
 
-    // Allow unlock if PIN matches stored access_code, embedded PIN tag, or fallback PIN 090909
-    if (storedPin && entered === storedPin) {
-      setIsUnlocked(true);
-      setPinError("");
-      setFailedAttempts(0);
-    } else if (entered === "090909" || entered === "123456") {
-      setIsUnlocked(true);
-      setPinError("");
-      setFailedAttempts(0);
-    } else {
-      const nextAttempts = failedAttempts + 1;
-      setFailedAttempts(nextAttempts);
-      if (nextAttempts >= 5) {
-        setLockoutUntil(Date.now() + 300000); // 5 min lockout
-        setPinError("Security lockout: 5 consecutive incorrect PIN attempts. Tracking locked for 5 minutes.");
+    setIsLoading(true);
+    setPinError("");
+
+    try {
+      const res = await verifyDocketPin(caseData.docket_number, entered);
+      if (res?.success && res.data) {
+        setCaseData(res.data);
+        setIsUnlocked(true);
+        setPinError("");
+        setFailedAttempts(0);
       } else {
-        setPinError(`Invalid Case Access PIN. Authentication failed (${5 - nextAttempts} attempts remaining).`);
+        const remaining = res?.remaining_attempts;
+        const lockoutSec = res?.lockout_seconds;
+
+        if (res?.error === "RATE_LIMITED" || lockoutSec) {
+          const cooldown = (lockoutSec || 300) * 1000;
+          setLockoutUntil(Date.now() + cooldown);
+          setPinError(`Security lockout: Too many failed PIN attempts. Verification is temporarily locked for ${Math.ceil(cooldown / 60000)} minutes.`);
+        } else {
+          const nextAttempts = failedAttempts + 1;
+          setFailedAttempts(nextAttempts);
+          if (typeof remaining === "number") {
+            setPinError(
+              remaining > 0
+                ? `Invalid Case Access PIN. Authentication failed (${remaining} attempt${remaining === 1 ? "" : "s"} remaining).`
+                : "Security lockout: 5 consecutive incorrect PIN attempts. Verification locked for 5 minutes."
+            );
+          } else {
+            setPinError("Invalid Case Access PIN. Authentication failed. Please verify credentials.");
+          }
+        }
       }
+    } catch (err) {
+      console.error("PIN verification error:", err);
+      setPinError("Verification service temporarily unavailable. Please retry.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -631,9 +630,9 @@ function DocketTracker() {
                   <button
                     type="button"
                     onClick={() => {
-                      const link = `https://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(caseData.docket_number)}&pin=${encodeURIComponent(getCasePin(caseData) || pinInput || "090909")}#tracker`;
+                      const link = `${window.location.origin}/?docket=${encodeURIComponent(caseData.docket_number)}${pinInput ? `&pin=${encodeURIComponent(pinInput)}` : ""}#tracker`;
                       navigator.clipboard.writeText(link);
-                      setCopiedToast("✓ 1-Click Auto-Unlock Link Copied!");
+                      setCopiedToast("✓ 1-Click Access Link Copied!");
                       setTimeout(() => setCopiedToast(""), 3000);
                     }}
                     style={{
@@ -653,6 +652,45 @@ function DocketTracker() {
                     🔗 Copy 1-Click Link
                   </button>
                 </div>
+
+                {/* Secure Evidence Download Badge if signed URL is present */}
+                {caseData.signed_evidence_url && (
+                  <div
+                    style={{
+                      background: "rgba(209, 154, 52, 0.12)",
+                      border: "1px solid rgba(209, 154, 52, 0.4)",
+                      borderRadius: "4px",
+                      padding: "10px 14px",
+                      marginBottom: "18px",
+                      fontSize: "12.5px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      gap: "10px"
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--gold)" }}>
+                      <span>📄</span>
+                      <span>
+                        <strong>Verified Evidence File:</strong> Authenticated electronic document attached to filing.
+                      </span>
+                    </div>
+                    <a
+                      href={caseData.signed_evidence_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn gold"
+                      style={{
+                        padding: "4px 12px",
+                        fontSize: "11px",
+                        textDecoration: "none"
+                      }}
+                    >
+                      View Signed Document (300s expiry) ↗
+                    </a>
+                  </div>
+                )}
 
                 {/* Verified Contact Details */}
                 <div

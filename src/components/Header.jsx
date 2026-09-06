@@ -206,6 +206,15 @@ function Header({ onOpenFileModal }) {
           <Link to="/arbitration-rules" onClick={() => setIsMobileMenuOpen(false)}>
             📑 Arbitration Rules (s. 29A/29B)
           </Link>
+          <Link to="/legal-assessment" onClick={() => setIsMobileMenuOpen(false)}>
+            ⚖️ AI Legal Assessment (Beta)
+          </Link>
+          <Link to="/fast-track-arbitration" onClick={() => setIsMobileMenuOpen(false)}>
+            ⚡ Fast-Track Arbitration (s. 29B)
+          </Link>
+          <Link to="/emergency-relief" onClick={() => setIsMobileMenuOpen(false)}>
+            🚨 Emergency Relief (48–72h)
+          </Link>
           <Link to="/for-neutrals" onClick={() => setIsMobileMenuOpen(false)}>
             👨‍⚖️ For Neutrals / Empanelment
           </Link>

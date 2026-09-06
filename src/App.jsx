@@ -1,9 +1,11 @@
 import { useState, useEffect, lazy, Suspense } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import "./App.css";
 
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Homepage loaded eagerly for instant First Contentful Paint
 import Home from "./pages/Home";
@@ -15,6 +17,11 @@ const ArbitrationRules = lazy(() => import("./pages/ArbitrationRules"));
 const ForNeutrals = lazy(() => import("./pages/ForNeutrals"));
 const Contact = lazy(() => import("./pages/Contact"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+
+// Advanced Resolution Capabilities
+const LegalAssessment = lazy(() => import("./pages/LegalAssessment"));
+const FastTrackArbitration = lazy(() => import("./pages/FastTrackArbitration"));
+const EmergencyRelief = lazy(() => import("./pages/EmergencyRelief"));
 
 // Statutory Legal & Compliance Pages
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -110,6 +117,21 @@ const ROUTE_SEO = {
     title: "Legal Disclaimer & Platform Notice — JustNivaran ODR",
     description: "Institutional dispute administrator disclaimer: JustNivaran is an ODR platform providing administrative infrastructure and not a law firm offering legal advice.",
     keywords: "Legal disclaimer, dispute resolution provider, administrative registry notice"
+  },
+  "/legal-assessment": {
+    title: "AI-Assisted Legal Risk & Outcome Assessment (Beta) — JustNivaran ODR",
+    description: "Institutional decision-support for commercial disputes: structured issue mapping, statutory cross-referencing under Indian law, and evidentiary readiness evaluation.",
+    keywords: "AI legal risk assessment, commercial dispute evaluation, Indian Contract Act 1872, Arbitration Act 1996, litigation risk mapping"
+  },
+  "/fast-track-arbitration": {
+    title: "Fast-Track Arbitration under Section 29B — JustNivaran ODR",
+    description: "Statutory 6-month fast-track arbitration under Section 29B of the Arbitration & Conciliation Act, 1996. Sole arbitrator tribunal, written pleadings, and binding court-enforceable awards.",
+    keywords: "Fast-Track Arbitration, Section 29B Arbitration Act, 6-month arbitral award, sole arbitrator, commercial arbitration India"
+  },
+  "/emergency-relief": {
+    title: "Emergency Arbitration & Interim Relief (48–72h) — JustNivaran ODR",
+    description: "Urgent institutional emergency arbitrator appointment within 48–72 hours for critical interim protective measures prior to tribunal constitution under Indian law.",
+    keywords: "Emergency Arbitration, interim relief, Section 9 Arbitration Act, bank guarantee stay, emergency arbitrator India"
   }
 };
 
@@ -256,67 +278,76 @@ function App() {
       <SEOHead />
       <Header onOpenFileModal={() => handleOpenFileModal()} />
 
-      <Suspense fallback={<div style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--slate)", fontFamily: "var(--mono)", fontSize: "12px" }}>LOADING JUSTNIVARAN REGISTRY...</div>}>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <Home
-                onOpenFileModal={handleOpenFileModal}
-                onOpenEmpanelmentModal={() => setIsEmpanelmentOpen(true)}
-                onOpenConsultationModal={() => setIsConsultationOpen(true)}
-              />
-            }
-          />
-          <Route
-            path="/negotiation-guidelines"
-            element={
-              <NegotiationGuidelines
-                onOpenFileModal={() => handleOpenFileModal()}
-              />
-            }
-          />
-          <Route
-            path="/mediation-rules"
-            element={
-              <MediationRules
-                onOpenFileModal={() => handleOpenFileModal()}
-              />
-            }
-          />
-          <Route
-            path="/arbitration-rules"
-            element={
-              <ArbitrationRules
-                onOpenFileModal={() => handleOpenFileModal()}
-              />
-            }
-          />
-          <Route
-            path="/for-neutrals"
-            element={
-              <ForNeutrals
-                onOpenEmpanelmentModal={() => setIsEmpanelmentOpen(true)}
-              />
-            }
-          />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+      <ErrorBoundary>
+        <Suspense fallback={<div style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--slate)", fontFamily: "var(--mono)", fontSize: "12px" }}>LOADING JUSTNIVARAN REGISTRY...</div>}>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <Home
+                  onOpenFileModal={handleOpenFileModal}
+                  onOpenEmpanelmentModal={() => setIsEmpanelmentOpen(true)}
+                  onOpenConsultationModal={() => setIsConsultationOpen(true)}
+                />
+              }
+            />
+            <Route
+              path="/negotiation-guidelines"
+              element={
+                <NegotiationGuidelines
+                  onOpenFileModal={() => handleOpenFileModal()}
+                />
+              }
+            />
+            <Route
+              path="/mediation-rules"
+              element={
+                <MediationRules
+                  onOpenFileModal={() => handleOpenFileModal()}
+                />
+              }
+            />
+            <Route
+              path="/arbitration-rules"
+              element={
+                <ArbitrationRules
+                  onOpenFileModal={() => handleOpenFileModal()}
+                />
+              }
+            />
+            <Route
+              path="/for-neutrals"
+              element={
+                <ForNeutrals
+                  onOpenEmpanelmentModal={() => setIsEmpanelmentOpen(true)}
+                />
+              }
+            />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/admin" element={<AdminDashboard />} />
 
-          {/* Statutory Legal & Institutional Policy Routes */}
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms-of-use" element={<TermsOfUse onOpenFileModal={handleOpenFileModal} />} />
-          <Route path="/fee-schedule" element={<FeeSchedule onOpenFileModal={handleOpenFileModal} />} />
-          <Route path="/refund-policy" element={<RefundPolicy />} />
-          <Route path="/data-retention" element={<DataRetention />} />
-          <Route path="/grievance" element={<Grievance />} />
-          <Route path="/neutral-code-of-conduct" element={<NeutralCodeOfConduct onOpenEmpanelmentModal={() => setIsEmpanelmentOpen(true)} />} />
-          <Route path="/legal-disclaimer" element={<LegalDisclaimer />} />
+            {/* Advanced Capabilities Routes */}
+            <Route path="/legal-assessment" element={<LegalAssessment />} />
+            <Route path="/fast-track-arbitration" element={<FastTrackArbitration onOpenFileModal={handleOpenFileModal} />} />
+            <Route path="/emergency-relief" element={<EmergencyRelief onOpenFileModal={handleOpenFileModal} />} />
 
-          {/* 404 Catch-All Route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
+            {/* Statutory Legal & Institutional Policy Routes */}
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-use" element={<TermsOfUse onOpenFileModal={handleOpenFileModal} />} />
+            <Route path="/fee-schedule" element={<FeeSchedule onOpenFileModal={handleOpenFileModal} />} />
+            <Route path="/refund-policy" element={<RefundPolicy />} />
+            <Route path="/data-retention" element={<DataRetention />} />
+            <Route path="/grievance" element={<Grievance />} />
+            <Route path="/neutral-code-of-conduct" element={<NeutralCodeOfConduct onOpenEmpanelmentModal={() => setIsEmpanelmentOpen(true)} />} />
+            <Route path="/legal-disclaimer" element={<LegalDisclaimer />} />
+
+            {/* 404 Catch-All Route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
+
+      <SpeedInsights />
 
       <Footer
         onOpenFileModal={() => handleOpenFileModal()}
