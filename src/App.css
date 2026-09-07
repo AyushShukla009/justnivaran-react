@@ -390,12 +390,19 @@ header {
 
 .mobile-toggle {
   display: none;
-  background: transparent;
-  border: none;
+  background: rgba(18, 41, 74, 0.05);
+  border: 1px solid var(--line);
+  border-radius: 6px;
   cursor: pointer;
   padding: 8px;
   color: var(--ink);
-  margin-left: auto;
+  margin-left: 8px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.mobile-toggle:hover {
+  background: rgba(18, 41, 74, 0.1);
 }
 
 @media (max-width: 1080px) {
@@ -403,19 +410,51 @@ header {
     display: none;
   }
   .mobile-toggle {
-    display: block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
   }
   .nav {
-    height: 78px;
+    height: 72px;
   }
   .brand img {
-    height: 68px;
+    height: 56px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav {
+    height: 60px;
+    gap: 8px;
+  }
+  .brand {
+    margin-right: auto;
+  }
+  .brand img {
+    height: 44px;
+  }
+  .nav-actions {
+    gap: 6px;
+  }
+  .nav-actions .nav-btn-track,
+  .nav-actions .nav-btn-ai {
+    display: none;
+  }
+  .nav-actions .nav-btn-file {
+    height: 34px;
+    padding: 0 11px;
+    font-size: 12px;
+  }
+  .mobile-drawer {
+    top: 60px;
   }
 }
 
 .mobile-drawer {
   position: fixed;
-  top: 64px;
+  top: 72px;
   left: 0;
   right: 0;
   background: #fff;
@@ -424,7 +463,9 @@ header {
   box-shadow: 0 20px 40px rgba(0,0,0,.15);
   display: grid;
   gap: 14px;
-  z-index: 49;
+  z-index: 99;
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
   animation: rise .2s ease-out;
 }
 
@@ -433,7 +474,7 @@ header {
   font-size: 15px;
   color: var(--ink);
   font-weight: 500;
-  padding-block: 6px;
+  padding-block: 8px;
   border-bottom: 1px solid var(--line-soft);
 }
 
@@ -529,18 +570,55 @@ h1 em {
   gap: 12px;
 }
 
+.hero-trust-strip {
+  margin: 28px 0 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  backdrop-filter: blur(8px);
+}
+
+@media (max-width: 600px) {
+  .hero-trust-strip {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 10px;
+  }
+  .hero-trust-strip > div {
+    font-size: 11px !important;
+  }
+}
+
 .hero-foot {
   margin-top: 32px;
   padding-top: 18px;
   border-top: var(--rail);
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .hero-foot {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
 }
 
 @media (max-width: 540px) {
   .hero-foot {
     grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .hero-foot dt {
+    font-size: 9.5px;
+  }
+  .hero-foot dd {
+    font-size: 15px;
   }
 }
 
@@ -617,6 +695,18 @@ h1 em {
   background: #fff;
 }
 
+@media (max-width: 640px) {
+  .modes {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .modes::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 .mode {
   flex: 1 1 auto;
   min-width: 95px;
@@ -629,16 +719,18 @@ h1 em {
   border: 0;
   border-right: var(--rail);
   border-bottom: 2px solid transparent;
-  padding: 11px 8px;
+  padding: 11px 12px;
   text-align: center;
   transition: all .2s ease;
+  white-space: nowrap;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .mode {
-    min-width: 33.33%;
-    font-size: 12px;
-    padding: 10px 4px;
+    flex: 0 0 auto;
+    min-width: auto;
+    font-size: 12.5px;
+    padding: 10px 14px;
   }
 }
 
@@ -1938,5 +2030,28 @@ footer a:hover {
   }
   .vcj-progress-fill {
     transition: none !important;
+  }
+}
+
+/* ---------- Global Viewport & Floating Quick Dock Mobile Refinements ---------- */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+@media (max-width: 600px) {
+  .floating-quick-dock {
+    bottom: 12px !important;
+    right: 12px !important;
+    padding: 6px 10px !important;
+    gap: 6px !important;
+    transform: scale(0.92);
+    transform-origin: bottom right;
+  }
+  .wrap {
+    padding-inline: 16px;
+  }
+  .section {
+    padding-block: clamp(36px, 6vw, 64px);
   }
 }

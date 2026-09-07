@@ -44,17 +44,7 @@ function Hero({ onOpenFileModal }) {
           </div>
 
           {/* Institutional Statutory Trust Badges */}
-          <div className="hero-trust-strip" style={{
-            margin: "28px 0 24px",
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "10px",
-            padding: "14px",
-            background: "rgba(255, 255, 255, 0.6)",
-            border: "1px solid var(--line)",
-            borderRadius: "4px",
-            backdropFilter: "blur(8px)"
-          }}>
+          <div className="hero-trust-strip">
             <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--ink)", fontWeight: 500 }}>
               <span style={{ fontSize: "15px" }}>⚖️</span>
               <span>Mediation Act, 2023 Framework</span>

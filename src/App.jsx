@@ -457,7 +457,7 @@ function App() {
       {/* Floating Action Pill Bar */}
       {showFloatingPill && (
         <div
-          className="admin-modal-zoom"
+          className="admin-modal-zoom floating-quick-dock"
           style={{
             position: "fixed",
             bottom: "24px",

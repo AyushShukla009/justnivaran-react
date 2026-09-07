@@ -5,7 +5,7 @@ export default function Footer() {
   return (
     <footer style={{ background: "#0B1B31", color: "#ffffff", padding: "36px 0 54px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
       <div className="wrap">
-        <div className="f-grid" style={{ display: "grid", gridTemplateColumns: "1.2fr repeat(3, 1fr)", gap: "24px", marginBottom: "22px" }}>
+        <div className="f-grid">
           
           {/* Brand Overview */}
           <div className="f-brand" style={{ maxWidth: "300px" }}>

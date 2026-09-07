@@ -110,7 +110,7 @@ function Header({ onOpenFileModal }) {
         </div>
       </div>
 
-      <div className="wrap nav" style={{ height: "92px", maxWidth: "1400px" }}>
+      <div className="wrap nav" style={{ maxWidth: "1400px" }}>
         <Link to="/" className="brand" aria-label="JustNivaran home">
           <img
             src={logo}
@@ -121,12 +121,10 @@ function Header({ onOpenFileModal }) {
             width="240"
             height="90"
             style={{
-              height: "84px",
               width: "auto",
               objectFit: "contain",
               display: "block",
               mixBlendMode: "multiply",
-              transform: "scale(1.05)",
               transformOrigin: "left center"
             }}
           />
@@ -192,7 +190,7 @@ function Header({ onOpenFileModal }) {
 
       {/* Mobile Menu Drawer */}
       {isMobileMenuOpen && (
-        <div className="mobile-drawer" style={{ top: "92px" }}>
+        <div className="mobile-drawer">
           <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>
             🏠 Home
           </Link>
