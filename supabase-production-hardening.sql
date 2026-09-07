@@ -63,8 +63,10 @@ CREATE TABLE IF NOT EXISTS public.disputes (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Ensure access_code_hash column exists
+-- Ensure access_code_hash and explicit PIN recovery tracking columns exist
 ALTER TABLE public.disputes ADD COLUMN IF NOT EXISTS access_code_hash VARCHAR(72);
+ALTER TABLE public.disputes ADD COLUMN IF NOT EXISTS requires_pin_reset BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE public.disputes ADD COLUMN IF NOT EXISTS pin_recovery_status VARCHAR(32) NOT NULL DEFAULT 'NONE' CHECK (pin_recovery_status IN ('NONE', 'PENDING_RECOVERY', 'RECOVERED'));
 
 -- Enforce strict bcrypt hash format constraint (allows NULL for in-flight migrations, validates format when set)
 DO $$
@@ -79,7 +81,7 @@ BEGIN
 END $$;
 
 -- Safe Data Migration for Existing Disputes:
--- 1. Upgrade existing non-empty plaintext legacy access_code to bcrypt hash if access_code_hash is not yet populated
+-- 1. Upgrade existing non-empty plaintext legacy access_code to bcrypt hash and flag for credential notice delivery
 DO $$
 BEGIN
     IF EXISTS (
@@ -87,7 +89,9 @@ BEGIN
         WHERE table_schema = 'public' AND table_name = 'disputes' AND column_name = 'access_code'
     ) THEN
         UPDATE public.disputes
-        SET access_code_hash = extensions.crypt(TRIM(access_code), extensions.gen_salt('bf'))
+        SET access_code_hash = extensions.crypt(TRIM(access_code), extensions.gen_salt('bf')),
+            requires_pin_reset = true,
+            pin_recovery_status = 'PENDING_RECOVERY'
         WHERE access_code_hash IS NULL
           AND access_code IS NOT NULL
           AND length(trim(access_code)) > 0
@@ -95,7 +99,7 @@ BEGIN
     END IF;
 END $$;
 
--- 2. For legacy records where access_code was already a bcrypt hash, copy it over
+-- 2. For legacy records where access_code was already a bcrypt hash, copy it over without requiring reset
 DO $$
 BEGIN
     IF EXISTS (
@@ -103,16 +107,20 @@ BEGIN
         WHERE table_schema = 'public' AND table_name = 'disputes' AND column_name = 'access_code'
     ) THEN
         UPDATE public.disputes
-        SET access_code_hash = access_code
+        SET access_code_hash = access_code,
+            requires_pin_reset = false,
+            pin_recovery_status = 'NONE'
         WHERE access_code_hash IS NULL
           AND access_code IS NOT NULL
           AND access_code ~ '^\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{53}$';
     END IF;
 END $$;
 
--- 3. For any remaining records with no PIN at all, assign unique cryptographically secure PIN hashes
+-- 3. For any remaining records with no PIN at all, assign unique cryptographically secure PIN hashes & mark for recovery
 UPDATE public.disputes
-SET access_code_hash = extensions.crypt(public.generate_secure_numeric_pin(), extensions.gen_salt('bf'))
+SET access_code_hash = extensions.crypt(public.generate_secure_numeric_pin(), extensions.gen_salt('bf')),
+    requires_pin_reset = true,
+    pin_recovery_status = 'PENDING_RECOVERY'
 WHERE access_code_hash IS NULL;
 
 -- Set default bcrypt generation for newly inserted disputes
@@ -760,9 +768,11 @@ BEGIN
     v_new_pin := public.generate_secure_numeric_pin();
     v_new_hash := extensions.crypt(v_new_pin, extensions.gen_salt('bf'));
 
-    -- Update dispute record
+    -- Update dispute record and resolve pending recovery status
     UPDATE public.disputes
-    SET access_code_hash = v_new_hash
+    SET access_code_hash = v_new_hash,
+        requires_pin_reset = false,
+        pin_recovery_status = 'RECOVERED'
     WHERE id = v_dispute.id;
 
     -- Log administrative audit trail
@@ -777,15 +787,41 @@ BEGIN
         jsonb_build_object('channel', p_recipient_channel)
     );
 
-    -- Queue automated secure notice deliveries with new PIN
+    -- Queue automated secure notice deliveries with recovery credential payload for the delivery worker
     IF p_recipient_channel IN ('claimant', 'all') AND v_dispute.claimant_email IS NOT NULL THEN
         INSERT INTO public.notice_deliveries (dispute_id, docket_number, recipient_type, channel, recipient_contact, status, metadata)
-        VALUES (v_dispute.id, v_dispute.docket_number, 'claimant', 'email', v_dispute.claimant_email, 'Queued', jsonb_build_object('event', 'PIN_RECOVERY'));
+        VALUES (
+            v_dispute.id,
+            v_dispute.docket_number,
+            'claimant',
+            'email',
+            v_dispute.claimant_email,
+            'Queued',
+            jsonb_build_object(
+                'event', 'PIN_RECOVERY',
+                'docket_number', v_dispute.docket_number,
+                'recipient_name', v_dispute.claimant_name,
+                'recovery_pin', v_new_pin
+            )
+        );
     END IF;
 
     IF p_recipient_channel IN ('respondent', 'all') AND v_dispute.respondent_email IS NOT NULL THEN
         INSERT INTO public.notice_deliveries (dispute_id, docket_number, recipient_type, channel, recipient_contact, status, metadata)
-        VALUES (v_dispute.id, v_dispute.docket_number, 'respondent', 'email', v_dispute.respondent_email, 'Queued', jsonb_build_object('event', 'PIN_RECOVERY'));
+        VALUES (
+            v_dispute.id,
+            v_dispute.docket_number,
+            'respondent',
+            'email',
+            v_dispute.respondent_email,
+            'Queued',
+            jsonb_build_object(
+                'event', 'PIN_RECOVERY',
+                'docket_number', v_dispute.docket_number,
+                'recipient_name', v_dispute.respondent_name,
+                'recovery_pin', v_new_pin
+            )
+        );
     END IF;
 
     RETURN jsonb_build_object(
@@ -794,6 +830,7 @@ BEGIN
             'docket_number', v_dispute.docket_number,
             'generated_pin', v_new_pin,
             'notices_queued', true,
+            'recovery_status', 'RECOVERED',
             'message', 'Fresh Access PIN generated and recovery notice queued for transmission.'
         )
     );
@@ -808,17 +845,27 @@ RETURNS JSONB AS $$
 DECLARE
     v_rec RECORD;
     v_count INT := 0;
+    v_res JSONB;
+    v_results JSONB := '[]'::jsonb;
 BEGIN
+    -- Query explicitly tracked cases requiring PIN reset
     FOR v_rec IN 
         SELECT docket_number FROM public.disputes 
-        WHERE access_code_hash IS NULL 
+        WHERE requires_pin_reset = true 
+           OR pin_recovery_status = 'PENDING_RECOVERY'
+           OR access_code_hash IS NULL 
            OR access_code_hash !~ '^\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{53}$'
     LOOP
-        PERFORM public.admin_recover_case_pin(v_rec.docket_number, 'all');
+        v_res := public.admin_recover_case_pin(v_rec.docket_number, 'all');
+        v_results := v_results || jsonb_build_array(v_res);
         v_count := v_count + 1;
     END LOOP;
 
-    RETURN jsonb_build_object('success', true, 'recovered_count', v_count);
+    RETURN jsonb_build_object(
+        'success', true,
+        'recovered_count', v_count,
+        'batch_results', v_results
+    );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 

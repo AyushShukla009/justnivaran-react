@@ -41,6 +41,8 @@ BEGIN
 END $$;
 
 ALTER TABLE public.disputes ALTER COLUMN access_code_hash DROP DEFAULT;
+ALTER TABLE public.disputes DROP COLUMN IF EXISTS requires_pin_reset;
+ALTER TABLE public.disputes DROP COLUMN IF EXISTS pin_recovery_status;
 
 -- 4. PRESERVE IMMUTABLE AUDIT PROTECTIONS (DO NOT REMOVE AUDIT IMMUTABILITY)
 -- Case audit logs MUST remain strictly append-only and tamper-proof
