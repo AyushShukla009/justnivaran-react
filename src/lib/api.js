@@ -109,57 +109,40 @@ export async function submitDisputeFiling(payload) {
       body: JSON.stringify(payload)
     });
 
-    const result = await res.json();
-    return result;
+    if (res.ok) {
+      const result = await res.json();
+      if (result.success && result.data) return result;
+    }
   } catch (err) {
     console.warn("Edge function dispute filing fallback:", err);
-    // Direct DB insertion fallback if Edge function is not deployed yet
-    if (supabase) {
-      const mode = payload.mode || "ARB";
-      const year = new Date().getFullYear();
-      const randNum = Math.floor(1000 + Math.random() * 9000);
-      const docketNumber = `JN/${mode}/${year}/${randNum}`;
-      const rawPin = Math.floor(100000 + Math.random() * 900000).toString();
-
-      const { data, error } = await supabase
-        .from("disputes")
-        .insert([
-          {
-            docket_number: docketNumber,
-            claimant_name: payload.claimant_name,
-            claimant_email: payload.claimant_email,
-            claimant_phone: payload.claimant_phone,
-            respondent_name: payload.respondent_name,
-            respondent_email: payload.respondent_email,
-            respondent_phone: payload.respondent_phone || "",
-            claim_amount: Number(payload.claim_amount) || 0,
-            mode: mode,
-            dispute_summary: payload.dispute_summary,
-            relief_sought: payload.relief_sought || "",
-            access_code_hash: rawPin, // Handled via trigger/hash in Postgres
-            evidence_file_path: payload.evidence_file_path || null,
-            status: "Notice Issued"
-          }
-        ])
-        .select()
-        .single();
-
-      if (error || !data) {
-        return { success: false, error: error?.message || "Failed to submit dispute." };
-      }
-
-      return {
-        success: true,
-        data: {
-          docket_number: data.docket_number,
-          access_pin: rawPin,
-          status: data.status,
-          mode: data.mode
-        }
-      };
-    }
-    return { success: false, error: "Submission service unavailable." };
   }
+
+  // Robust PostgreSQL RPC Fallback (Generates unique PIN, hashes with bcrypt, returns to user)
+  if (supabase) {
+    const { data, error } = await supabase.rpc("submit_public_dispute", {
+      p_claimant_name: payload.claimant_name,
+      p_claimant_email: payload.claimant_email,
+      p_claimant_phone: payload.claimant_phone,
+      p_respondent_name: payload.respondent_name,
+      p_respondent_email: payload.respondent_email,
+      p_respondent_phone: payload.respondent_phone || "",
+      p_claim_amount: Number(payload.claim_amount) || 0,
+      p_mode: payload.mode || "ARB",
+      p_dispute_summary: payload.dispute_summary || "",
+      p_relief_sought: payload.relief_sought || "",
+      p_evidence_file_path: payload.evidence_file_path || null
+    });
+
+    if (!error && data?.success) {
+      return data;
+    }
+
+    if (error) {
+      console.warn("RPC submit_public_dispute error:", error);
+      return { success: false, error: error.message || "Failed to submit dispute." };
+    }
+  }
+  return { success: false, error: "Submission service unavailable." };
 }
 
 /**
