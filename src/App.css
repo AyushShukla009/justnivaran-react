@@ -428,29 +428,76 @@ header {
 
 @media (max-width: 768px) {
   .nav {
-    height: 60px;
-    gap: 8px;
+    height: 58px;
+    gap: 6px;
+    padding-inline: 12px;
   }
   .brand {
     margin-right: auto;
   }
   .brand img {
-    height: 44px;
+    height: 40px;
   }
   .nav-actions {
+    display: flex;
+    align-items: center;
     gap: 6px;
   }
-  .nav-actions .nav-btn-track,
-  .nav-actions .nav-btn-ai {
+  .nav-actions .nav-btn-track {
     display: none;
   }
   .nav-actions .nav-btn-file {
-    height: 34px;
-    padding: 0 11px;
+    height: 32px;
+    padding: 0 10px;
+    font-size: 11.5px;
+    border-radius: 5px;
+  }
+  .nav-actions .nav-btn-ai {
+    display: inline-flex;
+    height: 32px;
+    padding: 0 9px;
+    font-size: 11.5px;
+    border-radius: 5px;
+    gap: 4px;
+  }
+  .nav-actions .nav-btn-ai .ai-sparkle {
     font-size: 12px;
   }
+  .mobile-toggle {
+    width: 34px;
+    height: 32px;
+    padding: 4px;
+    margin-left: 2px;
+    border-radius: 5px;
+  }
+  .mobile-toggle svg {
+    width: 20px;
+    height: 20px;
+  }
   .mobile-drawer {
-    top: 60px;
+    top: 58px;
+  }
+}
+
+@media (max-width: 380px) {
+  .nav {
+    gap: 4px;
+    padding-inline: 8px;
+  }
+  .brand img {
+    height: 36px;
+  }
+  .nav-actions .nav-btn-file {
+    padding: 0 8px;
+    font-size: 11px;
+  }
+  .nav-actions .nav-btn-ai {
+    padding: 0 7px;
+    font-size: 11px;
+  }
+  .mobile-toggle {
+    width: 30px;
+    height: 30px;
   }
 }
 
