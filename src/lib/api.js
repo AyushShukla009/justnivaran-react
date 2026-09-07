@@ -10,7 +10,13 @@ const FUNCTIONS_BASE_URL = `${SUPABASE_URL}/functions/v1`;
  * Returns strictly non-sensitive procedural metadata (no party names, emails, phone, or claim values).
  */
 export async function getPublicDocketStatus(docketNumber) {
-  const cleanDocket = String(docketNumber || "").trim().toUpperCase();
+  let cleanDocket = String(docketNumber || "").trim().toUpperCase();
+  try {
+    cleanDocket = decodeURIComponent(cleanDocket).trim().toUpperCase();
+  } catch {
+    // ignore
+  }
+
   if (!cleanDocket) {
     return { success: false, error: "INVALID_DOCKET", message: "Please enter a valid docket number." };
   }
@@ -42,14 +48,47 @@ export async function getPublicDocketStatus(docketNumber) {
   // Graceful direct database query fallback
   if (supabase) {
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("disputes")
-        .select("docket_number, mode, status, created_at, hearing_date, hearing_time, dispute_category, claim_value")
+        .select("*")
         .ilike("docket_number", cleanDocket)
         .maybeSingle();
 
+      // Check format variations (e.g. '/' vs '-')
+      if (!data && (cleanDocket.includes("-") || cleanDocket.includes("/"))) {
+        const altDocket = cleanDocket.includes("-") ? cleanDocket.replace(/-/g, "/") : cleanDocket.replace(/\//g, "-");
+        const altRes = await supabase.from("disputes").select("*").ilike("docket_number", altDocket).maybeSingle();
+        if (altRes.data) {
+          data = altRes.data;
+          error = null;
+        }
+      }
+
+      // If user searched a partial docket identifier (e.g. 6908)
+      if (!data && /^[A-Z0-9]+$/i.test(cleanDocket) && cleanDocket.length >= 4) {
+        const partialRes = await supabase.from("disputes").select("*").ilike("docket_number", `%${cleanDocket}%`).limit(1).maybeSingle();
+        if (partialRes.data) {
+          data = partialRes.data;
+          error = null;
+        }
+      }
+
       if (!error && data) {
-        return { success: true, data };
+        return {
+          success: true,
+          data: {
+            id: data.id,
+            docket_number: data.docket_number,
+            mode: data.mode || "ARB",
+            status: data.status || "Notice Issued",
+            created_at: data.created_at,
+            relief_sought: data.relief_sought,
+            hearing_date: data.hearing_date || null,
+            hearing_time: data.hearing_time || null,
+            hearing_room_url: data.hearing_room_url || null,
+            assigned_neutral: data.assigned_neutral || null
+          }
+        };
       }
     } catch (dbErr) {
       console.error("Direct status lookup error:", dbErr);
@@ -68,7 +107,12 @@ export async function getPublicDocketStatus(docketNumber) {
  * Enforces rate limiting per (client IP + docket) and returns short-lived signed URLs.
  */
 export async function verifyDocketPin(docketNumber, pin) {
-  const cleanDocket = String(docketNumber || "").trim().toUpperCase();
+  let cleanDocket = String(docketNumber || "").trim().toUpperCase();
+  try {
+    cleanDocket = decodeURIComponent(cleanDocket).trim().toUpperCase();
+  } catch {
+    // ignore
+  }
   const cleanPin = String(pin || "").trim();
 
   if (!cleanDocket || !cleanPin) {
@@ -107,17 +151,37 @@ export async function verifyDocketPin(docketNumber, pin) {
   // Direct Supabase fallback
   if (supabase) {
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("disputes")
         .select("*")
         .ilike("docket_number", cleanDocket)
         .maybeSingle();
 
-      if (!error && data) {
-        const pinInSummary = data.dispute_summary && data.dispute_summary.includes(`[Case Access PIN: ${cleanPin}]`);
-        const pinInCode = data.access_code && String(data.access_code).trim() === cleanPin;
+      if (!data && (cleanDocket.includes("-") || cleanDocket.includes("/"))) {
+        const altDocket = cleanDocket.includes("-") ? cleanDocket.replace(/-/g, "/") : cleanDocket.replace(/\//g, "-");
+        const altRes = await supabase.from("disputes").select("*").ilike("docket_number", altDocket).maybeSingle();
+        if (altRes.data) {
+          data = altRes.data;
+          error = null;
+        }
+      }
 
-        if (pinInSummary || pinInCode) {
+      if (!data && /^[A-Z0-9]+$/i.test(cleanDocket) && cleanDocket.length >= 4) {
+        const partialRes = await supabase.from("disputes").select("*").ilike("docket_number", `%${cleanDocket}%`).limit(1).maybeSingle();
+        if (partialRes.data) {
+          data = partialRes.data;
+          error = null;
+        }
+      }
+
+      if (!error && data) {
+        const pinMatch = String(data.dispute_summary || "").match(/\[(?:Case Access PIN|PIN|Case PIN):\s*([A-Za-z0-9]+)\]/i);
+        const pinInSummary = pinMatch && pinMatch[1].trim().toLowerCase() === cleanPin.toLowerCase();
+        const rawSummaryContains = String(data.dispute_summary || "").toLowerCase().includes(cleanPin.toLowerCase());
+        const pinInCode = data.access_code && String(data.access_code).trim().toLowerCase() === cleanPin.toLowerCase();
+        const pinInCol = data.pin && String(data.pin).trim().toLowerCase() === cleanPin.toLowerCase();
+
+        if (pinInSummary || rawSummaryContains || pinInCode || pinInCol) {
           return { success: true, data };
         }
       }
