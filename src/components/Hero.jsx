@@ -22,7 +22,7 @@ function Hero({ onOpenFileModal }) {
         {/* Left Column: Core Value Proposition & Statutory Trust */}
         <div>
           <div className="tag">
-            <i /> ● ADMINISTERED INSTITUTIONAL ODR · SEAT: NEW DELHI
+            <i /> <span>ADMINISTERED INSTITUTIONAL ODR &bull; NEW DELHI</span>
           </div>
 
           <h1>
