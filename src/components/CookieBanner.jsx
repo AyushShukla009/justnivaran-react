@@ -291,9 +291,11 @@ export default function CookieBanner() {
               {/* Functional */}
               <div style={{ background: "#F8FAFC", padding: "12px 14px", borderRadius: "6px", border: "1px solid #E2E8F0" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <strong style={{ fontSize: "13.5px", color: "var(--ink)" }}>Functional Cookies</strong>
+                  <label htmlFor="cookie-pref-functional" style={{ fontSize: "13.5px", color: "var(--ink)", fontWeight: 700, cursor: "pointer" }}>Functional Cookies</label>
                   <input
+                    id="cookie-pref-functional"
                     type="checkbox"
+                    aria-label="Toggle Functional Cookies"
                     checked={preferences.functional}
                     onChange={() => handleToggle("functional")}
                     style={{ transform: "scale(1.15)", cursor: "pointer" }}
@@ -307,9 +309,11 @@ export default function CookieBanner() {
               {/* Analytics */}
               <div style={{ background: "#F8FAFC", padding: "12px 14px", borderRadius: "6px", border: "1px solid #E2E8F0" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <strong style={{ fontSize: "13.5px", color: "var(--ink)" }}>Analytics &amp; Performance</strong>
+                  <label htmlFor="cookie-pref-analytics" style={{ fontSize: "13.5px", color: "var(--ink)", fontWeight: 700, cursor: "pointer" }}>Analytics &amp; Performance</label>
                   <input
+                    id="cookie-pref-analytics"
                     type="checkbox"
+                    aria-label="Toggle Analytics and Performance Cookies"
                     checked={preferences.analytics}
                     onChange={() => handleToggle("analytics")}
                     style={{ transform: "scale(1.15)", cursor: "pointer" }}
@@ -323,9 +327,11 @@ export default function CookieBanner() {
               {/* Third-Party Embedded */}
               <div style={{ background: "#F8FAFC", padding: "12px 14px", borderRadius: "6px", border: "1px solid #E2E8F0" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <strong style={{ fontSize: "13.5px", color: "var(--ink)" }}>Third-Party Embedded Services</strong>
+                  <label htmlFor="cookie-pref-thirdparty" style={{ fontSize: "13.5px", color: "var(--ink)", fontWeight: 700, cursor: "pointer" }}>Third-Party Embedded Services</label>
                   <input
+                    id="cookie-pref-thirdparty"
                     type="checkbox"
+                    aria-label="Toggle Third-Party Embedded Services Cookies"
                     checked={preferences.thirdParty}
                     onChange={() => handleToggle("thirdParty")}
                     style={{ transform: "scale(1.15)", cursor: "pointer" }}

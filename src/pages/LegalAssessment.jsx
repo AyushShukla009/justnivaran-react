@@ -28,8 +28,8 @@ const SAMPLE_DISPUTE_DATA = {
   expectedDefenses:
     "Company B alleges delayed delivery of user manuals and seeks set-off or waiver.",
   contractualClauses:
-    "Clause 14 (Dispute Resolution): All disputes arising out of or in connection with this agreement shall be referred to arbitration in New Delhi under the Arbitration and Conciliation Act, 1996.\nClause 18 (Governing Law): This agreement is governed by the laws of India.",
-  governingLaw: "Laws of India",
+    "Clause 14 (Dispute Resolution): All disputes arising out of or in connection with this agreement shall be submitted to institutional fast-track arbitration administered by JustNivaran in New Delhi under its Fast-Track Arbitration Rules and Section 29B of the Arbitration and Conciliation Act, 1996.\nClause 18 (Governing Law): This agreement is governed by the laws of India.",
+  governingLaw: "Laws of India (New Delhi Seat)",
   arbitrationClauseStatus: "Yes - Institutional Arbitration Clause (Specified Institution)",
   availableEvidence:
     "1. Signed Master Supply Agreement.\n2. Delivery receipt note signed by Company B.\n3. Commercial Tax Invoices.\n4. Email admissions of debt.",
@@ -37,7 +37,7 @@ const SAMPLE_DISPUTE_DATA = {
     "Formal physical inspection certificate for user manuals.",
   desiredResolution:
     "Full recovery of principal sum of ₹15,00,000 with statutory interest and costs.",
-  consentAccepted: true
+  consentAccepted: false
 };
 
 const INITIAL_FORM_DATA = {
@@ -164,6 +164,10 @@ export default function LegalAssessment() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (step < 5) {
+      handleNextStep();
+      return;
+    }
     setErrorMessage("");
 
     const clientValidation = validateAssessmentPayload(formData);

@@ -82,8 +82,8 @@ const GUIDELINES_DATA = {
         body: "Statements of claim, defense, and counterclaims are submitted through the cryptographic digital docket compliant with Section 63 of the Bharatiya Sakshya Adhiniyam (BSA), 2023."
       },
       {
-        heading: "3. Encrypted Virtual Hearings & AI Transcription",
-        body: "Oral hearings (where required) take place via secure encrypted video rooms with real-time transcription attached directly to the case docket."
+        heading: "3. Encrypted Virtual Hearings & Evidentiary Records",
+        body: "Oral hearings (where required) take place via secure encrypted video rooms with certified digital session logs attached directly to the case docket."
       },
       {
         heading: "4. Final Arbitral Award & Execution (Section 36)",

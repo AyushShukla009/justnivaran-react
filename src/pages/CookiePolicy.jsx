@@ -598,11 +598,11 @@ export default function CookiePolicy() {
               </div>
               <div>
                 <strong style={{ color: "var(--ink)", display: "block", fontSize: "13px", textTransform: "uppercase", fontFamily: "var(--mono)" }}>Registered Office Address</strong>
-                <span style={{ fontSize: "14.5px", color: "var(--ink)" }}>New Delhi – 110001, India</span>
+                <span style={{ fontSize: "14.5px", color: "var(--ink)" }}>DC-12, 1st Floor, District Centre, Janakpuri, New Delhi – 110058, India</span>
               </div>
             </div>
             <div style={{ borderTop: "1px solid var(--line)", paddingTop: "12px", fontSize: "13.5px", color: "var(--slate)" }}>
-              <strong>Response Timeline:</strong> Formal acknowledgement within <strong>7 days</strong> (with internal Registry SLA of 24 hours); substantive response and resolution within <strong>30 days</strong>, consistent with the timelines prescribed under the Digital Personal Data Protection Rules, 2025.
+              <strong>Response Timeline:</strong> Formal acknowledgement within <strong>24 hours</strong>; substantive response and resolution within <strong>15 calendar days</strong> under DPDP Act 2023 &amp; IT Rules 2021.
             </div>
           </div>
           <p style={{ marginTop: "12px", fontSize: "13.5px" }}>

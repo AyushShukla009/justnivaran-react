@@ -41,7 +41,7 @@ function ForNeutrals({ onOpenEmpanelmentModal }) {
             <li><strong>Domain Specialization:</strong> Panels across MSME receivables, commercial contracts, banking, e-commerce, and employment agreements.</li>
             <li><strong>Impartiality &amp; Disclosures:</strong> Mandatory conflict-of-interest disclosures under the Arbitration &amp; Conciliation Act (Fifth Schedule).</li>
             <li><strong>Bilingual Capability:</strong> Ability to conduct hearings across English, Hindi, and regional languages.</li>
-            <li><strong>Institutional Support:</strong> JustNivaran Registry provides complete case management, live transcription, and automated award formatting.</li>
+            <li><strong>Institutional Support:</strong> JustNivaran Registry provides complete case management, certified digital recording, and automated award formatting.</li>
           </ul>
         </div>
       </section>

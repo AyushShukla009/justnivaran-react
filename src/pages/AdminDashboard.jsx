@@ -78,6 +78,115 @@ function AdminDashboard() {
   const [assignedNeutral, setAssignedNeutral] = useState("");
   const [isSavingHearing, setIsSavingHearing] = useState(false);
   const [liveAlert, setLiveAlert] = useState(null);
+  const [fetchError, setFetchError] = useState("");
+
+  // MFA Enrollment Flow State
+  const [showMfaEnrollModal, setShowMfaEnrollModal] = useState(false);
+  const [enrollFactorData, setEnrollFactorData] = useState(null);
+  const [enrollTotpCode, setEnrollTotpCode] = useState("");
+  const [enrollError, setEnrollError] = useState("");
+  const [enrollSuccess, setEnrollSuccess] = useState("");
+  const [isEnrollingMfa, setIsEnrollingMfa] = useState(false);
+
+  const logAdminAudit = useCallback(async (docketNumber, eventType, summary) => {
+    if (!supabase) return;
+    try {
+      await supabase.from("case_audit_logs").insert({
+        docket_number: docketNumber || "REGISTRY-ADMIN",
+        event_type: eventType,
+        actor_type: currentUser?.email || "Registry Admin",
+        change_summary: summary
+      });
+    } catch (err) {
+      console.warn("Audit log insert notice:", err);
+    }
+  }, [currentUser]);
+
+  // Modal Escape key listener for accessible dismissal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        if (showMfaEnrollModal) {
+          setShowMfaEnrollModal(false);
+        } else if (selectedCase) {
+          setSelectedCase(null);
+        } else if (selectedNeutral) {
+          setSelectedNeutral(null);
+        } else if (selectedConsultation) {
+          setSelectedConsultation(null);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showMfaEnrollModal, selectedCase, selectedNeutral, selectedConsultation]);
+
+  const handleStartMfaEnrollment = async () => {
+    setEnrollError("");
+    setEnrollSuccess("");
+    setEnrollTotpCode("");
+    setIsEnrollingMfa(true);
+    try {
+      if (!supabase) {
+        setEnrollError("Database client unavailable for MFA enrollment.");
+        return;
+      }
+      const { data, error } = await supabase.auth.mfa.enroll({
+        factorType: "totp",
+        issuer: "JustNivaran ODR Registry",
+        friendlyName: currentUser?.email || "Admin Authenticator"
+      });
+      if (error) {
+        setEnrollError(error.message || "Failed to initiate TOTP enrollment.");
+        return;
+      }
+      setEnrollFactorData(data);
+      setShowMfaEnrollModal(true);
+    } catch (err) {
+      setEnrollError(err.message || "Error starting MFA enrollment.");
+    } finally {
+      setIsEnrollingMfa(false);
+    }
+  };
+
+  const handleVerifyEnrollment = async (e) => {
+    e.preventDefault();
+    if (!enrollFactorData?.id || !enrollTotpCode.trim()) {
+      setEnrollError("Please enter the 6-digit verification code from your authenticator app.");
+      return;
+    }
+    setIsEnrollingMfa(true);
+    setEnrollError("");
+    try {
+      const challenge = await supabase.auth.mfa.challenge({ factorId: enrollFactorData.id });
+      if (challenge.error) {
+        setEnrollError(challenge.error.message || "MFA challenge generation failed.");
+        setIsEnrollingMfa(false);
+        return;
+      }
+      const verifyRes = await supabase.auth.mfa.verify({
+        factorId: enrollFactorData.id,
+        challengeId: challenge.data.id,
+        code: enrollTotpCode.trim()
+      });
+      if (verifyRes.error) {
+        setEnrollError(verifyRes.error.message || "Invalid TOTP verification code. Please check your authenticator clock.");
+        setIsEnrollingMfa(false);
+        return;
+      }
+      setAssuranceLevel("aal2");
+      setEnrollSuccess("✓ Multi-Factor Authentication successfully enrolled and verified! (AAL2 Active)");
+      logAdminAudit("SECURITY-MFA", "MFA_ENROLLED", `Admin ${currentUser?.email} successfully enrolled TOTP MFA factor.`);
+      setTimeout(() => {
+        setShowMfaEnrollModal(false);
+        setEnrollFactorData(null);
+      }, 2000);
+    } catch (err) {
+      setEnrollError(err.message || "Failed to verify TOTP code.");
+    } finally {
+      setIsEnrollingMfa(false);
+    }
+  };
 
   const getCasePin = (c) => {
     if (!c) return "—";
@@ -125,12 +234,14 @@ function AdminDashboard() {
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
+    setFetchError("");
     try {
       if (supabase) {
-        const { data: dData } = await supabase
+        const { data: dData, error: dErr } = await supabase
           .from("disputes")
           .select("*")
           .order("created_at", { ascending: false });
+        if (dErr) throw dErr;
         if (dData) {
           setDisputes((prev) => {
             if (prev.length > 0 && dData.length > prev.length) {
@@ -144,32 +255,43 @@ function AdminDashboard() {
           });
         }
 
-        const { data: nData } = await supabase
+        const { data: nData, error: nErr } = await supabase
           .from("neutrals")
           .select("*")
           .order("created_at", { ascending: false });
+        if (nErr) throw nErr;
         if (nData) setNeutrals(nData);
 
-        const { data: cData } = await supabase
+        const { data: cData, error: cErr } = await supabase
           .from("consultations")
           .select("*")
           .order("created_at", { ascending: false });
+        if (cErr) throw cErr;
         if (cData) setConsultations(cData);
 
-        const { data: notifData } = await supabase
+        const { data: notifData, error: notifErr } = await supabase
           .from("notice_deliveries")
           .select("*")
           .order("dispatched_at", { ascending: false });
-        if (notifData) setNoticeDeliveries(notifData);
+        if (notifErr) {
+          console.warn("Notice deliveries fetch notice:", notifErr.message);
+        } else if (notifData) {
+          setNoticeDeliveries(notifData);
+        }
 
-        const { data: auditData } = await supabase
+        const { data: auditData, error: auditErr } = await supabase
           .from("case_audit_logs")
           .select("*")
           .order("created_at", { ascending: false });
-        if (auditData) setCaseAuditLogs(auditData);
+        if (auditErr) {
+          console.warn("Audit logs fetch notice:", auditErr.message);
+        } else if (auditData) {
+          setCaseAuditLogs(auditData);
+        }
       }
     } catch (err) {
       console.error("Data fetch error:", err);
+      setFetchError(err.message || "Failed to synchronize registry records with database.");
     } finally {
       setIsLoading(false);
     }
@@ -401,6 +523,8 @@ function AdminDashboard() {
 
         if (!error) {
           if (category === "disputes") {
+            const target = disputes.find((d) => d.id === id);
+            logAdminAudit(target?.docket_number || "DISPUTE", "STATUS_UPDATED", `Status changed to '${newStatus}' for dispute docket ${target?.docket_number || id}.`);
             setDisputes((prev) =>
               prev.map((d) => (d.id === id ? { ...d, status: newStatus } : d))
             );
@@ -408,6 +532,8 @@ function AdminDashboard() {
               setSelectedCase({ ...selectedCase, status: newStatus });
             }
           } else if (category === "neutrals") {
+            const target = neutrals.find((n) => n.id === id);
+            logAdminAudit(target?.bar_council_id || "NEUTRAL", "STATUS_UPDATED", `Status changed to '${newStatus}' for neutral ${target?.full_name || id}.`);
             setNeutrals((prev) =>
               prev.map((n) => (n.id === id ? { ...n, status: newStatus } : n))
             );
@@ -415,6 +541,8 @@ function AdminDashboard() {
               setSelectedNeutral({ ...selectedNeutral, status: newStatus });
             }
           } else if (category === "consultations") {
+            const target = consultations.find((c) => c.id === id);
+            logAdminAudit("CONSULTATION", "STATUS_UPDATED", `Status changed to '${newStatus}' for consultation with ${target?.name || id}.`);
             setConsultations((prev) =>
               prev.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
             );
@@ -443,6 +571,7 @@ function AdminDashboard() {
           .eq("id", selectedCase.id);
 
         if (!error) {
+          logAdminAudit(selectedCase.docket_number, "SUMMARY_UPDATED", `Dispute summary updated for docket ${selectedCase.docket_number}.`);
           setSelectedCase({ ...selectedCase, dispute_summary: editedSummary });
           setDisputes((prev) =>
             prev.map((d) => (d.id === selectedCase.id ? { ...d, dispute_summary: editedSummary } : d))
@@ -460,6 +589,7 @@ function AdminDashboard() {
 
   const handleGenerateNewPin = async (disputeId) => {
     if (!disputeId) return;
+    const currentCase = disputes.find((d) => d.id === disputeId) || selectedCase;
     const newPin = String(Math.floor(100000 + Math.random() * 900000));
     try {
       if (supabase) {
@@ -469,6 +599,7 @@ function AdminDashboard() {
           .eq("id", disputeId);
 
         if (!error) {
+          logAdminAudit(currentCase?.docket_number, "PIN_RECOVERY_GENERATED", `Admin generated a fresh 6-digit access PIN for case docket ${currentCase?.docket_number || disputeId}.`);
           setDisputes((prev) =>
             prev.map((d) => (d.id === disputeId ? { ...d, access_code: newPin } : d))
           );
@@ -481,7 +612,6 @@ function AdminDashboard() {
         } else {
           // Schema fallback if access_code column does not exist in PostgreSQL
           if (error.message?.includes("access_code") || error.code === "PGRST204" || error.message?.toLowerCase().includes("schema cache")) {
-            const currentCase = disputes.find((d) => d.id === disputeId) || selectedCase;
             const baseSummary = (currentCase?.dispute_summary || "").replace(/\[Case Access PIN:\s*[A-Za-z0-9]+\]/gi, "").trim();
             const updatedSummary = `${baseSummary}\n[Case Access PIN: ${newPin}]`;
             const { error: summaryError } = await supabase
@@ -490,6 +620,7 @@ function AdminDashboard() {
               .eq("id", disputeId);
 
             if (!summaryError) {
+              logAdminAudit(currentCase?.docket_number, "PIN_RECOVERY_GENERATED", `Admin generated a fresh 6-digit access PIN for case docket ${currentCase?.docket_number || disputeId}.`);
               setDisputes((prev) =>
                 prev.map((d) => (d.id === disputeId ? { ...d, access_code: newPin, dispute_summary: updatedSummary } : d))
               );
@@ -535,6 +666,8 @@ function AdminDashboard() {
 
         if (error) {
           console.warn("Hearing update fallback:", error.message);
+        } else {
+          logAdminAudit(selectedCase.docket_number, "HEARING_SCHEDULED", `Hearing scheduled for ${hearingDate} at ${hearingTime} with neutral ${assignedNeutral || "Panel Neutral"}.`);
         }
       }
 
@@ -575,6 +708,8 @@ function AdminDashboard() {
           return;
         }
       }
+
+      logAdminAudit(label || category.toUpperCase(), "RECORD_DELETED", `Admin permanently deleted record ${label || id} from ${category}.`);
 
       if (category === "disputes") {
         setDisputes((prev) => prev.filter((d) => d.id !== id));
@@ -1052,6 +1187,8 @@ function AdminDashboard() {
   });
 
   const filteredAuditLogs = caseAuditLogs.filter((a) => {
+    const matchesStatus = statusFilter === "ALL" || a.event_type === statusFilter;
+    if (!matchesStatus) return false;
     if (!q) return true;
     return (
       a.docket_number?.toLowerCase().includes(q) ||
@@ -1260,7 +1397,7 @@ function AdminDashboard() {
             <span style={{ fontSize: "16px", opacity: 0.7 }}>👨‍⚖️</span>
           </div>
           <div style={{ fontSize: "28px", fontFamily: "var(--serif)", color: "var(--ink)", fontWeight: 400, marginTop: "6px" }}>
-            {neutrals.length}
+            {neutrals.filter((n) => n.status === "Empaneled" || n.status === "Approved").length}
           </div>
         </div>
 
@@ -1549,36 +1686,42 @@ function AdminDashboard() {
       </div>
 
       {/* Quick Status Filter Chips */}
-      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "18px", alignItems: "center" }}>
-        <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase", letterSpacing: ".06em" }}>
-          ⚡ Filter Status:
-        </span>
-        {(activeTab === "disputes"
-          ? ["ALL", ...STATUS_OPTIONS]
-          : activeTab === "neutrals"
-          ? ["ALL", ...NEUTRAL_STATUS_OPTIONS]
-          : ["ALL", ...CONSULTATION_STATUS_OPTIONS]
-        ).map((st) => {
-          const isSelected = statusFilter === st;
-          return (
-            <button
-              key={st}
-              className="admin-filter-pill"
-              type="button"
-              onClick={() => setStatusFilter(st)}
-              style={{
-                background: isSelected ? "var(--ink)" : "#ffffff",
-                color: isSelected ? "#ffffff" : "var(--slate)",
-                border: "1px solid",
-                borderColor: isSelected ? "var(--ink)" : "var(--line)",
-                fontWeight: isSelected ? 600 : 400
-              }}
-            >
-              {st}
-            </button>
-          );
-        })}
-      </div>
+      {["disputes", "neutrals", "consultations", "notices", "audit"].includes(activeTab) && (
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "18px", alignItems: "center" }}>
+          <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase", letterSpacing: ".06em" }}>
+            ⚡ Filter Status / Event:
+          </span>
+          {(activeTab === "disputes"
+            ? ["ALL", ...STATUS_OPTIONS]
+            : activeTab === "neutrals"
+            ? ["ALL", ...NEUTRAL_STATUS_OPTIONS]
+            : activeTab === "consultations"
+            ? ["ALL", ...CONSULTATION_STATUS_OPTIONS]
+            : activeTab === "notices"
+            ? ["ALL", "Delivered", "Sent", "Failed", "Pending"]
+            : ["ALL", "CASE_FILED", "STATUS_UPDATED", "PIN_RECOVERY_GENERATED", "HEARING_SCHEDULED", "RECORD_DELETED", "MFA_ENROLLED"]
+          ).map((st) => {
+            const isSelected = statusFilter === st;
+            return (
+              <button
+                key={st}
+                className="admin-filter-pill"
+                type="button"
+                onClick={() => setStatusFilter(st)}
+                style={{
+                  background: isSelected ? "var(--ink)" : "#ffffff",
+                  color: isSelected ? "#ffffff" : "var(--slate)",
+                  border: "1px solid",
+                  borderColor: isSelected ? "var(--ink)" : "var(--line)",
+                  fontWeight: isSelected ? 600 : 400
+                }}
+              >
+                {st}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Table */}
       <div
@@ -1590,6 +1733,33 @@ function AdminDashboard() {
           boxShadow: "0 2px 10px rgba(18, 41, 74, 0.03)"
         }}
       >
+        {fetchError && (
+          <div
+            style={{
+              padding: "16px 20px",
+              background: "#FDEDEC",
+              borderBottom: "1px solid rgba(192, 57, 43, 0.2)",
+              color: "#900C3F",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "12px",
+              fontSize: "13px"
+            }}
+          >
+            <div>
+              <strong>Database Connection Notice:</strong> {fetchError}
+            </div>
+            <button
+              type="button"
+              onClick={fetchData}
+              className="btn gold"
+              style={{ padding: "6px 14px", fontSize: "12px" }}
+            >
+              Retry Connection
+            </button>
+          </div>
+        )}
         {isLoading ? (
           <div style={{ padding: "60px 20px", textAlign: "center", color: "var(--slate)" }}>
             <span style={{ fontSize: "24px", display: "block", marginBottom: "8px" }}>⏳</span>
@@ -1720,7 +1890,7 @@ function AdminDashboard() {
                               className="admin-action-btn"
                               href={getWhatsAppUrl(
                                 d.claimant_phone || "",
-                                `Hello ${d.claimant_name}, this is JustNivaran ODR Registry regarding your case docket ${d.docket_number}.\n\n🔑 Case Access PIN: ${getCasePin(d)}\nStatus: ${d.status}\n\n👉 1-Click Auto-Unlock Tracking Link:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(d.docket_number)}&pin=${encodeURIComponent(getCasePin(d))}#tracker`
+                                `Hello ${d.claimant_name}, this is JustNivaran ODR Registry regarding your case docket ${d.docket_number}.\n\nStatus: ${d.status}\n\n👉 Track Live Docket in Registry:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(d.docket_number)}#tracker`
                               )}
                               target="_blank"
                               rel="noreferrer"
@@ -1744,7 +1914,7 @@ function AdminDashboard() {
                             {d.claimant_email && (
                               <a
                                 className="admin-action-btn"
-                                href={`mailto:${encodeURIComponent(d.claimant_email)}?subject=${encodeURIComponent(`[JustNivaran Registry] Case Notice Update - Docket ${d.docket_number} (${d.status})`)}&body=${encodeURIComponent(`Dear ${d.claimant_name},\n\nThis is an official communication from the JustNivaran Online Dispute Resolution (ODR) Registry regarding your case filing:\n\n• Docket Number: ${d.docket_number}\n• Confidential Case Access PIN: ${getCasePin(d)}\n• Case Status: ${d.status}\n• Claimant: ${d.claimant_name}\n• Respondent: ${d.respondent_name}\n• Disputed Claim: ₹ ${Number(d.claim_amount || 0).toLocaleString("en-IN")}\n• Resolution Mode: ${d.mode}\n\n👉 Click here to directly open and auto-unlock your confidential case dossier:\nhttps://justnivaran-odr.vercel.app/?docket=${d.docket_number}&pin=${getCasePin(d)}#tracker\n\nPlease feel free to reply directly to this email or contact registry@justnivaran.in for any assistance.\n\nSincerely,\nRegistrar Office\nJustNivaran ODR Centre\nNew Delhi, India`)}`}
+                                href={`mailto:${encodeURIComponent(d.claimant_email)}?subject=${encodeURIComponent(`[JustNivaran Registry] Case Notice Update - Docket ${d.docket_number} (${d.status})`)}&body=${encodeURIComponent(`Dear ${d.claimant_name},\n\nThis is an official communication from the JustNivaran Online Dispute Resolution (ODR) Registry regarding your case filing:\n\n• Docket Number: ${d.docket_number}\n• Case Status: ${d.status}\n• Claimant: ${d.claimant_name}\n• Respondent: ${d.respondent_name}\n• Disputed Claim: ₹ ${Number(d.claim_amount || 0).toLocaleString("en-IN")}\n• Resolution Mode: ${d.mode}\n\n👉 Access and track your live case dossier:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(d.docket_number)}#tracker\n\nPlease feel free to reply directly to this email or contact registry@justnivaran.in for any assistance.\n\nSincerely,\nRegistrar Office\nJustNivaran ODR Centre\nNew Delhi, India`)}`}
                                 style={{
                                   background: "#1E3A8A",
                                   color: "#ffffff",
@@ -2367,15 +2537,34 @@ function AdminDashboard() {
               </div>
             </div>
 
-            <div style={{ background: "var(--paper-hi)", border: "1px solid var(--line)", borderRadius: "6px", padding: "18px" }}>
-              <h4 style={{ fontSize: "14px", margin: "0 0 8px", color: "var(--ink)" }}>Administrator Multi-Factor Authentication (MFA / TOTP)</h4>
-              <p style={{ fontSize: "13px", color: "var(--slate)", margin: "0 0 14px", lineHeight: "1.5" }}>
-                To configure or update your TOTP authenticator (Google Authenticator, Microsoft Authenticator, Apple Passwords, 1Password), manage your user profile in Supabase Auth Console or scan your enrollment key.
+            <div style={{ background: "var(--paper-hi)", border: "1px solid var(--line)", borderRadius: "6px", padding: "20px" }}>
+              <h4 style={{ fontSize: "15px", margin: "0 0 8px", color: "var(--ink)" }}>Administrator Multi-Factor Authentication (MFA / TOTP)</h4>
+              <p style={{ fontSize: "13px", color: "var(--slate)", margin: "0 0 16px", lineHeight: "1.5" }}>
+                Enforce time-based one-time password (TOTP) multi-factor authentication for sensitive administrative operations, docket record deletions, and PIN recovery.
               </p>
-              <div style={{ display: "inline-flex", gap: "10px", alignItems: "center", background: "#ffffff", border: "1px solid var(--line)", padding: "8px 12px", borderRadius: "4px", fontSize: "12px", fontFamily: "var(--mono)" }}>
-                <span>Active Admin:</span>
-                <strong style={{ color: "var(--ink)" }}>{currentUser?.email || adminEmail}</strong>
+
+              <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+                <div style={{ display: "inline-flex", gap: "10px", alignItems: "center", background: "#ffffff", border: "1px solid var(--line)", padding: "8px 12px", borderRadius: "4px", fontSize: "12px", fontFamily: "var(--mono)" }}>
+                  <span>Active Admin:</span>
+                  <strong style={{ color: "var(--ink)" }}>{currentUser?.email || adminEmail}</strong>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleStartMfaEnrollment}
+                  disabled={isEnrollingMfa}
+                  className="btn gold"
+                  style={{ padding: "8px 16px", fontSize: "12.5px" }}
+                >
+                  {isEnrollingMfa ? "Initializing..." : "📱 Enroll Authenticator App (TOTP)"}
+                </button>
               </div>
+
+              {enrollSuccess && (
+                <div style={{ marginTop: "12px", padding: "8px 12px", background: "#E9F7EF", color: "#1E8449", borderRadius: "4px", fontSize: "12.5px" }}>
+                  {enrollSuccess}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -2385,6 +2574,9 @@ function AdminDashboard() {
       {selectedCase && (
         <div
           className="modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="case-dossier-title"
           onClick={() => setSelectedCase(null)}
           style={{
             backdropFilter: "blur(8px)",
@@ -2421,16 +2613,16 @@ function AdminDashboard() {
               }}
             >
               <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px", flexWrap: "wrap" }}>
-                  <span style={{ fontSize: "10.5px", fontFamily: "var(--mono)", background: "rgba(209, 154, 52, 0.25)", color: "#F6C878", padding: "3px 8px", borderRadius: "12px", fontWeight: 500 }}>
-                    JUSTNIVARAN ODR CENTRE &bull; NEW DELHI
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                  <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "#F6C878", textTransform: "uppercase", letterSpacing: ".1em", fontWeight: 700 }}>
+                    ODR DISPUTE DOSSIER
                   </span>
                   <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.7)" }}>
                     &bull; Statutory Fast-Track Record
                   </span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                  <h3 style={{ fontSize: "22px", color: "#ffffff", margin: 0, fontFamily: "var(--mono)", fontWeight: 500, letterSpacing: ".02em" }}>
+                  <h3 id="case-dossier-title" style={{ fontSize: "22px", color: "#ffffff", margin: 0, fontFamily: "var(--mono)", fontWeight: 500, letterSpacing: ".02em" }}>
                     {selectedCase.docket_number}
                   </h3>
                   <span
@@ -2550,7 +2742,7 @@ function AdminDashboard() {
                   <button
                     type="button"
                     onClick={() => {
-                      const link = `https://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(selectedCase.docket_number)}&pin=${encodeURIComponent(getCasePin(selectedCase))}#tracker`;
+                      const link = `https://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(selectedCase.docket_number)}#tracker`;
                       navigator.clipboard.writeText(link);
                       setCopyPinToast(true);
                       setTimeout(() => setCopyPinToast(false), 2500);
@@ -2570,7 +2762,7 @@ function AdminDashboard() {
                       gap: "4px"
                     }}
                   >
-                    🔗 Copy 1-Click Magic Link
+                    🔗 Copy Docket Link
                   </button>
                   <button
                     type="button"
@@ -2910,8 +3102,8 @@ function AdminDashboard() {
                     href={getWhatsAppUrl(
                       selectedCase.respondent_phone || selectedCase.claimant_phone || "",
                       selectedCase.hearing_date
-                        ? `JustNivaran Official Statutory Notice - Case Docket ${selectedCase.docket_number}\n\n🔑 Case Access PIN: ${getCasePin(selectedCase)}\n• Claimant: ${selectedCase.claimant_name}\n• Respondent: ${selectedCase.respondent_name}\n• Presiding Neutral: ${selectedCase.assigned_neutral || "Registry Sole Arbitrator"}\n• Status: ${selectedCase.status}\n\n📅 SCHEDULED VIRTUAL HEARING:\n• Date: ${selectedCase.hearing_date}\n• Time: ${selectedCase.hearing_time || "11:00 AM IST"}\n• Encrypted Hearing Room: ${selectedCase.hearing_room_url || `https://meet.jit.si/JustNivaran-Hearing-${selectedCase.docket_number.replace(/[^a-zA-Z0-9]/g, "-")}`}\n\n👉 1-Click Live Case Dossier:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(selectedCase.docket_number)}&pin=${encodeURIComponent(getCasePin(selectedCase))}#tracker`
-                        : `JustNivaran Official ODR Notice - Case Docket ${selectedCase.docket_number}\n\n🔑 Case Access PIN: ${getCasePin(selectedCase)}\n• Claimant: ${selectedCase.claimant_name}\n• Respondent: ${selectedCase.respondent_name}\n• Claim Value: ₹${Number(selectedCase.claim_amount || 0).toLocaleString("en-IN")}\n• Status: ${selectedCase.status}\n\n👉 1-Click Auto-Unlock Tracking Link:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(selectedCase.docket_number)}&pin=${encodeURIComponent(getCasePin(selectedCase))}#tracker`
+                        ? `JustNivaran Official Statutory Notice - Case Docket ${selectedCase.docket_number}\n\n• Claimant: ${selectedCase.claimant_name}\n• Respondent: ${selectedCase.respondent_name}\n• Presiding Neutral: ${selectedCase.assigned_neutral || "Registry Sole Arbitrator"}\n• Status: ${selectedCase.status}\n\n📅 SCHEDULED VIRTUAL HEARING:\n• Date: ${selectedCase.hearing_date}\n• Time: ${selectedCase.hearing_time || "11:00 AM IST"}\n• Encrypted Hearing Room: ${selectedCase.hearing_room_url || `https://meet.jit.si/JustNivaran-Hearing-${selectedCase.docket_number.replace(/[^a-zA-Z0-9]/g, "-")}`}\n\n👉 Track Live Docket in Registry:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(selectedCase.docket_number)}#tracker`
+                        : `JustNivaran Official ODR Notice - Case Docket ${selectedCase.docket_number}\n\n• Claimant: ${selectedCase.claimant_name}\n• Respondent: ${selectedCase.respondent_name}\n• Claim Value: ₹${Number(selectedCase.claim_amount || 0).toLocaleString("en-IN")}\n• Status: ${selectedCase.status}\n\n👉 Track Live Docket in Registry:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(selectedCase.docket_number)}#tracker`
                     )}
                     target="_blank"
                     rel="noreferrer"
@@ -2938,8 +3130,8 @@ function AdminDashboard() {
                         `[JustNivaran Registry] ${selectedCase.hearing_date ? "Virtual Hearing Notice" : "Statutory Case Notice"} - Docket ${selectedCase.docket_number} (${selectedCase.status})`
                       )}&body=${encodeURIComponent(
                         selectedCase.hearing_date
-                          ? `Dear Parties / Legal Counsel,\n\nThis is an official hearing notice from the JustNivaran Online Dispute Resolution (ODR) Registry:\n\n• Case Docket Number: ${selectedCase.docket_number}\n• Case Access PIN: ${getCasePin(selectedCase)}\n• Status: ${selectedCase.status}\n• Claimant: ${selectedCase.claimant_name}\n• Respondent: ${selectedCase.respondent_name}\n• Presiding Neutral: ${selectedCase.assigned_neutral || "Registry Sole Arbitrator"}\n• Disputed Sum: ₹ ${Number(selectedCase.claim_amount || 0).toLocaleString("en-IN")}\n• Resolution Framework: ${selectedCase.mode}\n\n=========================================\n📅 SCHEDULED VIRTUAL HEARING DETAILS\n=========================================\n• Hearing Date: ${selectedCase.hearing_date}\n• Time Slot: ${selectedCase.hearing_time || "11:00 AM IST"}\n• Virtual Hearing Room: ${selectedCase.hearing_room_url || `https://meet.jit.si/JustNivaran-Hearing-${selectedCase.docket_number.replace(/[^a-zA-Z0-9]/g, "-")}`}\n\nPlease join the virtual hearing room at least 5 minutes prior to the scheduled session time.\n\n👉 Click here to directly open & auto-unlock your live case dossier:\nhttps://justnivaran-odr.vercel.app/?docket=${selectedCase.docket_number}&pin=${getCasePin(selectedCase)}#tracker\n\nSincerely,\nRegistrar Office\nJustNivaran ODR Centre\nNew Delhi, India`
-                          : `Dear Parties / Legal Counsel,\n\nThis is an official statutory notice from the JustNivaran Online Dispute Resolution (ODR) Registry:\n\n• Case Docket Number: ${selectedCase.docket_number}\n• Case Access PIN: ${getCasePin(selectedCase)}\n• Status: ${selectedCase.status}\n• Claimant: ${selectedCase.claimant_name}\n• Respondent: ${selectedCase.respondent_name}\n• Disputed Sum: ₹ ${Number(selectedCase.claim_amount || 0).toLocaleString("en-IN")}\n• Resolution Framework: ${selectedCase.mode}\n\n👉 Click here to directly open & auto-unlock your case record:\nhttps://justnivaran-odr.vercel.app/?docket=${selectedCase.docket_number}&pin=${getCasePin(selectedCase)}#tracker\n\nFor any procedural queries, reply directly to this notice or contact registry@justnivaran.in.\n\nSincerely,\nRegistrar Office\nJustNivaran ODR Centre\nNew Delhi, India`
+                          ? `Dear Parties / Legal Counsel,\n\nThis is an official hearing notice from the JustNivaran Online Dispute Resolution (ODR) Registry:\n\n• Case Docket Number: ${selectedCase.docket_number}\n• Status: ${selectedCase.status}\n• Claimant: ${selectedCase.claimant_name}\n• Respondent: ${selectedCase.respondent_name}\n• Presiding Neutral: ${selectedCase.assigned_neutral || "Registry Sole Arbitrator"}\n• Disputed Sum: ₹ ${Number(selectedCase.claim_amount || 0).toLocaleString("en-IN")}\n• Resolution Framework: ${selectedCase.mode}\n\n=========================================\n📅 SCHEDULED VIRTUAL HEARING DETAILS\n=========================================\n• Hearing Date: ${selectedCase.hearing_date}\n• Time Slot: ${selectedCase.hearing_time || "11:00 AM IST"}\n• Virtual Hearing Room: ${selectedCase.hearing_room_url || `https://meet.jit.si/JustNivaran-Hearing-${selectedCase.docket_number.replace(/[^a-zA-Z0-9]/g, "-")}`}\n\nPlease join the virtual hearing room at least 5 minutes prior to the scheduled session time.\n\n👉 Access and track your live case dossier:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(selectedCase.docket_number)}#tracker\n\nSincerely,\nRegistrar Office\nJustNivaran ODR Centre\nNew Delhi, India`
+                          : `Dear Parties / Legal Counsel,\n\nThis is an official statutory notice from the JustNivaran Online Dispute Resolution (ODR) Registry:\n\n• Case Docket Number: ${selectedCase.docket_number}\n• Status: ${selectedCase.status}\n• Claimant: ${selectedCase.claimant_name}\n• Respondent: ${selectedCase.respondent_name}\n• Disputed Sum: ₹ ${Number(selectedCase.claim_amount || 0).toLocaleString("en-IN")}\n• Resolution Framework: ${selectedCase.mode}\n\n👉 Access and track your live case record:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(selectedCase.docket_number)}#tracker\n\nFor any procedural queries, reply directly to this notice or contact registry@justnivaran.in.\n\nSincerely,\nRegistrar Office\nJustNivaran ODR Centre\nNew Delhi, India`
                       )}`}
                       style={{
                         background: "#1E3A8A",
@@ -3024,6 +3216,9 @@ function AdminDashboard() {
       {selectedNeutral && (
         <div
           className="modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="neutral-dossier-title"
           onClick={() => setSelectedNeutral(null)}
           style={{
             backdropFilter: "blur(8px)",
@@ -3058,7 +3253,7 @@ function AdminDashboard() {
                 <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--gold)", textTransform: "uppercase", letterSpacing: ".1em" }}>
                   👨‍⚖️ Neutral Panel Application
                 </span>
-                <h3 style={{ fontSize: "20px", margin: "4px 0 0", color: "#ffffff" }}>
+                <h3 id="neutral-dossier-title" style={{ fontSize: "20px", margin: "4px 0 0", color: "#ffffff" }}>
                   {selectedNeutral.full_name}
                 </h3>
               </div>
@@ -3190,6 +3385,9 @@ function AdminDashboard() {
       {selectedConsultation && (
         <div
           className="modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="consultation-dossier-title"
           onClick={() => setSelectedConsultation(null)}
           style={{
             backdropFilter: "blur(8px)",
@@ -3224,7 +3422,7 @@ function AdminDashboard() {
                 <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--gold)", textTransform: "uppercase", letterSpacing: ".1em" }}>
                   📅 Case Consultation Appointment
                 </span>
-                <h3 style={{ fontSize: "20px", margin: "4px 0 0", color: "#ffffff" }}>
+                <h3 id="consultation-dossier-title" style={{ fontSize: "20px", margin: "4px 0 0", color: "#ffffff" }}>
                   {selectedConsultation.name}
                 </h3>
               </div>
@@ -3358,6 +3556,131 @@ function AdminDashboard() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MFA TOTP Enrollment Modal */}
+      {showMfaEnrollModal && enrollFactorData && (
+        <div
+          className="modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="mfa-enroll-title"
+          onClick={() => setShowMfaEnrollModal(false)}
+          style={{
+            backdropFilter: "blur(8px)",
+            background: "rgba(11, 27, 49, 0.65)",
+            zIndex: 250
+          }}
+        >
+          <div
+            className="modal-card admin-modal-zoom"
+            style={{
+              maxWidth: "520px",
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              borderRadius: "8px",
+              boxShadow: "0 24px 60px rgba(0, 0, 0, 0.25)",
+              border: "1px solid #E2E8F0",
+              background: "#ffffff",
+              padding: "24px"
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
+              <div>
+                <h3 id="mfa-enroll-title" style={{ margin: "0 0 4px", fontSize: "18px", color: "var(--ink)" }}>
+                  Enroll TOTP Authenticator
+                </h3>
+                <span style={{ fontSize: "12px", color: "var(--slate)" }}>
+                  Scan with Google Authenticator, Microsoft Authenticator, or Apple Passwords
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMfaEnrollModal(false)}
+                style={{ background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "var(--slate)" }}
+                aria-label="Close modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            {enrollFactorData.totp?.qr_code && (
+              <div style={{ textAlign: "center", marginBottom: "16px", padding: "12px", background: "#f8fafc", borderRadius: "6px" }}>
+                <img
+                  src={enrollFactorData.totp.qr_code}
+                  alt="TOTP QR Code"
+                  style={{ width: "180px", height: "180px", margin: "0 auto", display: "block" }}
+                />
+                <p style={{ fontSize: "11px", color: "var(--slate)", marginTop: "8px" }}>
+                  Or enter secret key manually:
+                </p>
+                <code style={{ fontSize: "13px", color: "var(--ink)", fontWeight: 700, letterSpacing: "1px", background: "#e2e8f0", padding: "4px 8px", borderRadius: "3px" }}>
+                  {enrollFactorData.totp.secret}
+                </code>
+              </div>
+            )}
+
+            <form onSubmit={handleVerifyEnrollment}>
+              <div style={{ marginBottom: "16px" }}>
+                <label htmlFor="enroll-totp-input" style={{ display: "block", fontSize: "12.5px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                  Enter 6-digit Authenticator Code:
+                </label>
+                <input
+                  id="enroll-totp-input"
+                  type="text"
+                  maxLength={6}
+                  value={enrollTotpCode}
+                  onChange={(e) => setEnrollTotpCode(e.target.value.replace(/\D/g, ""))}
+                  placeholder="123456"
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    border: "1px solid var(--line)",
+                    borderRadius: "4px",
+                    fontSize: "20px",
+                    fontFamily: "var(--mono)",
+                    letterSpacing: "4px",
+                    textAlign: "center"
+                  }}
+                  autoFocus
+                />
+              </div>
+
+              {enrollError && (
+                <div style={{ padding: "8px 12px", background: "#FDEDEC", color: "#C0392B", borderRadius: "4px", fontSize: "12px", marginBottom: "14px" }}>
+                  {enrollError}
+                </div>
+              )}
+
+              {enrollSuccess && (
+                <div style={{ padding: "8px 12px", background: "#E9F7EF", color: "#1E8449", borderRadius: "4px", fontSize: "12px", marginBottom: "14px" }}>
+                  {enrollSuccess}
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowMfaEnrollModal(false)}
+                  className="btn ghost"
+                  style={{ padding: "8px 16px", fontSize: "13px" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isEnrollingMfa || enrollTotpCode.length < 6}
+                  className="btn gold"
+                  style={{ padding: "8px 18px", fontSize: "13px" }}
+                >
+                  {isEnrollingMfa ? "Verifying..." : "Verify & Activate MFA →"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

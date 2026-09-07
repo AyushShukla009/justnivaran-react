@@ -14,7 +14,7 @@ const STAGES = [
   {
     no: "Stage 03",
     title: "Hearing",
-    desc: "Video hearings with live transcription, timestamped exhibits and a locked document trail. Switch paths mid-case without restarting from the pleadings."
+    desc: "Virtual hearings with certified digital session logs, timestamped exhibits, and a locked document trail. Switch paths mid-case without restarting from the pleadings."
   },
   {
     no: "Stage 04",

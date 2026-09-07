@@ -34,7 +34,7 @@ function Grievance() {
           <div>
             <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>Registered Notice Address</span>
             <div style={{ fontWeight: 600, color: "var(--ink)", marginTop: "4px" }}>JustNivaran Private Limited</div>
-            <div style={{ fontSize: "12px", color: "#4A5E78", marginTop: "2px" }}>New Delhi – 110001, India</div>
+            <div style={{ fontSize: "12px", color: "#4A5E78", marginTop: "2px" }}>DC-12, 1st Floor, District Centre, Janakpuri, New Delhi – 110058, India</div>
           </div>
         </div>
       </div>

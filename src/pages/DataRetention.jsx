@@ -65,7 +65,7 @@ function DataRetention() {
           <p style={{ marginTop: "8px", background: "#f8fafc", padding: "16px 20px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
             <strong>Registrar &amp; Legal Compliance Office</strong><br />
             JustNivaran Private Limited (CIN: U62020DC2026PTC473641)<br />
-            New Delhi – 110001, India<br />
+            DC-12, 1st Floor, District Centre, Janakpuri, New Delhi – 110058, India<br />
             Email: <a href="mailto:grievance@justnivaran.in" style={{ color: "var(--navy)", fontWeight: 600 }}>grievance@justnivaran.in</a> &bull; Telephone: <a href="tel:+911149876500" style={{ color: "var(--navy)", fontWeight: 600 }}>+91 11 4987 6500</a>
           </p>
         </div>

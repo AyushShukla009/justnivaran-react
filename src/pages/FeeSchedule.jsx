@@ -1,3 +1,5 @@
+import { FEE_SLABS } from "../lib/feeSchedule";
+
 function FeeSchedule({ onOpenFileModal }) {
   return (
     <main className="wrap" style={{ paddingBlock: "48px 90px", maxWidth: "960px" }}>
@@ -27,30 +29,18 @@ function FeeSchedule({ onOpenFileModal }) {
             </tr>
           </thead>
           <tbody>
-            <tr style={{ borderBottom: "1px solid var(--line)" }}>
-              <td style={{ padding: "14px 18px", fontWeight: 500 }}>Up to ₹ 5,00,000</td>
-              <td style={{ padding: "14px 18px", color: "var(--gold-deep)", fontWeight: 600 }}>₹ 2,500</td>
-              <td style={{ padding: "14px 18px" }}>₹ 7,500</td>
-              <td style={{ padding: "14px 18px" }}>₹ 15,000 (Single Arbitrator)</td>
-            </tr>
-            <tr style={{ borderBottom: "1px solid var(--line)", background: "rgba(11,27,49,.02)" }}>
-              <td style={{ padding: "14px 18px", fontWeight: 500 }}>₹ 5,00,001 – ₹ 25,00,000</td>
-              <td style={{ padding: "14px 18px", color: "var(--gold-deep)", fontWeight: 600 }}>₹ 5,000</td>
-              <td style={{ padding: "14px 18px" }}>₹ 18,000</td>
-              <td style={{ padding: "14px 18px" }}>₹ 35,000</td>
-            </tr>
-            <tr style={{ borderBottom: "1px solid var(--line)" }}>
-              <td style={{ padding: "14px 18px", fontWeight: 500 }}>₹ 25,00,001 – ₹ 1,00,00,000</td>
-              <td style={{ padding: "14px 18px", color: "var(--gold-deep)", fontWeight: 600 }}>₹ 10,000</td>
-              <td style={{ padding: "14px 18px" }}>₹ 35,000</td>
-              <td style={{ padding: "14px 18px" }}>₹ 65,000</td>
-            </tr>
-            <tr style={{ background: "rgba(11,27,49,.02)" }}>
-              <td style={{ padding: "14px 18px", fontWeight: 500 }}>Above ₹ 1,00,00,000</td>
-              <td style={{ padding: "14px 18px", color: "var(--gold-deep)", fontWeight: 600 }}>₹ 20,000</td>
-              <td style={{ padding: "14px 18px" }}>0.35% of Claim</td>
-              <td style={{ padding: "14px 18px" }}>As per 4th Schedule (Arbitration Act)</td>
-            </tr>
+            {FEE_SLABS.map((sl, idx) => (
+              <tr key={sl.id} style={{ borderBottom: "1px solid var(--line)", background: idx % 2 === 1 ? "rgba(11,27,49,.02)" : "#fff" }}>
+                <td style={{ padding: "14px 18px", fontWeight: 500 }}>{sl.label}</td>
+                <td style={{ padding: "14px 18px", color: "var(--gold-deep)", fontWeight: 600 }}>₹ {sl.negotiationFee.toLocaleString("en-IN")}</td>
+                <td style={{ padding: "14px 18px" }}>
+                  {sl.mediationFee ? `₹ ${sl.mediationFee.toLocaleString("en-IN")}` : "0.35% of Claim"}
+                </td>
+                <td style={{ padding: "14px 18px" }}>
+                  {sl.fastTrackArbitrationFee ? `₹ ${sl.fastTrackArbitrationFee.toLocaleString("en-IN")} (${sl.arbitratorType})` : sl.fastTrackArbitrationDescription}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

@@ -29,7 +29,7 @@ export default function Footer() {
             </p>
             <div style={{ fontSize: "11px", color: "var(--gold)", fontFamily: "var(--mono)", lineHeight: "1.5" }}>
               📞 <a href="tel:+911149876500" style={{ color: "var(--gold)", textDecoration: "none" }}>+91 11 4987 6500</a><br />
-              ✉️ <a href="mailto:registry@justnivaran.in" style={{ color: "var(--gold)", textDecoration: "none" }}>registry@justnivaran.in</a> &bull; <a href="mailto:justnivarangrievance@gmail.com" style={{ color: "var(--gold)", textDecoration: "none" }}>grievance</a>
+              ✉️ <a href="mailto:registry@justnivaran.in" style={{ color: "var(--gold)", textDecoration: "none" }}>registry@justnivaran.in</a> &bull; <a href="mailto:grievance@justnivaran.in" style={{ color: "var(--gold)", textDecoration: "none" }}>grievance@justnivaran.in</a>
             </div>
           </div>
 

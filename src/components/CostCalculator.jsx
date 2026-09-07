@@ -1,12 +1,15 @@
 import { useState } from "react";
+import { calculateAuthoritativeFee, FEE_SLABS } from "../lib/feeSchedule";
 
 function CostCalculator({ onOpenFileModal }) {
   const [claimAmount, setClaimAmount] = useState(1000000);
   const [showFeeTable, setShowFeeTable] = useState(false);
 
+  // Authoritative dynamic calculation
+  const feeInfo = calculateAuthoritativeFee(claimAmount, "arbitration");
+  const odrCost = feeInfo.baseFee;
   const courtCost = Math.round(claimAmount * 0.18 + 150000);
-  const odrCost = Math.round(claimAmount * 0.035 + 15000);
-  const savings = courtCost - odrCost;
+  const savings = Math.max(0, courtCost - odrCost);
 
   return (
     <section className="section" id="calculator" style={{ background: "var(--paper-hi)", borderTop: "var(--rail)" }}>
@@ -19,7 +22,7 @@ function CostCalculator({ onOpenFileModal }) {
             </p>
             <h2>Compare Court Litigation vs. JustNivaran ODR</h2>
             <p className="lede" style={{ margin: "16px 0 20px" }}>
-              Traditional litigation drains working capital in multi-year procedural delays. Adjust the claim value to inspect illustrative operational benchmarks.
+              Traditional litigation drains working capital in multi-year procedural delays. Adjust the claim value to inspect authoritative institutional fee benchmarks.
             </p>
 
             <div
@@ -35,7 +38,7 @@ function CostCalculator({ onOpenFileModal }) {
                 marginBottom: "20px"
               }}
             >
-              ℹ️ Illustrative operational targets—not guaranteed resolution timelines.
+              ℹ️ Authoritative institutional fee scale (Version 2.4). All fees exclusive of 18% GST.
             </div>
 
             {/* Interactive Accessible Slider Box */}
@@ -193,21 +196,45 @@ function CostCalculator({ onOpenFileModal }) {
                   letterSpacing: ".1em"
                 }}
               >
-                JustNivaran ODR Platform
+                JustNivaran Fast-Track Arbitration (s. 29B)
               </div>
-              <h3 style={{ fontSize: "22px", margin: "0 0 12px", color: "#fff" }}>
+              <h3 style={{ fontSize: "22px", margin: "0 0 8px", color: "#fff" }}>
                 ₹ {odrCost.toLocaleString("en-IN")}{" "}
                 <small style={{ fontSize: "11px", color: "var(--gold-soft)", fontWeight: "normal" }}>
-                  illustrative institutional fee estimate
+                  + 18% GST (₹ {feeInfo.gstAmount.toLocaleString("en-IN")})
                 </small>
               </h3>
-              <div style={{ fontSize: "13px", color: "#AEC0D6", display: "grid", gap: "8px" }}>
-                <div>⏱️ <strong>Target Timeline:</strong> 4 to 8 Weeks (Target Fast-Track Benchmark)*</div>
+
+              {/* Component breakdown */}
+              <div
+                style={{
+                  background: "rgba(255,255,255,0.06)",
+                  padding: "8px 12px",
+                  borderRadius: "3px",
+                  fontSize: "11.5px",
+                  marginBottom: "12px",
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "6px"
+                }}
+              >
+                <div>
+                  <span style={{ color: "var(--slate-light)" }}>Registry Fee (35%):</span>
+                  <div style={{ color: "#fff", fontWeight: 500 }}>₹ {feeInfo.registryFee.toLocaleString("en-IN")}</div>
+                </div>
+                <div>
+                  <span style={{ color: "var(--slate-light)" }}>Arbitrator Honorarium (65%):</span>
+                  <div style={{ color: "var(--gold)", fontWeight: 500 }}>₹ {feeInfo.neutralHonorarium.toLocaleString("en-IN")}</div>
+                </div>
+              </div>
+
+              <div style={{ fontSize: "13px", color: "#AEC0D6", display: "grid", gap: "6px" }}>
+                <div>⏱️ <strong>Target Timeline:</strong> {feeInfo.targetDays} ({feeInfo.arbitratorType})</div>
                 <div>📍 <strong>Hearings:</strong> 100% Encrypted Virtual Video Rooms</div>
                 <div>
-                  💰 <strong>Estimated Model Savings:</strong>{" "}
+                  💰 <strong>Estimated Cost Savings:</strong>{" "}
                   <span style={{ color: "var(--gold)", fontWeight: 600 }}>
-                    ₹ {savings.toLocaleString("en-IN")} (Illustrative Model)*
+                    ₹ {savings.toLocaleString("en-IN")}
                   </span>
                 </div>
               </div>
@@ -235,12 +262,12 @@ function CostCalculator({ onOpenFileModal }) {
             • <strong>Court Litigation Estimates:</strong> Duration modeled from National Judicial Data Grid (NJDG) commercial dispute disposal metrics across Indian District &amp; High Courts (typically averaging 3–5 years from filing to final decree). Court expenses are estimated based on state ad-valorem court fee enactments plus standard per-hearing legal representation and procedural compliance expenses.
           </div>
           <div style={{ marginTop: "4px" }}>
-            • <strong>JustNivaran Fee Estimate:</strong> Dynamic calculation provides an illustrative institutional fee estimate. Actual administrative and neutral fees are determined strictly as per the published institutional fee schedule below upon formal matter registration.
+            • <strong>JustNivaran Fee Schedule:</strong> Authoritative capped administrative schedule governed under Institutional Fee Schedule Version 2.4 (September 2026). All institutional dispute filings strictly adhere to the published slabs.
           </div>
         </div>
 
         <p style={{ fontSize: "11px", color: "var(--slate)", margin: "14px 0 0", lineHeight: "1.5" }}>
-          *Disclaimer: Traditional litigation costs and timeframes are illustrative estimates derived from National Judicial Data Grid (NJDG) commercial dispute averages and statutory court fee ad-valorem schedules. JustNivaran timelines represent target administrative benchmarks and do not constitute a legal guarantee of dispute duration or outcome.
+          *Disclaimer: Traditional litigation costs and timeframes are illustrative estimates derived from National Judicial Data Grid (NJDG) commercial dispute averages and statutory court fee ad-valorem schedules. JustNivaran timelines represent target administrative benchmarks under Section 29B and do not constitute a guarantee of outcome.
         </p>
 
         {/* Expandable Statutory Institutional Fee Schedule Table */}
@@ -276,10 +303,10 @@ function CostCalculator({ onOpenFileModal }) {
                     letterSpacing: ".1em"
                   }}
                 >
-                  STATUTORY ADMINISTRATIVE FEE STRUCTURE
+                  AUTHORITATIVE INSTITUTIONAL FEE SCHEDULE (VERSION 2.4)
                 </span>
                 <h3 style={{ fontSize: "19px", margin: "4px 0 0", color: "var(--ink)" }}>
-                  Institutional Fee Schedule (Model Fourth Schedule)
+                  Institutional Fee Schedule (Exclusive of 18% GST)
                 </h3>
               </div>
               <span style={{ fontSize: "12px", color: "var(--slate)" }}>*Capped statutory neutral honorarium</span>
@@ -290,36 +317,24 @@ function CostCalculator({ onOpenFileModal }) {
                 <thead>
                   <tr style={{ background: "var(--paper-hi)", borderBottom: "1px solid var(--line)" }}>
                     <th style={{ padding: "10px 14px", color: "var(--slate)", fontFamily: "var(--mono)", textTransform: "uppercase", fontSize: "10.5px" }}>Claim Value Slab</th>
-                    <th style={{ padding: "10px 14px", color: "var(--slate)", fontFamily: "var(--mono)", textTransform: "uppercase", fontSize: "10.5px" }}>Mediation Fee</th>
-                    <th style={{ padding: "10px 14px", color: "var(--slate)", fontFamily: "var(--mono)", textTransform: "uppercase", fontSize: "10.5px" }}>Fast-Track Arbitration Fee</th>
-                    <th style={{ padding: "10px 14px", color: "var(--slate)", fontFamily: "var(--mono)", textTransform: "uppercase", fontSize: "10.5px" }}>Statutory Turnaround</th>
+                    <th style={{ padding: "10px 14px", color: "var(--slate)", fontFamily: "var(--mono)", textTransform: "uppercase", fontSize: "10.5px" }}>Direct Negotiation</th>
+                    <th style={{ padding: "10px 14px", color: "var(--slate)", fontFamily: "var(--mono)", textTransform: "uppercase", fontSize: "10.5px" }}>Institutional Mediation</th>
+                    <th style={{ padding: "10px 14px", color: "var(--slate)", fontFamily: "var(--mono)", textTransform: "uppercase", fontSize: "10.5px" }}>Fast-Track Arbitration (s. 29B)</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr style={{ borderBottom: "1px solid var(--line-soft)" }}>
-                    <td style={{ padding: "12px 14px", fontWeight: 500 }}>Up to ₹ 5,00,000 (MSME Tier)</td>
-                    <td style={{ padding: "12px 14px", color: "#1E8449" }}>₹ 4,500 flat</td>
-                    <td style={{ padding: "12px 14px", color: "var(--ink)" }}>₹ 8,500 flat</td>
-                    <td style={{ padding: "12px 14px", fontFamily: "var(--mono)" }}>15 - 30 Days</td>
-                  </tr>
-                  <tr style={{ borderBottom: "1px solid var(--line-soft)" }}>
-                    <td style={{ padding: "12px 14px", fontWeight: 500 }}>₹ 5,00,001 to ₹ 25,00,000</td>
-                    <td style={{ padding: "12px 14px", color: "#1E8449" }}>₹ 12,000 flat</td>
-                    <td style={{ padding: "12px 14px", color: "var(--ink)" }}>₹ 22,500 flat</td>
-                    <td style={{ padding: "12px 14px", fontFamily: "var(--mono)" }}>30 - 45 Days</td>
-                  </tr>
-                  <tr style={{ borderBottom: "1px solid var(--line-soft)" }}>
-                    <td style={{ padding: "12px 14px", fontWeight: 500 }}>₹ 25,00,001 to ₹ 1,00,00,000</td>
-                    <td style={{ padding: "12px 14px", color: "#1E8449" }}>₹ 25,000 + 0.5%</td>
-                    <td style={{ padding: "12px 14px", color: "var(--ink)" }}>₹ 45,000 + 1%</td>
-                    <td style={{ padding: "12px 14px", fontFamily: "var(--mono)" }}>45 - 60 Days</td>
-                  </tr>
-                  <tr>
-                    <td style={{ padding: "12px 14px", fontWeight: 500 }}>Above ₹ 1,00,00,000 (Commercial)</td>
-                    <td style={{ padding: "12px 14px", color: "#1E8449" }}>Capped Schedule</td>
-                    <td style={{ padding: "12px 14px", color: "var(--ink)" }}>S. 29B Flat Schedule</td>
-                    <td style={{ padding: "12px 14px", fontFamily: "var(--mono)" }}>60 - 90 Days</td>
-                  </tr>
+                  {FEE_SLABS.map((sl, idx) => (
+                    <tr key={sl.id} style={{ borderBottom: "1px solid var(--line-soft)", background: idx % 2 === 1 ? "rgba(11,27,49,.02)" : "#fff" }}>
+                      <td style={{ padding: "12px 14px", fontWeight: 500 }}>{sl.label}</td>
+                      <td style={{ padding: "12px 14px", color: "var(--gold-deep)", fontWeight: 600 }}>₹ {sl.negotiationFee.toLocaleString("en-IN")}</td>
+                      <td style={{ padding: "12px 14px", color: "#1E8449" }}>
+                        {sl.mediationFee ? `₹ ${sl.mediationFee.toLocaleString("en-IN")}` : "0.35% of Claim"}
+                      </td>
+                      <td style={{ padding: "12px 14px", color: "var(--ink)", fontWeight: 500 }}>
+                        {sl.fastTrackArbitrationFee ? `₹ ${sl.fastTrackArbitrationFee.toLocaleString("en-IN")} (${sl.arbitratorType})` : sl.fastTrackArbitrationDescription}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

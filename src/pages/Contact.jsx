@@ -43,7 +43,7 @@ function Contact({ onOpenConsultationModal, onOpenFileModal }) {
               🏛️ <strong>Entity:</strong> JustNivaran Private Limited (CIN: U62020DC2026PTC473641)
             </div>
             <div>
-              📍 <strong>Registered Office:</strong> New Delhi – 110001, India
+              📍 <strong>Registered Office:</strong> DC-12, 1st Floor, District Centre, Janakpuri, New Delhi – 110058, India
             </div>
             <div>
               👤 <strong>Registrar &amp; Compliance Officer:</strong> Adv. Rajeshwar Sharma

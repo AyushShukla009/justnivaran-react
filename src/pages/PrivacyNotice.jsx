@@ -130,11 +130,11 @@ export default function PrivacyNotice() {
           </div>
           <div>
             <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Grievance Desk</span>
-            <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink)", marginTop: "3px" }}>justnivarangrievance@gmail.com</div>
+            <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink)", marginTop: "3px" }}>grievance@justnivaran.in</div>
           </div>
           <div>
             <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Statutory SLA</span>
-            <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink)", marginTop: "3px" }}>7d Ack &bull; 30d Substantive</div>
+            <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink)", marginTop: "3px" }}>24h Ack &bull; 15d Resolution</div>
           </div>
         </div>
       </div>
@@ -500,15 +500,15 @@ export default function PrivacyNotice() {
             }}>
               <div>
                 <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>Designated Authority</span>
-                <div style={{ fontSize: "15px", fontWeight: 600, color: "var(--ink)", marginTop: "2px" }}>Grievance Officer / Privacy Lead</div>
-                <div style={{ fontSize: "13px", color: "var(--slate)" }}>JustNivaran Private Limited</div>
+                <div style={{ fontSize: "15px", fontWeight: 600, color: "var(--ink)", marginTop: "2px" }}>Adv. Rajeshwar Sharma</div>
+                <div style={{ fontSize: "13px", color: "var(--slate)" }}>Grievance &amp; Data Protection Officer</div>
               </div>
 
               <div>
                 <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>Grievance Email</span>
                 <div style={{ fontSize: "15px", fontWeight: 600, marginTop: "2px" }}>
-                  <a href="mailto:justnivarangrievance@gmail.com" style={{ color: "var(--gold-deep)", textDecoration: "underline" }}>
-                    justnivarangrievance@gmail.com
+                  <a href="mailto:grievance@justnivaran.in" style={{ color: "var(--gold-deep)", textDecoration: "underline" }}>
+                    grievance@justnivaran.in
                   </a>
                 </div>
               </div>
@@ -516,15 +516,15 @@ export default function PrivacyNotice() {
               <div>
                 <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>Official Postal Address</span>
                 <div style={{ fontSize: "14px", fontWeight: 500, color: "var(--ink)", marginTop: "2px", lineHeight: "1.5" }}>
-                  B2B -212 Janak Puri,<br />New Delhi, India
+                  DC-12, 1st Floor, District Centre,<br />Janakpuri, New Delhi – 110058, India
                 </div>
               </div>
 
               <div>
                 <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>Statutory Response SLA</span>
                 <div style={{ fontSize: "14px", fontWeight: 500, color: "var(--ink)", marginTop: "2px", lineHeight: "1.5" }}>
-                  Acknowledgement within <strong>7 days</strong>;<br />
-                  Substantive response within <strong>30 days</strong>.
+                  Acknowledgement within <strong>24 hours</strong>;<br />
+                  Resolution within <strong>15 calendar days</strong>.
                 </div>
               </div>
             </div>
@@ -573,7 +573,7 @@ export default function PrivacyNotice() {
         </div>
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
           <a
-            href="mailto:justnivarangrievance@gmail.com?subject=Data%20Principal%20Rights%20Request"
+            href="mailto:grievance@justnivaran.in?subject=Data%20Principal%20Rights%20Request"
             className="btn gold"
             style={{ padding: "12px 24px", fontSize: "14.5px", textDecoration: "none" }}
           >

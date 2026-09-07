@@ -126,7 +126,7 @@ export default function FastTrackArbitration({ onOpenFileModal }) {
           </span>
         </div>
         <p className="lede" style={{ color: "var(--slate)", maxWidth: "860px", margin: 0 }}>
-          An expedited statutory arbitral mechanism under Indian law where a Sole Arbitrator resolves disputes strictly on written pleadings, digital evidence, and oral-hearing-free proceedings within 180 days.
+          An expedited statutory arbitral mechanism under Indian law where a Sole Arbitrator resolves disputes based on written pleadings, documents, and digital evidence within 180 days, dispensing with oral hearings unless requested by parties or deemed necessary by the tribunal.
         </p>
       </div>
 

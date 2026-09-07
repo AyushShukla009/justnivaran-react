@@ -661,7 +661,7 @@ export default function PrivacyPolicy() {
               </div>
             </div>
             <div style={{ borderTop: "1px solid var(--line)", paddingTop: "12px", fontSize: "13px", color: "var(--slate)", lineHeight: "1.6" }}>
-              <strong>Notice Address:</strong> JustNivaran Private Limited (CIN: U62020DC2026PTC473641), New Delhi – 110001, India.<br />
+              <strong>Notice Address:</strong> JustNivaran Private Limited (CIN: U62020DC2026PTC473641), DC-12, 1st Floor, District Centre, Janakpuri, New Delhi – 110058, India.<br />
               <strong>Statutory Service Level Agreement:</strong> Mandatory acknowledgment within <strong>24 hours</strong>; substantive resolution within <strong>15 calendar days</strong> under DPDP Act 2023 &amp; IT Rules 2021.
             </div>
           </div>
