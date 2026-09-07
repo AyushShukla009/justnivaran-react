@@ -17,6 +17,45 @@ const PROGRESS_STAGES = [
   "Formulating probable outcome scenarios & settlement ranges"
 ];
 
+const SAMPLE_DISPUTE_DATA = {
+  category: "Commercial Contract & Supply Default",
+  claimValue: "1500000",
+  breachDetails: "Non-payment of final commercial supply invoice overdue by 90 days.",
+  factualChronology:
+    "1. On 10 January 2026, Company A entered into a Master Supply Agreement with Company B for commercial goods worth ₹15,00,000.\n2. On 15 February 2026, goods were delivered and acknowledged by Company B.\n3. Final invoice was due within 30 days.\n4. Payment remains overdue by 90 days. Company B now alleges delayed delivery as grounds to withhold payment.",
+  primaryClaims:
+    "1. Recovery of outstanding principal invoice sum of INR 15,00,000.\n2. Statutory pre-award and post-award interest under Section 31(7)(a) of the Arbitration and Conciliation Act, 1996.\n3. Institutional arbitration costs.",
+  expectedDefenses:
+    "Company B alleges delayed delivery of user manuals and seeks set-off or waiver.",
+  contractualClauses:
+    "Clause 14 (Dispute Resolution): All disputes arising out of or in connection with this agreement shall be referred to arbitration in New Delhi under the Arbitration and Conciliation Act, 1996.\nClause 18 (Governing Law): This agreement is governed by the laws of India.",
+  governingLaw: "Laws of India",
+  arbitrationClauseStatus: "Yes - Institutional Arbitration Clause (Specified Institution)",
+  availableEvidence:
+    "1. Signed Master Supply Agreement.\n2. Delivery receipt note signed by Company B.\n3. Commercial Tax Invoices.\n4. Email admissions of debt.",
+  missingEvidence:
+    "Formal physical inspection certificate for user manuals.",
+  desiredResolution:
+    "Full recovery of principal sum of ₹15,00,000 with statutory interest and costs.",
+  consentAccepted: true
+};
+
+const INITIAL_FORM_DATA = {
+  category: "Commercial Contract & Supply Default",
+  claimValue: "",
+  breachDetails: "",
+  factualChronology: "",
+  primaryClaims: "",
+  expectedDefenses: "",
+  contractualClauses: "",
+  governingLaw: "Laws of India",
+  arbitrationClauseStatus: "Yes - Institutional Arbitration Clause (Specified Institution)",
+  availableEvidence: "",
+  missingEvidence: "",
+  desiredResolution: "",
+  consentAccepted: false
+};
+
 export default function LegalAssessment() {
   const [activeView, setActiveView] = useState("intake"); // 'intake' | 'report'
   const [step, setStep] = useState(1);
@@ -32,29 +71,8 @@ export default function LegalAssessment() {
   const [errorMessage, setErrorMessage] = useState("");
   const abortControllerRef = useRef(null);
 
-  // Form State
-  const [formData, setFormData] = useState({
-    category: "Commercial Contract & Supply Default",
-    claimValue: "8500000",
-    breachDetails: "Delayed delivery of Milestone 4 software components and subsequent wrongful withholding of ₹85,00,000 invoice payments.",
-    factualChronology:
-      "On 15 January 2024, Claimant (Software Developer) and Respondent (Enterprise Logistics Provider) executed a Master Services Agreement for developing a customized freight ERP system. Milestones 1, 2, and 3 were delivered on schedule and accepted with written sign-offs. On 10 November 2024, Claimant submitted Milestone 4 for User Acceptance Testing. Respondent conducted UAT and sent email confirmation on 28 November 2024 noting successful deployment. However, when Claimant issued Invoice #INV-2024-884 for ₹45,00,000 (Milestone 4) and Invoice #INV-2025-012 for ₹40,00,000 (Milestone 5 final release), Respondent withheld payment citing a 14-day server downtime during initial deployment and unilaterally deducted liquidated damages of ₹85,00,000.",
-    primaryClaims:
-      "1. Recovery of principal milestone fees amounting to INR 85,00,000 under Section 70 and Section 73 of the Indian Contract Act, 1872.\n2. Commercial pre-award and post-award interest at 18% per annum from due date of invoices until realization.\n3. Arbitral and legal representation costs.",
-    expectedDefenses:
-      "Respondent claims entitlement to deduct 10% liquidated damages per week of server downtime under Clause 14.2 of the Master Services Agreement without proving actual financial injury.",
-    contractualClauses:
-      "Clause 14.2 (Liquidated Damages): In the event of service downtime attributable to the Developer, the Client may levy agreed liquidated damages up to 10% of total contract value.\nClause 19.1 (Dispute Resolution): Any dispute arising out of this agreement shall be referred to arbitration in New Delhi under the Arbitration and Conciliation Act, 1996.",
-    governingLaw: "Laws of India (Exclusive seat New Delhi)",
-    arbitrationClauseStatus: "Yes - Institutional Arbitration Clause (Specified Institution)",
-    availableEvidence:
-      "1. Executed Master Services Agreement dated 15 Jan 2024.\n2. Signed Milestone 1-3 UAT sign-offs.\n3. Email confirmation of Milestone 4 UAT dated 28 Nov 2024.\n4. Unpaid Invoices #884 and #012.\n5. Formal Section 21 Arbitration Reference Notice served via email and registered post.",
-    missingEvidence:
-      "Section 63 BSA electronic evidence certificate for server log timestamps; Respondent's internal damage computation audit.",
-    desiredResolution:
-      "Immediate recovery of principal dues (INR 85,00,000) with reasonable interest, or structured pre-arbitral mediation settlement.",
-    consentAccepted: false
-  });
+  // Form State (Clean empty initial values)
+  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
 
   // Check Engine Health on mount
   useEffect(() => {
@@ -181,6 +199,17 @@ export default function LegalAssessment() {
     setActiveView("intake");
     setStep(1);
     setErrorMessage("");
+  };
+
+  const handleLoadSample = () => {
+    setFormData(SAMPLE_DISPUTE_DATA);
+    setErrorMessage("");
+  };
+
+  const handleClearForm = () => {
+    setFormData(INITIAL_FORM_DATA);
+    setErrorMessage("");
+    setStep(1);
   };
 
   return (
@@ -386,6 +415,44 @@ export default function LegalAssessment() {
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
+              {/* Quick Actions Toolbar */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  background: "var(--paper-hi)",
+                  border: "1px solid var(--line)",
+                  borderRadius: "6px",
+                  padding: "10px 14px",
+                  marginBottom: "24px",
+                  flexWrap: "wrap",
+                  gap: "10px"
+                }}
+              >
+                <div style={{ fontSize: "12.5px", color: "var(--slate)" }}>
+                  💡 Enter your matter details below, or load our synthetic commercial dispute benchmark:
+                </div>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    type="button"
+                    onClick={handleLoadSample}
+                    className="btn ghost"
+                    style={{ padding: "5px 12px", fontSize: "12px", height: "auto" }}
+                  >
+                    📋 Load Benchmark Sample
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearForm}
+                    className="btn ghost"
+                    style={{ padding: "5px 12px", fontSize: "12px", height: "auto", color: "var(--slate)" }}
+                  >
+                    🧹 Clear Form
+                  </button>
+                </div>
+              </div>
+
               {/* Step Progress Header */}
               <div style={{ marginBottom: "32px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)" }}>
