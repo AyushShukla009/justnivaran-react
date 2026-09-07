@@ -7,9 +7,30 @@
 -- Idempotency: 100% rerunnable without data corruption, schema conflicts, or downtime.
 -- ==============================================================================
 
--- 1. EXTENSIONS
+-- 1. EXTENSIONS & CRYPTOGRAPHIC PRNG HELPERS
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA extensions;
 CREATE EXTENSION IF NOT EXISTS "pgcrypto" SCHEMA extensions;
+
+-- Cryptographically Secure 6-Digit Numeric PIN Generator (Uses OpenSSL/pgcrypto gen_random_bytes)
+CREATE OR REPLACE FUNCTION public.generate_secure_numeric_pin()
+RETURNS TEXT AS $$
+DECLARE
+    v_bytes BYTEA;
+    v_val BIGINT;
+    v_pin INT;
+BEGIN
+    v_bytes := extensions.gen_random_bytes(4);
+    v_val := (get_byte(v_bytes, 0)::BIGINT << 24) |
+             (get_byte(v_bytes, 1)::BIGINT << 16) |
+             (get_byte(v_bytes, 2)::BIGINT << 8)  |
+             (get_byte(v_bytes, 3)::BIGINT);
+    v_pin := 100000 + (abs(v_val) % 900000);
+    RETURN v_pin::TEXT;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+REVOKE ALL ON FUNCTION public.generate_secure_numeric_pin() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.generate_secure_numeric_pin() TO anon, authenticated, service_role;
 
 -- 2. DISPUTES TABLE HARDENING (Preserve Legacy Data & Secure Migration Path)
 CREATE TABLE IF NOT EXISTS public.disputes (
@@ -89,15 +110,15 @@ BEGIN
     END IF;
 END $$;
 
--- 3. For any remaining records with no PIN at all, assign unique random 6-digit PIN hashes (NO shared fallback like 090909)
+-- 3. For any remaining records with no PIN at all, assign unique cryptographically secure PIN hashes
 UPDATE public.disputes
-SET access_code_hash = extensions.crypt(LPAD(FLOOR(RANDOM()*899999 + 100000)::TEXT, 6, '0'), extensions.gen_salt('bf'))
+SET access_code_hash = extensions.crypt(public.generate_secure_numeric_pin(), extensions.gen_salt('bf'))
 WHERE access_code_hash IS NULL;
 
 -- Set default bcrypt generation for newly inserted disputes
 ALTER TABLE public.disputes 
     ALTER COLUMN access_code_hash 
-    SET DEFAULT extensions.crypt(LPAD(FLOOR(RANDOM()*899999 + 100000)::TEXT, 6, '0'), extensions.gen_salt('bf'));
+    SET DEFAULT extensions.crypt(public.generate_secure_numeric_pin(), extensions.gen_salt('bf'));
 
 -- NOTE: Legacy 'access_code' column is preserved and NOT dropped in this release to ensure backward compatibility.
 
@@ -652,7 +673,7 @@ BEGIN
     v_docket := 'JN/' || v_mode || '/' || TO_CHAR(NOW(), 'YYYY') || '/' || LPAD(FLOOR(RANDOM()*8999 + 1000)::TEXT, 4, '0');
 
     -- Generate Cryptographically Secure 6-Digit PIN & Compute Bcrypt Hash
-    v_raw_pin := LPAD(FLOOR(RANDOM()*899999 + 100000)::TEXT, 6, '0');
+    v_raw_pin := public.generate_secure_numeric_pin();
     v_pin_hash := extensions.crypt(v_raw_pin, extensions.gen_salt('bf'));
 
     -- Insert Dispute Record with Bcrypt Hash (Zero Plaintext Stored)
@@ -712,7 +733,99 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 REVOKE ALL ON FUNCTION public.submit_public_dispute FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.submit_public_dispute TO anon, authenticated, service_role;
 
--- 15. TABLE PRIVILEGE MATRIX CONFIGURATION
+-- 15. ADMINISTRATIVE CASE PIN RECOVERY & AUTOMATED RE-DELIVERY RPCS
+CREATE OR REPLACE FUNCTION public.admin_recover_case_pin(
+    p_docket TEXT,
+    p_recipient_channel TEXT DEFAULT 'all'
+)
+RETURNS JSONB AS $$
+DECLARE
+    v_dispute RECORD;
+    v_new_pin TEXT;
+    v_new_hash TEXT;
+BEGIN
+    IF p_docket IS NULL OR length(trim(p_docket)) = 0 THEN
+        RETURN jsonb_build_object('success', false, 'error', 'INVALID_DOCKET', 'message', 'Docket number is required.');
+    END IF;
+
+    SELECT * INTO v_dispute
+    FROM public.disputes
+    WHERE UPPER(docket_number) = UPPER(TRIM(p_docket));
+
+    IF v_dispute.id IS NULL THEN
+        RETURN jsonb_build_object('success', false, 'error', 'NOT_FOUND', 'message', 'Dispute record not found in registry.');
+    END IF;
+
+    -- Generate fresh CSPRNG 6-digit PIN and salted bcrypt hash
+    v_new_pin := public.generate_secure_numeric_pin();
+    v_new_hash := extensions.crypt(v_new_pin, extensions.gen_salt('bf'));
+
+    -- Update dispute record
+    UPDATE public.disputes
+    SET access_code_hash = v_new_hash
+    WHERE id = v_dispute.id;
+
+    -- Log administrative audit trail
+    INSERT INTO public.case_audit_logs (
+        case_id, docket_number, event_type, actor_type, change_summary, metadata
+    ) VALUES (
+        v_dispute.id,
+        v_dispute.docket_number,
+        'PIN_RECOVERY_GENERATED',
+        'admin',
+        'Fresh cryptographically secure PIN generated for case recovery and dispatched to authorized parties.',
+        jsonb_build_object('channel', p_recipient_channel)
+    );
+
+    -- Queue automated secure notice deliveries with new PIN
+    IF p_recipient_channel IN ('claimant', 'all') AND v_dispute.claimant_email IS NOT NULL THEN
+        INSERT INTO public.notice_deliveries (dispute_id, docket_number, recipient_type, channel, recipient_contact, status, metadata)
+        VALUES (v_dispute.id, v_dispute.docket_number, 'claimant', 'email', v_dispute.claimant_email, 'Queued', jsonb_build_object('event', 'PIN_RECOVERY'));
+    END IF;
+
+    IF p_recipient_channel IN ('respondent', 'all') AND v_dispute.respondent_email IS NOT NULL THEN
+        INSERT INTO public.notice_deliveries (dispute_id, docket_number, recipient_type, channel, recipient_contact, status, metadata)
+        VALUES (v_dispute.id, v_dispute.docket_number, 'respondent', 'email', v_dispute.respondent_email, 'Queued', jsonb_build_object('event', 'PIN_RECOVERY'));
+    END IF;
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'data', jsonb_build_object(
+            'docket_number', v_dispute.docket_number,
+            'generated_pin', v_new_pin,
+            'notices_queued', true,
+            'message', 'Fresh Access PIN generated and recovery notice queued for transmission.'
+        )
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+REVOKE ALL ON FUNCTION public.admin_recover_case_pin(TEXT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_recover_case_pin(TEXT, TEXT) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.admin_batch_recover_unusable_pins()
+RETURNS JSONB AS $$
+DECLARE
+    v_rec RECORD;
+    v_count INT := 0;
+BEGIN
+    FOR v_rec IN 
+        SELECT docket_number FROM public.disputes 
+        WHERE access_code_hash IS NULL 
+           OR access_code_hash !~ '^\$2[aby]\$[0-9]{2}\$[./A-Za-z0-9]{53}$'
+    LOOP
+        PERFORM public.admin_recover_case_pin(v_rec.docket_number, 'all');
+        v_count := v_count + 1;
+    END LOOP;
+
+    RETURN jsonb_build_object('success', true, 'recovered_count', v_count);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+REVOKE ALL ON FUNCTION public.admin_batch_recover_unusable_pins() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_batch_recover_unusable_pins() TO service_role;
+
+-- 16. TABLE PRIVILEGE MATRIX CONFIGURATION
 
 -- Revoke all table privileges from public, anon, and authenticated
 REVOKE ALL ON TABLE public.disputes FROM PUBLIC, anon, authenticated;
@@ -948,10 +1061,19 @@ CREATE POLICY "Users can view own admin record"
         OR (auth.jwt() -> 'app_metadata' ->> 'role') IN ('admin', 'super_admin', 'registrar')
     );
 
--- 16. STORAGE BUCKET CONFIGURATION
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('dispute-evidence', 'dispute-evidence', false)
-ON CONFLICT (id) DO NOTHING;
+-- 17. STORAGE BUCKET CONFIGURATION (FORCE PRIVATE EVEN IF PRE-EXISTING)
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+    'dispute-evidence',
+    'dispute-evidence',
+    false,
+    15728640, -- 15 MB limit
+    ARRAY['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+)
+ON CONFLICT (id) DO UPDATE SET 
+    public = false,
+    file_size_limit = 15728640,
+    allowed_mime_types = ARRAY['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
 
 DROP POLICY IF EXISTS "Public can upload dispute evidence" ON storage.objects;
 CREATE POLICY "Public can upload dispute evidence"

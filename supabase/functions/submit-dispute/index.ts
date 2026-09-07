@@ -9,7 +9,9 @@ const corsHeaders = {
 };
 
 function generatePin(): string {
-  const num = Math.floor(100000 + Math.random() * 900000);
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  const num = 100000 + (buf[0] % 900000);
   return num.toString();
 }
 
@@ -24,7 +26,9 @@ function generateDocketNumber(mode: string): string {
   };
   const code = trackMap[mode] || "ODR";
   const year = new Date().getFullYear();
-  const randNum = Math.floor(1000 + Math.random() * 9000);
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  const randNum = 1000 + (buf[0] % 9000);
   return `JN/${code}/${year}/${randNum}`;
 }
 
