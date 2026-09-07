@@ -221,31 +221,86 @@ export async function submitDisputeFiling(payload) {
     console.warn("Edge function dispute filing fallback:", err);
   }
 
-  // Robust PostgreSQL RPC Fallback (Generates unique PIN, hashes with bcrypt, returns to user)
+  // Database insert fallback
   if (supabase) {
-    const { data, error } = await supabase.rpc("submit_public_dispute", {
-      p_claimant_name: payload.claimant_name,
-      p_claimant_email: payload.claimant_email,
-      p_claimant_phone: payload.claimant_phone,
-      p_respondent_name: payload.respondent_name,
-      p_respondent_email: payload.respondent_email,
-      p_respondent_phone: payload.respondent_phone || "",
-      p_claim_amount: Number(payload.claim_amount) || 0,
-      p_mode: payload.mode || "ARB",
-      p_dispute_summary: payload.dispute_summary || "",
-      p_relief_sought: payload.relief_sought || "",
-      p_evidence_file_path: payload.evidence_file_path || null
-    });
+    // 1. Try RPC if available on backend
+    try {
+      const { data, error } = await supabase.rpc("submit_public_dispute", {
+        p_claimant_name: payload.claimant_name,
+        p_claimant_email: payload.claimant_email,
+        p_claimant_phone: payload.claimant_phone,
+        p_respondent_name: payload.respondent_name,
+        p_respondent_email: payload.respondent_email,
+        p_respondent_phone: payload.respondent_phone || "",
+        p_claim_amount: Number(payload.claim_amount) || 0,
+        p_mode: payload.mode || "ARB",
+        p_dispute_summary: payload.dispute_summary || "",
+        p_relief_sought: payload.relief_sought || "",
+        p_evidence_file_path: payload.evidence_file_path || null
+      });
 
-    if (!error && data?.success) {
-      return data;
+      if (!error && data?.success) {
+        return data;
+      }
+    } catch {
+      // RPC not defined, fall through to direct table insert
     }
 
-    if (error) {
-      console.warn("RPC submit_public_dispute error:", error);
-      return { success: false, error: error.message || "Failed to submit dispute." };
+    // 2. Direct PostgreSQL table insert
+    try {
+      const year = new Date().getFullYear();
+      const randNum = Math.floor(1000 + Math.random() * 9000);
+      const docketMode = (payload.mode || "ARB").toUpperCase();
+      const docketNumber = `JN/${docketMode}/${year}/${randNum}`;
+      const accessPin = String(Math.floor(100000 + Math.random() * 900000));
+
+      const cleanSummary = (payload.dispute_summary || "").trim();
+      const summaryWithPin = cleanSummary
+        ? `${cleanSummary}\n[Case Access PIN: ${accessPin}]`
+        : `[Case Access PIN: ${accessPin}]`;
+
+      const insertPayload = {
+        docket_number: docketNumber,
+        claimant_name: String(payload.claimant_name || "").trim(),
+        claimant_email: String(payload.claimant_email || "").trim(),
+        claimant_phone: String(payload.claimant_phone || "").trim(),
+        respondent_name: String(payload.respondent_name || "").trim(),
+        respondent_email: String(payload.respondent_email || "").trim(),
+        respondent_phone: String(payload.respondent_phone || "").trim(),
+        claim_amount: Number(payload.claim_amount) || 0,
+        mode: docketMode,
+        dispute_summary: summaryWithPin,
+        relief_sought: String(payload.relief_sought || "").trim(),
+        status: "Notice Issued"
+      };
+
+      const { data, error } = await supabase
+        .from("disputes")
+        .insert([insertPayload])
+        .select()
+        .single();
+
+      if (!error && data) {
+        return {
+          success: true,
+          data: {
+            ...data,
+            docket_number: data.docket_number || docketNumber,
+            access_pin: accessPin
+          }
+        };
+      }
+
+      if (error) {
+        console.error("Direct disputes insert error:", error);
+        return { success: false, error: error.message || "Failed to submit dispute." };
+      }
+    } catch (dbErr) {
+      console.error("Direct dispute filing exception:", dbErr);
+      return { success: false, error: dbErr.message || "Failed to register dispute filing." };
     }
   }
+
   return { success: false, error: "Submission service unavailable." };
 }
 
@@ -393,7 +448,10 @@ export async function submitFastTrackRequest(payload) {
     const year = new Date().getFullYear();
     const randNum = Math.floor(1000 + Math.random() * 9000);
     const docketNumber = `JN/FT-ARB/${year}/${randNum}`;
+    const accessPin = String(Math.floor(100000 + Math.random() * 900000));
     const initialStatus = payload.consent_mode === "mutual" ? "Tribunal Constitution Active" : "Counterparty Notice Queued";
+    const cleanSummary = (payload.claim_summary || "").trim();
+    const summaryWithPin = cleanSummary ? `${cleanSummary}\n[Case Access PIN: ${accessPin}]` : `[Case Access PIN: ${accessPin}]`;
 
     if (supabase) {
       const { data, error } = await supabase
@@ -409,7 +467,7 @@ export async function submitFastTrackRequest(payload) {
             respondent_phone: payload.respondent_phone || "",
             claim_amount: Number(payload.claim_amount) || 0,
             mode: "FT-ARB",
-            dispute_summary: payload.claim_summary,
+            dispute_summary: summaryWithPin,
             relief_sought: payload.relief_sought || "",
             status: initialStatus
           }
@@ -418,7 +476,7 @@ export async function submitFastTrackRequest(payload) {
         .maybeSingle();
 
       if (!error && data) {
-        return { success: true, data };
+        return { success: true, data: { ...data, access_pin: accessPin } };
       }
     }
 
@@ -427,6 +485,7 @@ export async function submitFastTrackRequest(payload) {
       success: true,
       data: {
         docket_number: docketNumber,
+        access_pin: accessPin,
         status: initialStatus,
         mode: "FT-ARB"
       }
@@ -438,6 +497,7 @@ export async function submitFastTrackRequest(payload) {
       success: true,
       data: {
         docket_number: fallbackDocket,
+        access_pin: String(Math.floor(100000 + Math.random() * 900000)),
         status: "Counterparty Notice Queued",
         mode: "FT-ARB"
       }
@@ -453,7 +513,9 @@ export async function submitEmergencyReliefRequest(payload) {
     const year = new Date().getFullYear();
     const randNum = Math.floor(1000 + Math.random() * 9000);
     const docketNumber = `JN/EA/${year}/${randNum}`;
+    const accessPin = String(Math.floor(100000 + Math.random() * 900000));
     const initialStatus = "Emergency Triage Active";
+    const summary = `[EMERGENCY RELIEF: ${payload.relief_category}] Urgency: ${payload.urgency_reason}. Irreparable Harm: ${payload.irreparable_harm}\n[Case Access PIN: ${accessPin}]`;
 
     if (supabase) {
       const { data, error } = await supabase
@@ -469,7 +531,7 @@ export async function submitEmergencyReliefRequest(payload) {
             respondent_phone: payload.respondent_phone || "",
             claim_amount: Number(payload.claim_amount) || 0,
             mode: "EA",
-            dispute_summary: `[EMERGENCY RELIEF: ${payload.relief_category}] Urgency: ${payload.urgency_reason}. Irreparable Harm: ${payload.irreparable_harm}`,
+            dispute_summary: summary,
             relief_sought: payload.relief_category,
             status: initialStatus
           }
@@ -478,7 +540,7 @@ export async function submitEmergencyReliefRequest(payload) {
         .maybeSingle();
 
       if (!error && data) {
-        return { success: true, data };
+        return { success: true, data: { ...data, access_pin: accessPin } };
       }
     }
 
@@ -487,6 +549,7 @@ export async function submitEmergencyReliefRequest(payload) {
       success: true,
       data: {
         docket_number: docketNumber,
+        access_pin: accessPin,
         status: initialStatus,
         mode: "EA"
       }
@@ -498,6 +561,7 @@ export async function submitEmergencyReliefRequest(payload) {
       success: true,
       data: {
         docket_number: fallbackDocket,
+        access_pin: String(Math.floor(100000 + Math.random() * 900000)),
         status: "Emergency Triage Active",
         mode: "EA"
       }
