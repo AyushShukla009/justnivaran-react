@@ -29,25 +29,38 @@ export async function getPublicDocketStatus(docketNumber) {
       })
     });
 
-    const result = await res.json();
-    return result;
+    if (res.ok) {
+      const result = await res.json();
+      if (result && result.success && result.data) {
+        return result;
+      }
+    }
   } catch (err) {
     console.warn("Edge function status fallback:", err);
-    // Graceful fallback for local development if Edge Functions are not deployed yet
-    if (supabase) {
+  }
+
+  // Graceful direct database query fallback
+  if (supabase) {
+    try {
       const { data, error } = await supabase
         .from("disputes")
-        .select("docket_number, mode, status, created_at, hearing_date, hearing_time")
+        .select("docket_number, mode, status, created_at, hearing_date, hearing_time, dispute_category, claim_value")
         .ilike("docket_number", cleanDocket)
         .maybeSingle();
 
-      if (error || !data) {
-        return { success: false, error: "NOT_FOUND", message: "Dispute record not located in registry." };
+      if (!error && data) {
+        return { success: true, data };
       }
-      return { success: true, data };
+    } catch (dbErr) {
+      console.error("Direct status lookup error:", dbErr);
     }
-    return { success: false, error: "NETWORK_ERROR", message: "Unable to connect to registry services." };
   }
+
+  return {
+    success: false,
+    error: "NOT_FOUND",
+    message: `No institutional dispute record matching "${cleanDocket}" was found in the JustNivaran Registry index.`
+  };
 }
 
 /**
@@ -81,16 +94,43 @@ export async function verifyDocketPin(docketNumber, pin) {
       })
     });
 
-    const result = await res.json();
-    return result;
+    if (res.ok) {
+      const result = await res.json();
+      if (result && result.success && result.data) {
+        return result;
+      }
+    }
   } catch (err) {
-    console.warn("Edge function PIN verification error:", err);
-    return {
-      success: false,
-      error: "SERVICE_UNAVAILABLE",
-      message: "Verification service temporarily unavailable. Please retry shortly."
-    };
+    console.warn("Edge function PIN verification fallback:", err);
   }
+
+  // Direct Supabase fallback
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("disputes")
+        .select("*")
+        .ilike("docket_number", cleanDocket)
+        .maybeSingle();
+
+      if (!error && data) {
+        const pinInSummary = data.dispute_summary && data.dispute_summary.includes(`[Case Access PIN: ${cleanPin}]`);
+        const pinInCode = data.access_code && String(data.access_code).trim() === cleanPin;
+
+        if (pinInSummary || pinInCode) {
+          return { success: true, data };
+        }
+      }
+    } catch (dbErr) {
+      console.error("Direct PIN verification error:", dbErr);
+    }
+  }
+
+  return {
+    success: false,
+    error: "INVALID_CREDENTIALS",
+    message: "Invalid Case Access PIN. Authentication failed."
+  };
 }
 
 /**
