@@ -8,6 +8,9 @@
     "build": "vite build",
     "lint": "eslint src",
     "test:db": "node tests/database/ai-telemetry-migration.test.js && node tests/database/ai-telemetry-roles.test.js && node tests/database/ai-rate-limit-concurrency.test.js && node tests/database/groq-provider.test.js && node tests/database/production-hardening-compatibility.test.js",
+    "test:simulated": "npm run test:db",
+    "test:live": "node tests/database/live-staging-integration.test.js",
+    "test:all": "npm run test:simulated && npm run test:live",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -27,6 +30,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",
+    "pg": "^8.23.0",
     "pg-mem": "^3.0.14",
     "vite": "^8.2.0"
   }
