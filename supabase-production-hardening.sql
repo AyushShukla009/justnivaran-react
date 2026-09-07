@@ -206,7 +206,7 @@ CREATE TABLE IF NOT EXISTS public.notice_deliveries (
     recipient_type VARCHAR(16) NOT NULL CHECK (recipient_type IN ('claimant', 'respondent', 'neutral', 'admin')),
     channel VARCHAR(16) NOT NULL CHECK (channel IN ('whatsapp', 'email', 'sms', 'portal')),
     recipient_contact TEXT NOT NULL,
-    status VARCHAR(16) NOT NULL DEFAULT 'Queued' CHECK (status IN ('Queued', 'Sent', 'Delivered', 'Failed', 'Read')),
+    status VARCHAR(16) NOT NULL DEFAULT 'Queued' CHECK (status IN ('Queued', 'Sending', 'Sent', 'Delivered', 'Failed', 'Read')),
     provider_msg_id TEXT,
     dispatched_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     delivered_at TIMESTAMPTZ,
@@ -214,7 +214,25 @@ CREATE TABLE IF NOT EXISTS public.notice_deliveries (
     metadata JSONB DEFAULT '{}'::jsonb
 );
 
--- 8. CASE AUDIT LOGS (IMMUTABLE APPEND-ONLY LEDGER)
+-- 8. EPHEMERAL CASE PIN RECOVERY TOKENS (SECURE OUT-OF-BAND DELIVERY WORKER STORE)
+-- Strictly accessible only by service_role. Zero client exposure in readable metadata.
+-- Tokens auto-expire and are permanently purged upon successful delivery.
+CREATE TABLE IF NOT EXISTS public.case_pin_recovery_tokens (
+    id UUID PRIMARY KEY DEFAULT extensions.gen_random_uuid(),
+    dispute_id UUID NOT NULL REFERENCES public.disputes(id) ON DELETE CASCADE,
+    delivery_id UUID NOT NULL REFERENCES public.notice_deliveries(id) ON DELETE CASCADE,
+    docket_number VARCHAR(64) NOT NULL,
+    recipient_email TEXT NOT NULL,
+    raw_pin_ephemeral TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '1 hour'),
+    attempts INT NOT NULL DEFAULT 0,
+    max_attempts INT NOT NULL DEFAULT 3,
+    consumed BOOLEAN NOT NULL DEFAULT false,
+    consumed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 9. CASE AUDIT LOGS (IMMUTABLE APPEND-ONLY LEDGER)
 CREATE TABLE IF NOT EXISTS public.case_audit_logs (
     id UUID PRIMARY KEY DEFAULT extensions.gen_random_uuid(),
     case_id UUID REFERENCES public.disputes(id) ON DELETE CASCADE,
@@ -227,7 +245,7 @@ CREATE TABLE IF NOT EXISTS public.case_audit_logs (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 9. ADMIN USERS REGISTRY TABLE
+-- 10. ADMIN USERS REGISTRY TABLE
 -- Read-only for authenticated users. Zero client INSERT/UPDATE/DELETE.
 CREATE TABLE IF NOT EXISTS public.admin_users (
     id UUID PRIMARY KEY DEFAULT extensions.gen_random_uuid(),
@@ -236,7 +254,7 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 10. INDEXES
+-- 11. INDEXES
 CREATE INDEX IF NOT EXISTS idx_disputes_docket ON public.disputes (docket_number);
 CREATE INDEX IF NOT EXISTS idx_disputes_status ON public.disputes (status);
 CREATE INDEX IF NOT EXISTS idx_disputes_created ON public.disputes (created_at DESC);
@@ -245,6 +263,8 @@ CREATE INDEX IF NOT EXISTS idx_consultations_status ON public.consultations (sta
 CREATE INDEX IF NOT EXISTS idx_legal_assessments_ref ON public.legal_assessments (reference_id);
 CREATE INDEX IF NOT EXISTS idx_pin_attempts_client_time ON public.docket_pin_attempts (client_hash, attempt_time DESC);
 CREATE INDEX IF NOT EXISTS idx_notice_deliveries_docket ON public.notice_deliveries (docket_number);
+CREATE INDEX IF NOT EXISTS idx_recovery_tokens_delivery ON public.case_pin_recovery_tokens (delivery_id);
+CREATE INDEX IF NOT EXISTS idx_recovery_tokens_expiry ON public.case_pin_recovery_tokens (expires_at) WHERE consumed = false;
 CREATE INDEX IF NOT EXISTS idx_audit_logs_docket ON public.case_audit_logs (docket_number);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON public.case_audit_logs (created_at DESC);
 
@@ -751,6 +771,8 @@ DECLARE
     v_dispute RECORD;
     v_new_pin TEXT;
     v_new_hash TEXT;
+    v_claimant_delivery_id UUID;
+    v_respondent_delivery_id UUID;
 BEGIN
     IF p_docket IS NULL OR length(trim(p_docket)) = 0 THEN
         RETURN jsonb_build_object('success', false, 'error', 'INVALID_DOCKET', 'message', 'Docket number is required.');
@@ -768,29 +790,30 @@ BEGIN
     v_new_pin := public.generate_secure_numeric_pin();
     v_new_hash := extensions.crypt(v_new_pin, extensions.gen_salt('bf'));
 
-    -- Update dispute record and resolve pending recovery status
+    -- Update dispute record with new hash and keep pending recovery until delivery confirmation
     UPDATE public.disputes
     SET access_code_hash = v_new_hash,
-        requires_pin_reset = false,
-        pin_recovery_status = 'RECOVERED'
+        requires_pin_reset = true,
+        pin_recovery_status = 'PENDING_RECOVERY'
     WHERE id = v_dispute.id;
 
-    -- Log administrative audit trail
+    -- Log administrative audit trail (NEVER log plaintext PIN in metadata or change summary)
     INSERT INTO public.case_audit_logs (
         case_id, docket_number, event_type, actor_type, change_summary, metadata
     ) VALUES (
         v_dispute.id,
         v_dispute.docket_number,
-        'PIN_RECOVERY_GENERATED',
+        'PIN_RECOVERY_QUEUED',
         'admin',
-        'Fresh cryptographically secure PIN generated for case recovery and dispatched to authorized parties.',
+        'Fresh cryptographically secure PIN generated for case recovery and queued for out-of-band delivery.',
         jsonb_build_object('channel', p_recipient_channel)
     );
 
-    -- Queue automated secure notice deliveries with recovery credential payload for the delivery worker
+    -- Queue automated secure notice deliveries with SANITIZED metadata (NO raw PIN in readable metadata)
     IF p_recipient_channel IN ('claimant', 'all') AND v_dispute.claimant_email IS NOT NULL THEN
-        INSERT INTO public.notice_deliveries (dispute_id, docket_number, recipient_type, channel, recipient_contact, status, metadata)
-        VALUES (
+        INSERT INTO public.notice_deliveries (
+            dispute_id, docket_number, recipient_type, channel, recipient_contact, status, metadata
+        ) VALUES (
             v_dispute.id,
             v_dispute.docket_number,
             'claimant',
@@ -800,15 +823,29 @@ BEGIN
             jsonb_build_object(
                 'event', 'PIN_RECOVERY',
                 'docket_number', v_dispute.docket_number,
-                'recipient_name', v_dispute.claimant_name,
-                'recovery_pin', v_new_pin
+                'recipient_name', v_dispute.claimant_name
             )
+        )
+        RETURNING id INTO v_claimant_delivery_id;
+
+        -- Store ephemeral token strictly in case_pin_recovery_tokens (service_role only, auto-expiring)
+        INSERT INTO public.case_pin_recovery_tokens (
+            dispute_id, delivery_id, docket_number, recipient_email, raw_pin_ephemeral, expires_at, max_attempts
+        ) VALUES (
+            v_dispute.id,
+            v_claimant_delivery_id,
+            v_dispute.docket_number,
+            v_dispute.claimant_email,
+            v_new_pin,
+            NOW() + INTERVAL '1 hour',
+            3
         );
     END IF;
 
     IF p_recipient_channel IN ('respondent', 'all') AND v_dispute.respondent_email IS NOT NULL THEN
-        INSERT INTO public.notice_deliveries (dispute_id, docket_number, recipient_type, channel, recipient_contact, status, metadata)
-        VALUES (
+        INSERT INTO public.notice_deliveries (
+            dispute_id, docket_number, recipient_type, channel, recipient_contact, status, metadata
+        ) VALUES (
             v_dispute.id,
             v_dispute.docket_number,
             'respondent',
@@ -818,9 +855,22 @@ BEGIN
             jsonb_build_object(
                 'event', 'PIN_RECOVERY',
                 'docket_number', v_dispute.docket_number,
-                'recipient_name', v_dispute.respondent_name,
-                'recovery_pin', v_new_pin
+                'recipient_name', v_dispute.respondent_name
             )
+        )
+        RETURNING id INTO v_respondent_delivery_id;
+
+        -- Store ephemeral token strictly in case_pin_recovery_tokens (service_role only, auto-expiring)
+        INSERT INTO public.case_pin_recovery_tokens (
+            dispute_id, delivery_id, docket_number, recipient_email, raw_pin_ephemeral, expires_at, max_attempts
+        ) VALUES (
+            v_dispute.id,
+            v_respondent_delivery_id,
+            v_dispute.docket_number,
+            v_dispute.respondent_email,
+            v_new_pin,
+            NOW() + INTERVAL '1 hour',
+            3
         );
     END IF;
 
@@ -828,10 +878,9 @@ BEGIN
         'success', true,
         'data', jsonb_build_object(
             'docket_number', v_dispute.docket_number,
-            'generated_pin', v_new_pin,
             'notices_queued', true,
-            'recovery_status', 'RECOVERED',
-            'message', 'Fresh Access PIN generated and recovery notice queued for transmission.'
+            'recovery_status', 'PENDING_RECOVERY',
+            'message', 'Fresh Access PIN generated; ephemeral token queued for secure delivery worker dispatch.'
         )
     );
 END;
@@ -872,6 +921,42 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 REVOKE ALL ON FUNCTION public.admin_batch_recover_unusable_pins() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_batch_recover_unusable_pins() TO service_role;
 
+-- Cleanup Function for Expired / Consumed Ephemeral Recovery Tokens
+CREATE OR REPLACE FUNCTION public.purge_expired_recovery_tokens()
+RETURNS JSONB AS $$
+DECLARE
+    v_deleted_count INT;
+BEGIN
+    DELETE FROM public.case_pin_recovery_tokens
+    WHERE expires_at < NOW() OR (consumed = true AND consumed_at < (NOW() - INTERVAL '24 hours'));
+    GET DIAGNOSTICS v_deleted_count = ROW_COUNT;
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'purged_count', v_deleted_count,
+        'timestamp', NOW()
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+REVOKE ALL ON FUNCTION public.purge_expired_recovery_tokens() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.purge_expired_recovery_tokens() TO service_role;
+
+-- Scheduled Hourly Purge of Expired / Stale Recovery Tokens (pg_cron)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+        BEGIN
+            PERFORM cron.unschedule('purge_expired_recovery_tokens_hourly');
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END;
+        BEGIN
+            PERFORM cron.schedule('purge_expired_recovery_tokens_hourly', '0 * * * *', 'SELECT public.purge_expired_recovery_tokens();');
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END;
+    END IF;
+END $$;
+
 -- 16. TABLE PRIVILEGE MATRIX CONFIGURATION
 
 -- Revoke all table privileges from public, anon, and authenticated
@@ -882,6 +967,7 @@ REVOKE ALL ON TABLE public.legal_assessments FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON TABLE public.case_audit_logs FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON TABLE public.docket_pin_attempts FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON TABLE public.notice_deliveries FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE public.case_pin_recovery_tokens FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON TABLE public.admin_users FROM PUBLIC, anon, authenticated;
 
 -- COLUMN-LEVEL INSERT GRANTS FOR ANON (Public Forms Only)
@@ -995,6 +1081,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.consultations TO service_ro
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.legal_assessments TO service_role;
 GRANT SELECT, INSERT ON TABLE public.case_audit_logs TO service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.notice_deliveries TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.case_pin_recovery_tokens TO service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.docket_pin_attempts TO service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.admin_users TO service_role;
 
@@ -1005,6 +1092,7 @@ ALTER TABLE public.consultations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.legal_assessments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.case_audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notice_deliveries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.case_pin_recovery_tokens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.docket_pin_attempts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
 
@@ -1141,3 +1229,8 @@ CREATE POLICY "Authorized admins can access dispute evidence"
         bucket_id = 'dispute-evidence' 
         AND (auth.jwt() -> 'app_metadata' ->> 'role') IN ('admin', 'super_admin', 'registrar')
     );
+
+-- 18. NOTIFY POSTGREST SCHEMA CACHE RELOAD
+NOTIFY pgrst, 'reload schema';
+
+

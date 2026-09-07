@@ -110,7 +110,7 @@ function Header({ onOpenFileModal }) {
         </div>
       </div>
 
-      <div className="wrap nav" style={{ height: "90px" }}>
+      <div className="wrap nav" style={{ height: "92px", maxWidth: "1400px" }}>
         <Link to="/" className="brand" aria-label="JustNivaran home">
           <img
             src={logo}
@@ -118,10 +118,10 @@ function Header({ onOpenFileModal }) {
             loading="eager"
             fetchPriority="high"
             decoding="async"
-            width="200"
-            height="100"
+            width="240"
+            height="90"
             style={{
-              height: "100px",
+              height: "84px",
               width: "auto",
               objectFit: "contain",
               display: "block",
@@ -138,13 +138,13 @@ function Header({ onOpenFileModal }) {
             Home
           </Link>
           <Link to="/negotiation-guidelines" style={linkStyle("/negotiation-guidelines")}>
-            Negotiation Guidelines
+            Negotiation
           </Link>
           <Link to="/mediation-rules" style={linkStyle("/mediation-rules")}>
-            Mediation Rules
+            Mediation
           </Link>
           <Link to="/arbitration-rules" style={linkStyle("/arbitration-rules")}>
-            Arbitration Rules
+            Arbitration
           </Link>
           <Link to="/for-neutrals" style={linkStyle("/for-neutrals")}>
             For Neutrals
@@ -154,23 +154,22 @@ function Header({ onOpenFileModal }) {
           </Link>
         </nav>
 
-        {/* Action Buttons: File Dispute & Track Case */}
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-          <button className="btn" type="button" onClick={onOpenFileModal}>
+        {/* Action Buttons: File Dispute, AI Predictor & Track Case */}
+        <div className="nav-actions">
+          <button className="nav-btn-file" type="button" onClick={onOpenFileModal}>
             File a dispute
           </button>
+          <Link to="/legal-assessment" className="nav-btn-ai" title="AI Legal Outcome Predictor">
+            <span className="ai-sparkle">✨</span>
+            <span>AI Predictor</span>
+          </Link>
           <button
-            className="btn ghost"
+            className="nav-btn-track"
             type="button"
             onClick={scrollToTracker}
-            style={{
-              padding: "9px 16px",
-              fontSize: "13.5px",
-              border: "1px solid var(--line)",
-              background: "rgba(18, 41, 74, 0.04)"
-            }}
           >
-            🔍 Track Case
+            <span>🔍</span>
+            <span>Track Case</span>
           </button>
         </div>
 
@@ -193,7 +192,7 @@ function Header({ onOpenFileModal }) {
 
       {/* Mobile Menu Drawer */}
       {isMobileMenuOpen && (
-        <div className="mobile-drawer" style={{ top: "90px" }}>
+        <div className="mobile-drawer" style={{ top: "92px" }}>
           <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>
             🏠 Home
           </Link>
@@ -207,7 +206,7 @@ function Header({ onOpenFileModal }) {
             📑 Arbitration Rules (s. 29A/29B)
           </Link>
           <Link to="/legal-assessment" onClick={() => setIsMobileMenuOpen(false)}>
-            ⚖️ AI Legal Assessment (Beta)
+            ✨ Legal Outcome AI Predictor
           </Link>
           <Link to="/fast-track-arbitration" onClick={() => setIsMobileMenuOpen(false)}>
             ⚡ Fast-Track Arbitration (s. 29B)
@@ -221,28 +220,38 @@ function Header({ onOpenFileModal }) {
           <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)}>
             📞 Contact &amp; Consultation
           </Link>
-          <div style={{ display: "grid", gap: "8px", marginTop: "12px" }}>
+          <div style={{ display: "grid", gap: "10px", marginTop: "14px" }}>
             <button
-              className="btn gold"
+              className="nav-btn-file"
               type="button"
               onClick={() => {
                 setIsMobileMenuOpen(false);
                 onOpenFileModal();
               }}
-              style={{ width: "100%" }}
+              style={{ width: "100%", height: "42px", fontSize: "14px" }}
             >
               File a Dispute →
             </button>
+            <Link
+              to="/legal-assessment"
+              className="nav-btn-ai"
+              onClick={() => setIsMobileMenuOpen(false)}
+              style={{ width: "100%", height: "42px", fontSize: "14px", justifyContent: "center" }}
+            >
+              <span className="ai-sparkle">✨</span>
+              <span>AI Predictor →</span>
+            </Link>
             <button
-              className="btn ghost"
+              className="nav-btn-track"
               type="button"
               onClick={() => {
                 setIsMobileMenuOpen(false);
                 scrollToTracker();
               }}
-              style={{ width: "100%", border: "1px solid var(--line)" }}
+              style={{ width: "100%", height: "42px", fontSize: "14px" }}
             >
-              🔍 Track Active Docket
+              <span>🔍</span>
+              <span>Track Active Docket</span>
             </button>
           </div>
         </div>

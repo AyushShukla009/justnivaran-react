@@ -11,12 +11,26 @@
 -- ==============================================================================
 
 -- 1. DROP NEWLY ADDED RPC FUNCTIONS (CLEAN TEARDOWN)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+        BEGIN
+            PERFORM cron.unschedule('purge_expired_recovery_tokens_hourly');
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END;
+    END IF;
+END $$;
+
+DROP FUNCTION IF EXISTS public.purge_expired_recovery_tokens();
 DROP FUNCTION IF EXISTS public.admin_batch_recover_unusable_pins();
 DROP FUNCTION IF EXISTS public.admin_recover_case_pin(TEXT, TEXT);
 DROP FUNCTION IF EXISTS public.submit_public_dispute(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, NUMERIC, TEXT, TEXT, TEXT, TEXT);
 DROP FUNCTION IF EXISTS public.internal_verify_docket_pin(TEXT, TEXT, TEXT, TEXT);
 DROP FUNCTION IF EXISTS public.admin_reset_docket_pin(TEXT, TEXT);
 DROP FUNCTION IF EXISTS public.generate_secure_numeric_pin();
+
+-- Drop Ephemeral Recovery Tokens Table
+DROP TABLE IF EXISTS public.case_pin_recovery_tokens CASCADE;
 
 -- 2. DROP ADVANCED FORM SANITIZATION TRIGGERS
 DROP TRIGGER IF EXISTS trg_sanitize_legal_assessment_insert ON public.legal_assessments;
@@ -191,5 +205,8 @@ CREATE POLICY "Authorized admins can access dispute evidence"
         bucket_id = 'dispute-evidence' 
         AND (auth.jwt() -> 'app_metadata' ->> 'role') IN ('admin', 'super_admin', 'registrar')
     );
+
+-- NOTIFY POSTGREST SCHEMA CACHE RELOAD
+NOTIFY pgrst, 'reload schema';
 
 -- Rollback Complete: Verified Baseline Restored With Zero Widened Access and 100% Audit Protection Intact.

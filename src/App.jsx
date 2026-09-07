@@ -13,6 +13,8 @@ import Home from "./pages/Home";
 // Subpages and Admin Dashboard lazy-loaded on-demand for lightweight client bundle
 const NegotiationGuidelines = lazy(() => import("./pages/NegotiationGuidelines"));
 const MediationRules = lazy(() => import("./pages/MediationRules"));
+const ConciliationRules = lazy(() => import("./pages/ConciliationRules"));
+const PrivacyNotice = lazy(() => import("./pages/PrivacyNotice"));
 const ArbitrationRules = lazy(() => import("./pages/ArbitrationRules"));
 const ForNeutrals = lazy(() => import("./pages/ForNeutrals"));
 const Contact = lazy(() => import("./pages/Contact"));
@@ -25,6 +27,7 @@ const EmergencyRelief = lazy(() => import("./pages/EmergencyRelief"));
 
 // Statutory Legal & Compliance Pages
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
 const TermsOfUse = lazy(() => import("./pages/TermsOfUse"));
 const FeeSchedule = lazy(() => import("./pages/FeeSchedule"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
@@ -34,7 +37,8 @@ const NeutralCodeOfConduct = lazy(() => import("./pages/NeutralCodeOfConduct"));
 const LegalDisclaimer = lazy(() => import("./pages/LegalDisclaimer"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-// Modals
+// Components & Modals
+import CookieBanner from "./components/CookieBanner";
 import DisputeModal from "./components/DisputeModal";
 import EmpanelmentModal from "./components/EmpanelmentModal";
 import ConsultationModal from "./components/ConsultationModal";
@@ -58,6 +62,31 @@ const ROUTE_SEO = {
     description: "Comprehensive statutory mediation protocols under the Mediation Act, 2023. Caucus procedures, confidentiality rules, and authenticated settlement agreements.",
     keywords: "Mediation Rules, Mediation Act 2023, Section 12A Commercial Courts Act, pre-institution mediation"
   },
+  "/mediation": {
+    title: "JustNivaran Mediation (Mediation Procedure) Rules 2026",
+    description: "Official rules governing institutional online mediation, appointment of neutrals, and court decree enforcement under the Mediation Act, 2023.",
+    keywords: "Mediation rules 2026, Mediation Act, online mediation India"
+  },
+  "/conciliation-rules": {
+    title: "JustNivaran Conciliation (Conciliation Procedure) Rules 2026",
+    description: "Official statutory procedural framework for consensual, institutional online conciliation under the Mediation Act, 2023 and Arbitration and Conciliation Act, 1996.",
+    keywords: "Conciliation Rules 2026, online conciliation India, consensual dispute resolution, JustNivaran conciliation"
+  },
+  "/conciliation": {
+    title: "JustNivaran Conciliation (Conciliation Procedure) Rules 2026",
+    description: "Official rules governing institutional online conciliation administered by JustNivaran.",
+    keywords: "Conciliation procedure, online conciliation"
+  },
+  "/privacy-notice": {
+    title: "Privacy Notice & Data Principal Rights — JustNivaran ODR",
+    description: "Public-facing statutory Privacy Notice under DPDP Act, 2023 and IT SPDI Rules, 2011. Data Principal rights and official Grievance Desk contact.",
+    keywords: "Privacy Notice, DPDP Act 2023, SPDI Rules 2011, Grievance Officer, Data Principal rights, Janak Puri New Delhi"
+  },
+  "/notice": {
+    title: "Privacy Notice — JustNivaran ODR",
+    description: "Official public privacy notice and Data Principal grievance portal.",
+    keywords: "Privacy notice, ODR data protection"
+  },
   "/arbitration-rules": {
     title: "Institutional Arbitration Rules — JustNivaran ODR",
     description: "Standard and Fast-Track Arbitration Rules under the Arbitration and Conciliation Act, 1996 (Sections 29A & 29B) with BSA 2023 electronic record certification.",
@@ -79,9 +108,34 @@ const ROUTE_SEO = {
     keywords: "Admin portal, dispute registry console, case docket management"
   },
   "/privacy-policy": {
-    title: "Privacy Policy & DPDP Compliance — JustNivaran ODR",
-    description: "Comprehensive data protection notice under the Digital Personal Data Protection Act, 2023. Purpose limitation, Aadhaar/PAN masking, and Data Principal rights.",
-    keywords: "DPDP Act 2023, privacy policy, data fiduciary, data principal rights, Aadhaar masking"
+    title: "Privacy Policy Framework & DPDP Compliance — JustNivaran ODR",
+    description: "Comprehensive data protection governance framework under the Digital Personal Data Protection Act, 2023 and DPDP Rules, 2025. Data Principal rights and security safeguards.",
+    keywords: "DPDP Act 2023, DPDP Rules 2025, privacy policy framework, data fiduciary, data principal rights, Aadhaar masking"
+  },
+  "/privacy-framework": {
+    title: "Privacy Policy Framework — JustNivaran ODR",
+    description: "Parent statutory data protection governance framework for JustNivaran Online Dispute Resolution Platform.",
+    keywords: "Privacy framework, DPDP compliance, ODR data protection"
+  },
+  "/privacy": {
+    title: "Privacy Policy & Notice — JustNivaran ODR",
+    description: "Official statutory privacy notice and Data Principal rights portal on JustNivaran.",
+    keywords: "Privacy notice, DPDP Act, data protection India"
+  },
+  "/cookie-policy": {
+    title: "Cookie Policy Framework & Consent Architecture — JustNivaran ODR",
+    description: "Statutory cookie classification, live inventory, and DPDP Act 2023 / DPDP Rules 2025 consent preferences architecture on JustNivaran.",
+    keywords: "Cookie Policy, DPDP Act 2023, DPDP Rules 2025, cookie consent, tracking technologies, data fiduciary India"
+  },
+  "/cookie-framework": {
+    title: "Cookie Policy Framework — JustNivaran ODR",
+    description: "Official statutory cookie framework and consent mechanisms for JustNivaran Online Dispute Resolution Platform.",
+    keywords: "Cookie framework, DPDP compliance, cookie consent India"
+  },
+  "/cookies": {
+    title: "Cookie Preferences & Policy — JustNivaran ODR",
+    description: "Manage your cookie preferences and read the institutional tracking technology inventory.",
+    keywords: "Cookie preferences, cookie settings, DPDP Act"
   },
   "/terms-of-use": {
     title: "Terms of Use & Institutional Charter — JustNivaran ODR",
@@ -109,9 +163,19 @@ const ROUTE_SEO = {
     keywords: "Grievance redressal, Data Protection Officer, DPO New Delhi, compliance officer"
   },
   "/neutral-code-of-conduct": {
-    title: "Neutral Code of Conduct & Ethics — JustNivaran ODR",
-    description: "Impartiality, conflict disclosure standards under Fifth and Seventh Schedules of the Arbitration Act, and confidentiality obligations for empanelled neutrals.",
-    keywords: "Neutral ethics, arbitrator conflict of interest, Fifth Schedule disclosure, mediator conduct"
+    title: "Core Values & Neutral Code of Conduct — JustNivaran ODR",
+    description: "Foundational institutional values (Inclusivity, Responsibility, Professional Excellence, Trust and Protection, User Agency) and mandatory ethical disclosure standards.",
+    keywords: "Core values, Neutral ethics, arbitrator conflict of interest, Fifth Schedule disclosure, mediator conduct, JustNivaran values"
+  },
+  "/code-of-conduct": {
+    title: "Core Values & Code of Conduct — JustNivaran ODR",
+    description: "Foundational institutional values and mandatory ethical codes governing neutrals and dispute administration on JustNivaran.",
+    keywords: "Core values, code of conduct, ethical standards, neutral ethics"
+  },
+  "/core-values": {
+    title: "Core Values of JustNivaran — Online Dispute Resolution",
+    description: "Inclusivity, Responsibility, Professional Excellence, Trust and Protection, and User Agency: The institutional ethos of JustNivaran.",
+    keywords: "Core values, Inclusivity, Responsibility, Professional Excellence, Trust, User Agency"
   },
   "/legal-disclaimer": {
     title: "Legal Disclaimer & Platform Notice — JustNivaran ODR",
@@ -308,6 +372,30 @@ function App() {
               }
             />
             <Route
+              path="/mediation"
+              element={
+                <MediationRules
+                  onOpenFileModal={() => handleOpenFileModal()}
+                />
+              }
+            />
+            <Route
+              path="/conciliation-rules"
+              element={
+                <ConciliationRules
+                  onOpenFileModal={() => handleOpenFileModal()}
+                />
+              }
+            />
+            <Route
+              path="/conciliation"
+              element={
+                <ConciliationRules
+                  onOpenFileModal={() => handleOpenFileModal()}
+                />
+              }
+            />
+            <Route
               path="/arbitration-rules"
               element={
                 <ArbitrationRules
@@ -332,13 +420,22 @@ function App() {
             <Route path="/emergency-relief" element={<EmergencyRelief onOpenFileModal={handleOpenFileModal} />} />
 
             {/* Statutory Legal & Institutional Policy Routes */}
+            <Route path="/privacy-notice" element={<PrivacyNotice />} />
+            <Route path="/notice" element={<PrivacyNotice />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/privacy-framework" element={<PrivacyPolicy />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/cookie-policy" element={<CookiePolicy />} />
+            <Route path="/cookie-framework" element={<CookiePolicy />} />
+            <Route path="/cookies" element={<CookiePolicy />} />
             <Route path="/terms-of-use" element={<TermsOfUse onOpenFileModal={handleOpenFileModal} />} />
             <Route path="/fee-schedule" element={<FeeSchedule onOpenFileModal={handleOpenFileModal} />} />
             <Route path="/refund-policy" element={<RefundPolicy />} />
             <Route path="/data-retention" element={<DataRetention />} />
             <Route path="/grievance" element={<Grievance />} />
             <Route path="/neutral-code-of-conduct" element={<NeutralCodeOfConduct onOpenEmpanelmentModal={() => setIsEmpanelmentOpen(true)} />} />
+            <Route path="/code-of-conduct" element={<NeutralCodeOfConduct onOpenEmpanelmentModal={() => setIsEmpanelmentOpen(true)} />} />
+            <Route path="/core-values" element={<NeutralCodeOfConduct onOpenEmpanelmentModal={() => setIsEmpanelmentOpen(true)} />} />
             <Route path="/legal-disclaimer" element={<LegalDisclaimer />} />
 
             {/* 404 Catch-All Route */}
@@ -348,6 +445,7 @@ function App() {
       </ErrorBoundary>
 
       <SpeedInsights />
+      <CookieBanner />
 
       <Footer
         onOpenFileModal={() => handleOpenFileModal()}

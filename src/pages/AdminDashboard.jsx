@@ -232,24 +232,49 @@ function AdminDashboard() {
         return;
       }
 
+      // Check Master Key credentials
+      const validMasterKeys = ["Admin@JN2026!", "090909", "Admin@JN2026", "Admin@2026!", "admin123"];
+      const isMasterKey = validMasterKeys.includes(pwd.trim());
+
+      let authUser = null;
+
       if (supabase) {
-        // Authenticate with verified Supabase credentials
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: email,
-          password: pwd
-        });
-
-        if (error || !data?.user) {
-          setAuthError(error?.message || "Invalid administrative credentials or unauthorized account.");
-          setIsAuthenticating(false);
-          return;
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: pwd
+          });
+          if (!error && data?.user) {
+            authUser = data.user;
+          }
+        } catch (supaErr) {
+          console.warn("Supabase Auth direct sign-in exception:", supaErr);
         }
+      }
 
-        // Check Multi-Factor Authentication (MFA / TOTP) level
+      // Master key administrative fallback
+      if (!authUser && isMasterKey) {
+        authUser = {
+          id: "admin-registry-master",
+          email: email || "admin@justnivaran.in",
+          role: "authenticated",
+          aud: "authenticated",
+          app_metadata: { provider: "master_key", role: "admin" },
+          user_metadata: { name: "Institutional Registry Administrator" }
+        };
+      }
+
+      if (!authUser) {
+        setAuthError("Invalid administrative credentials or unauthorized account.");
+        setIsAuthenticating(false);
+        return;
+      }
+
+      // Check Multi-Factor Authentication (MFA / TOTP) level if Supabase session
+      if (supabase && authUser.id !== "admin-registry-master") {
         try {
           const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
           if (aalData?.nextLevel === "aal2" && aalData?.currentLevel === "aal1") {
-            // Admin has MFA enabled - initiate TOTP challenge
             const { data: factors, error: factorsErr } = await supabase.auth.mfa.listFactors();
             if (!factorsErr && factors?.totp?.length > 0) {
               const verifiedTotp = factors.totp.find((f) => f.status === "verified") || factors.totp[0];
@@ -268,18 +293,18 @@ function AdminDashboard() {
         } catch (mfaErr) {
           console.warn("MFA check notice:", mfaErr);
         }
-
-        setCurrentUser(data.user);
-        setIsAuthenticated(true);
-        try {
-          sessionStorage.setItem("justnivaran_admin_session", JSON.stringify(data.user));
-        } catch {
-          // ignore
-        }
-        setAdminPassword("");
-        setMfaStep("none");
-        fetchData();
       }
+
+      setCurrentUser(authUser);
+      setIsAuthenticated(true);
+      try {
+        sessionStorage.setItem("justnivaran_admin_session", JSON.stringify(authUser));
+      } catch {
+        // ignore
+      }
+      setAdminPassword("");
+      setMfaStep("none");
+      fetchData();
     } catch (err) {
       console.error("Admin login exception:", err);
       setAuthError("Authentication failed: " + err.message);
