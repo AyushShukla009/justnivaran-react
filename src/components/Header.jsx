@@ -145,7 +145,7 @@ function Header({ onOpenFileModal }) {
             Arbitration
           </Link>
           <Link to="/for-neutrals" style={linkStyle("/for-neutrals")}>
-            For Neutrals
+            Neutral Empanelment
           </Link>
           <Link to="/contact" style={linkStyle("/contact")}>
             Contact
