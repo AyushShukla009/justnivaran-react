@@ -53,6 +53,12 @@ export function redactPII(input) {
   text = text.replace(/(?:\+?91[\s-]?)?[6789]\d{9}/g, "[REDACTED_PHONE]");
   text = text.replace(/\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b/g, "[REDACTED_PHONE]");
 
+  // Redact PAN numbers (e.g. ABCDE1234F)
+  text = text.replace(/\b[A-Z]{5}\d{4}[A-Z]\b/gi, "[REDACTED_PAN]");
+
+  // Redact 12-digit Aadhaar patterns (e.g. 1234 5678 9012 or 1234-5678-9012)
+  text = text.replace(/\b\d{4}[\s-]\d{4}[\s-]\d{4}\b/g, "[REDACTED_AADHAAR]");
+
   return text;
 }
 

@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint src",
-    "test:db": "node tests/database/ai-telemetry-migration.test.js && node tests/database/ai-telemetry-roles.test.js && node tests/database/ai-rate-limit-concurrency.test.js && node tests/database/groq-provider.test.js && node tests/database/production-hardening-compatibility.test.js",
+    "test:db": "node tests/database/ai-telemetry-migration.test.js && node tests/database/ai-telemetry-roles.test.js && node tests/database/ai-rate-limit-concurrency.test.js && node tests/database/groq-provider.test.js && node tests/database/production-hardening-compatibility.test.js && node tests/database/ai-full-system.test.js",
     "test:simulated": "npm run test:db",
     "test:live": "node tests/database/live-staging-integration.test.js",
     "test:all": "npm run test:simulated && npm run test:live",

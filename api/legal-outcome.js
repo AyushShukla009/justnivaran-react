@@ -107,6 +107,12 @@ async function executeProviderSmokeTest(provider, apiKey, modelName) {
 
   const text = (response?.text || "").trim();
   if (text.toUpperCase().includes("OK")) {
+    lastVerifiedSuccessTimestamp = Date.now();
+    return { success: true };
+  }
+  return { success: false, error: "GEMINI_SMOKE_TEST_FAILED", message: `Unexpected response: ${text}` };
+}
+
 /**
  * Generates an authoritative, structured institutional assessment report based on Indian legal doctrines,
  * statutory frameworks, and curated Supreme Court precedents.
