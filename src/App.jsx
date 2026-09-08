@@ -280,12 +280,18 @@ function ScrollToTop() {
 }
 
 function App() {
+  const { pathname } = useLocation();
   const [isDisputeOpen, setIsDisputeOpen] = useState(false);
   const [isEmpanelmentOpen, setIsEmpanelmentOpen] = useState(false);
   const [isConsultationOpen, setIsConsultationOpen] = useState(false);
   const [isGuidelinesOpen, setIsGuidelinesOpen] = useState(false);
   const [guidelinesMode, setGuidelinesMode] = useState("NEG");
   const [showFloatingPill, setShowFloatingPill] = useState(false);
+
+  const hideFloatingDock =
+    pathname === "/legal-assessment" ||
+    pathname === "/admin" ||
+    pathname === "/emergency-relief";
 
   // High-Performance 60fps Scroll Progress (Zero React Re-renders on Scroll)
   useEffect(() => {
@@ -455,7 +461,7 @@ function App() {
       />
 
       {/* Floating Action Pill Bar */}
-      {showFloatingPill && (
+      {showFloatingPill && !hideFloatingDock && (
         <div
           className="admin-modal-zoom floating-quick-dock"
           style={{
