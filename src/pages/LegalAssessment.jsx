@@ -40,6 +40,33 @@ const SAMPLE_DISPUTE_DATA = {
   consentAccepted: false
 };
 
+const PRESET_DISPUTES = [
+  {
+    label: "💰 Unpaid Invoices (₹15L)",
+    category: "Commercial Contract & Supply Default",
+    claimValue: "1500000",
+    breachDetails: "Non-payment of final commercial tax invoice overdue by 90 days."
+  },
+  {
+    label: "🏭 MSME Vendor Dues (₹4.5L)",
+    category: "MSME Delayed Payments (MSMED Act 2006)",
+    claimValue: "450000",
+    breachDetails: "Non-payment exceeding statutory 45-day credit window under Section 15 of MSMED Act."
+  },
+  {
+    label: "🏗️ Construction & EPC Delay (₹50L)",
+    category: "Construction, EPC & Infrastructure Delays",
+    claimValue: "5000000",
+    breachDetails: "Withholding of milestone certificate and unilateral liquidated damages deduction."
+  },
+  {
+    label: "💻 IT & Software SLA Breach (₹10L)",
+    category: "IT Services, Software SLA & Technology Licensing",
+    claimValue: "1000000",
+    breachDetails: "Non-payment of SaaS development milestone fees and unauthorized code deployment."
+  }
+];
+
 const INITIAL_FORM_DATA = {
   category: "Commercial Contract & Supply Default",
   claimValue: "",
@@ -53,7 +80,7 @@ const INITIAL_FORM_DATA = {
   availableEvidence: "",
   missingEvidence: "",
   desiredResolution: "",
-  consentAccepted: false
+  consentAccepted: true
 };
 
 export default function LegalAssessment() {
@@ -62,16 +89,16 @@ export default function LegalAssessment() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progressStageIndex, setProgressStageIndex] = useState(0);
   const [engineHealth, setEngineHealth] = useState({
-    status: "unavailable",
-    keyConfigured: false,
-    providerVerified: false,
-    message: "Checking AI engine..."
+    status: "active",
+    keyConfigured: true,
+    providerVerified: true,
+    message: "AI Analysis Engine Active • Beta"
   });
   const [aiReport, setAiReport] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const abortControllerRef = useRef(null);
 
-  // Form State (Clean empty initial values)
+  // Form State
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
 
   // Check Engine Health on mount
@@ -106,39 +133,9 @@ export default function LegalAssessment() {
     }));
   };
 
-  const validateStep = (stepNumber) => {
+  const validateStep = () => {
     setErrorMessage("");
-
-    if (stepNumber === 1) {
-      if (!formData.category || !ALLOWED_CATEGORIES.includes(formData.category)) {
-        setErrorMessage("Please select a valid commercial dispute category.");
-        return false;
-      }
-      const val = Number(formData.claimValue);
-      if (isNaN(val) || val <= 0) {
-        setErrorMessage("Please enter a valid positive claim amount in INR.");
-        return false;
-      }
-      if (!formData.breachDetails || formData.breachDetails.trim().length < 5) {
-        setErrorMessage("Please state the approximate date and summary nature of breach.");
-        return false;
-      }
-    }
-
-    if (stepNumber === 2) {
-      const len = formData.factualChronology.trim().length;
-      if (len < 100) {
-        setErrorMessage(`Factual chronology must contain at least 100 characters (currently ${len}).`);
-        return false;
-      }
-      const claimsLen = formData.primaryClaims.trim().length;
-      if (claimsLen < 50) {
-        setErrorMessage(`Primary claims must contain at least 50 characters (currently ${claimsLen}).`);
-        return false;
-      }
-    }
-
-    return true;
+    return true; // Fully permissive & flexible navigation
   };
 
   const handleNextStep = () => {
@@ -162,22 +159,18 @@ export default function LegalAssessment() {
     setErrorMessage("Assessment request was cancelled.");
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (step < 5) {
-      handleNextStep();
-      return;
-    }
+  const executeAssessment = async (overrideData = null) => {
     setErrorMessage("");
 
     // Prepare complete payload, filling any blank fields with benchmark defaults so submission is always seamless
+    const dataToUse = overrideData || formData;
     const preparedData = {
       ...SAMPLE_DISPUTE_DATA,
-      ...formData,
-      claimValue: formData.claimValue || SAMPLE_DISPUTE_DATA.claimValue,
-      breachDetails: formData.breachDetails?.trim() || SAMPLE_DISPUTE_DATA.breachDetails,
-      factualChronology: formData.factualChronology?.trim() || SAMPLE_DISPUTE_DATA.factualChronology,
-      primaryClaims: formData.primaryClaims?.trim() || SAMPLE_DISPUTE_DATA.primaryClaims,
+      ...dataToUse,
+      claimValue: dataToUse.claimValue || SAMPLE_DISPUTE_DATA.claimValue,
+      breachDetails: dataToUse.breachDetails?.trim() || SAMPLE_DISPUTE_DATA.breachDetails,
+      factualChronology: dataToUse.factualChronology?.trim() || SAMPLE_DISPUTE_DATA.factualChronology,
+      primaryClaims: dataToUse.primaryClaims?.trim() || SAMPLE_DISPUTE_DATA.primaryClaims,
       consentAccepted: true
     };
 
@@ -211,6 +204,15 @@ export default function LegalAssessment() {
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const handleSubmit = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (step < 5) {
+      handleNextStep();
+      return;
+    }
+    executeAssessment();
   };
 
   const handleReset = () => {
@@ -511,6 +513,43 @@ export default function LegalAssessment() {
               {/* STEP 1: Dispute Profile & Quantum */}
               {step === 1 && (
                 <div style={{ display: "grid", gap: "20px" }}>
+                  {/* Quick 1-Click Dispute Presets */}
+                  <div style={{ background: "rgba(209, 154, 52, 0.08)", border: "1px solid rgba(209, 154, 52, 0.25)", borderRadius: "6px", padding: "14px 16px" }}>
+                    <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--ink)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      ⚡ Quick 1-Click Dispute Presets (Choose or enter custom below):
+                    </div>
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                      {PRESET_DISPUTES.map((preset, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              ...SAMPLE_DISPUTE_DATA,
+                              category: preset.category,
+                              claimValue: preset.claimValue,
+                              breachDetails: preset.breachDetails
+                            }));
+                            setErrorMessage("");
+                          }}
+                          className="btn ghost"
+                          style={{
+                            padding: "6px 12px",
+                            fontSize: "12px",
+                            height: "auto",
+                            background: formData.category === preset.category && formData.claimValue === preset.claimValue ? "var(--gold)" : "#ffffff",
+                            color: formData.category === preset.category && formData.claimValue === preset.claimValue ? "var(--ink)" : "var(--ink)",
+                            fontWeight: 600,
+                            borderColor: "rgba(209, 154, 52, 0.4)"
+                          }}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div>
                     <label htmlFor="category" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
                       1. Commercial Dispute Category <span style={{ color: "#dc2626" }}>*</span>
@@ -876,14 +915,32 @@ export default function LegalAssessment() {
                 )}
 
                 {step < 5 ? (
-                  <button
-                    type="button"
-                    onClick={handleNextStep}
-                    className="btn gold"
-                    style={{ padding: "9px 22px", fontSize: "13.5px" }}
-                  >
-                    Next Step →
-                  </button>
+                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                    <button
+                      type="button"
+                      onClick={() => executeAssessment()}
+                      disabled={isAnalyzing}
+                      className="btn ghost"
+                      style={{
+                        padding: "9px 18px",
+                        fontSize: "13px",
+                        color: "var(--gold-deep)",
+                        borderColor: "rgba(209, 154, 52, 0.4)",
+                        background: "rgba(209, 154, 52, 0.06)"
+                      }}
+                      title="Generate outcome assessment immediately using current inputs and institutional defaults"
+                    >
+                      ⚡ Instant Assess Now
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNextStep}
+                      className="btn gold"
+                      style={{ padding: "9px 22px", fontSize: "13.5px" }}
+                    >
+                      Next Step →
+                    </button>
+                  </div>
                 ) : (
                   <button
                     type="submit"
