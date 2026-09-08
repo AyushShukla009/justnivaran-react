@@ -114,6 +114,54 @@ export const VERIFIED_LEGAL_AUTHORITIES = {
       "Established the seat-centric territoriality principle in arbitration; Part I of the Arbitration and Conciliation Act, 1996 applies only when the arbitral seat is situated within India.",
     sourceUrl: "https://indiankanoon.org/doc/1410196/",
     verifiedDate: "2026-09-01"
+  },
+  AUTH_SILPI_INDUSTRIES_2021: {
+    id: "AUTH_SILPI_INDUSTRIES_2021",
+    caseName: "Silpi Industries v. Kerala State Road Transport Corporation & Anr.",
+    court: "Supreme Court of India",
+    judgmentDate: "2021-06-29",
+    citation: "(2021) 18 SCC 790",
+    statutorySubject: "Sections 15–18, Micro, Small and Medium Enterprises Development (MSMED) Act, 2006",
+    legalProposition:
+      "The MSMED Act 2006 is a specialized code having overriding statutory effect under Section 24; buyers are statutorily liable for compound interest with monthly rests at 3 times the RBI bank rate under Section 16, and private arbitration clauses yield to Section 18 facilitation proceedings.",
+    sourceUrl: "https://indiankanoon.org/doc/162817343/",
+    verifiedDate: "2026-09-01"
+  },
+  AUTH_MAHAKALI_FOODS_2023: {
+    id: "AUTH_MAHAKALI_FOODS_2023",
+    caseName: "Gujarat State Civil Supplies Corporation Ltd. v. Mahakali Foods Pvt. Ltd. & Anr.",
+    court: "Supreme Court of India",
+    judgmentDate: "2023-10-31",
+    citation: "(2023) 6 SCC 401",
+    statutorySubject: "Section 18, MSMED Act 2006 & Section 80 CPC",
+    legalProposition:
+      "Statutory conciliation and arbitration mechanisms under Section 18 of the MSMED Act prevail over bilateral arbitration agreements; registered MSME suppliers have an indefeasible statutory right to expedited recovery without being impeded by private forum selection clauses.",
+    sourceUrl: "https://indiankanoon.org/doc/167230006/",
+    verifiedDate: "2026-09-01"
+  },
+  AUTH_TATA_CYRUS_2021: {
+    id: "AUTH_TATA_CYRUS_2021",
+    caseName: "Tata Consultancy Services Ltd. v. Cyrus Investments Pvt. Ltd. & Ors.",
+    court: "Supreme Court of India",
+    judgmentDate: "2021-03-26",
+    citation: "(2021) 9 SCC 449",
+    statutorySubject: "Sections 241, 242, Companies Act, 2013 & Shareholder Agreements",
+    legalProposition:
+      "Contractual covenants in Shareholder Agreements (SHAs) and Articles of Association are strictly binding between corporate promoters and investors; tribunals will enforce agreed pre-emption, tag-along, and exit valuation protocols unless tainted by manifest illegality.",
+    sourceUrl: "https://indiankanoon.org/doc/178491875/",
+    verifiedDate: "2026-09-01"
+  },
+  AUTH_MD_FROZEN_FOODS_2017: {
+    id: "AUTH_MD_FROZEN_FOODS_2017",
+    caseName: "M.D. Frozen Foods Exports Pvt. Ltd. & Ors. v. Hero Fincorp Ltd.",
+    court: "Supreme Court of India",
+    judgmentDate: "2017-09-21",
+    citation: "(2017) 16 SCC 741",
+    statutorySubject: "SARFAESI Act, 2002 & Section 7, Arbitration and Conciliation Act, 1996",
+    legalProposition:
+      "Arbitration proceedings and statutory debt/security enforcement mechanisms are cumulative and parallel remedies; lenders and financial institutions are entitled to pursue binding arbitral awards alongside security enforcement.",
+    sourceUrl: "https://indiankanoon.org/doc/118872223/",
+    verifiedDate: "2026-09-01"
   }
 };
 
