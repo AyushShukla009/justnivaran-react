@@ -133,9 +133,39 @@ export default function LegalAssessment() {
     }));
   };
 
-  const validateStep = () => {
+  const validateStep = (stepNumber) => {
     setErrorMessage("");
-    return true; // Fully permissive & flexible navigation
+
+    if (stepNumber === 1) {
+      if (!formData.category || !ALLOWED_CATEGORIES.includes(formData.category)) {
+        setErrorMessage("Please select a valid commercial dispute category.");
+        return false;
+      }
+      const val = Number(formData.claimValue);
+      if (!formData.claimValue || isNaN(val) || val <= 0) {
+        setErrorMessage("Please enter your Disputed Claim Quantum (in INR) on Step 1 before moving to the next step.");
+        return false;
+      }
+      if (!formData.breachDetails || formData.breachDetails.trim().length < 3) {
+        setErrorMessage("Please describe your dispute details and date/nature of breach on Step 1 before moving to the next step.");
+        return false;
+      }
+    }
+
+    if (stepNumber === 2) {
+      const chron = formData.factualChronology ? formData.factualChronology.trim() : "";
+      const claims = formData.primaryClaims ? formData.primaryClaims.trim() : "";
+      if (chron.length < 5) {
+        setErrorMessage("Please outline your factual chronology on Step 2 before proceeding.");
+        return false;
+      }
+      if (claims.length < 5) {
+        setErrorMessage("Please specify your primary claims on Step 2 before proceeding.");
+        return false;
+      }
+    }
+
+    return true;
   };
 
   const handleNextStep = () => {
@@ -162,12 +192,20 @@ export default function LegalAssessment() {
   const executeAssessment = async (overrideData = null) => {
     setErrorMessage("");
 
+    // If user is on Step 1, validate Step 1 fields
+    if (step === 1 && !overrideData) {
+      if (!validateStep(1)) {
+        return;
+      }
+    }
+
     // Prepare complete payload, filling any blank fields with benchmark defaults so submission is always seamless
     const dataToUse = overrideData || formData;
+    const val = Number(dataToUse.claimValue);
     const preparedData = {
       ...SAMPLE_DISPUTE_DATA,
       ...dataToUse,
-      claimValue: dataToUse.claimValue || SAMPLE_DISPUTE_DATA.claimValue,
+      claimValue: (!isNaN(val) && val > 0) ? val : SAMPLE_DISPUTE_DATA.claimValue,
       breachDetails: dataToUse.breachDetails?.trim() || SAMPLE_DISPUTE_DATA.breachDetails,
       factualChronology: dataToUse.factualChronology?.trim() || SAMPLE_DISPUTE_DATA.factualChronology,
       primaryClaims: dataToUse.primaryClaims?.trim() || SAMPLE_DISPUTE_DATA.primaryClaims,
@@ -591,7 +629,7 @@ export default function LegalAssessment() {
                         style={{
                           width: "100%",
                           padding: "10px 12px",
-                          border: "1px solid var(--line)",
+                          border: errorMessage && (!formData.claimValue || Number(formData.claimValue) <= 0) ? "1px solid #dc2626" : "1px solid var(--line)",
                           borderRadius: "4px",
                           fontSize: "14px"
                         }}
@@ -603,7 +641,7 @@ export default function LegalAssessment() {
 
                     <div>
                       <label htmlFor="breachDetails" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
-                        3. Date &amp; Nature of Breach <span style={{ color: "#dc2626" }}>*</span>
+                        3. Dispute Details &amp; Date of Breach <span style={{ color: "#dc2626" }}>*</span>
                       </label>
                       <input
                         id="breachDetails"
@@ -615,7 +653,7 @@ export default function LegalAssessment() {
                         style={{
                           width: "100%",
                           padding: "10px 12px",
-                          border: "1px solid var(--line)",
+                          border: errorMessage && (!formData.breachDetails || formData.breachDetails.trim().length < 3) ? "1px solid #dc2626" : "1px solid var(--line)",
                           borderRadius: "4px",
                           fontSize: "14px"
                         }}
@@ -637,7 +675,7 @@ export default function LegalAssessment() {
                         4. Material Factual Chronology <span style={{ color: "#dc2626" }}>*</span>
                       </label>
                       <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)" }}>
-                        {formData.factualChronology.length} / 10,000 chars (Min 100)
+                        {formData.factualChronology.length} / 10,000 chars
                       </span>
                     </div>
                     <textarea
@@ -665,7 +703,7 @@ export default function LegalAssessment() {
                         5. Claimant&apos;s Specific Claims <span style={{ color: "#dc2626" }}>*</span>
                       </label>
                       <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)" }}>
-                        {formData.primaryClaims.length} / 5,000 chars (Min 50)
+                        {formData.primaryClaims.length} / 5,000 chars
                       </span>
                     </div>
                     <textarea
