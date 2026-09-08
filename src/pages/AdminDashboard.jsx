@@ -79,6 +79,8 @@ function AdminDashboard() {
   const [isSavingHearing, setIsSavingHearing] = useState(false);
   const [liveAlert, setLiveAlert] = useState(null);
   const [fetchError, setFetchError] = useState("");
+  const [noticesError, setNoticesError] = useState("");
+  const [auditError, setAuditError] = useState("");
 
   // MFA Enrollment Flow State
   const [showMfaEnrollModal, setShowMfaEnrollModal] = useState(false);
@@ -235,6 +237,8 @@ function AdminDashboard() {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setFetchError("");
+    setNoticesError("");
+    setAuditError("");
     try {
       if (supabase) {
         const { data: dData, error: dErr } = await supabase
@@ -275,8 +279,10 @@ function AdminDashboard() {
           .order("dispatched_at", { ascending: false });
         if (notifErr) {
           console.warn("Notice deliveries fetch notice:", notifErr.message);
+          setNoticesError(notifErr.message);
         } else if (notifData) {
           setNoticeDeliveries(notifData);
+          setNoticesError("");
         }
 
         const { data: auditData, error: auditErr } = await supabase
@@ -285,8 +291,10 @@ function AdminDashboard() {
           .order("created_at", { ascending: false });
         if (auditErr) {
           console.warn("Audit logs fetch notice:", auditErr.message);
+          setAuditError(auditErr.message);
         } else if (auditData) {
           setCaseAuditLogs(auditData);
+          setAuditError("");
         }
       }
     } catch (err) {
@@ -589,6 +597,20 @@ function AdminDashboard() {
 
   const handleGenerateNewPin = async (disputeId) => {
     if (!disputeId) return;
+
+    if (assuranceLevel === "aal1" && supabase) {
+      try {
+        const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (aalData?.nextLevel === "aal2") {
+          alert("🛡️ Security Verification Required: Your account has TOTP MFA enabled. Please complete MFA authentication in the Security tab before generating new access PINs.");
+          setActiveTab("security");
+          return;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     const currentCase = disputes.find((d) => d.id === disputeId) || selectedCase;
     const newPin = String(Math.floor(100000 + Math.random() * 900000));
     try {
@@ -684,6 +706,19 @@ function AdminDashboard() {
   };
 
   const handleDeleteRecord = async (category, id, label) => {
+    if (assuranceLevel === "aal1" && supabase) {
+      try {
+        const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (aalData?.nextLevel === "aal2") {
+          alert("🛡️ Security Verification Required: Your account has TOTP MFA enabled. Please complete MFA authentication in the Security tab before deleting registry records.");
+          setActiveTab("security");
+          return;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     const confirmDelete = window.confirm(
       `⚠️ Are you sure you want to permanently delete "${label || "this record"}" from the Registry database? This action cannot be undone.`
     );
@@ -783,6 +818,28 @@ function AdminDashboard() {
             })
           : "—"
       ]);
+    } else if (category === "causelist") {
+      headers = [
+        "Docket Number",
+        "Claimant Name",
+        "Respondent Name",
+        "Resolution Mode",
+        "Presiding Neutral / Arbitrator",
+        "Hearing Date",
+        "Hearing Time Slot",
+        "Live Status"
+      ];
+
+      formattedRows = data.map((d) => [
+        d.docket_number || "—",
+        d.claimant_name || "—",
+        d.respondent_name || "—",
+        d.mode || "Arbitration",
+        d.assigned_neutral || "Standing Sole Arbitrator",
+        d.hearing_date || "—",
+        d.hearing_time || "—",
+        d.status || "Hearing Scheduled"
+      ]);
     } else if (category === "neutrals") {
       headers = [
         "Full Legal Name",
@@ -809,6 +866,50 @@ function AdminDashboard() {
               timeStyle: "short"
             })
           : "—"
+      ]);
+    } else if (category === "notices") {
+      headers = [
+        "Docket Number",
+        "Notice Channel",
+        "Recipient Contact",
+        "Recipient Type",
+        "Delivery Status",
+        "Provider Message ID",
+        "Dispatched At",
+        "Delivered At"
+      ];
+
+      formattedRows = data.map((n) => [
+        n.docket_number || "—",
+        n.channel || "—",
+        n.recipient_contact || "—",
+        n.recipient_type || "—",
+        n.status || "Sent",
+        n.provider_msg_id || "—",
+        n.dispatched_at
+          ? new Date(n.dispatched_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })
+          : "—",
+        n.delivered_at
+          ? new Date(n.delivered_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })
+          : "—"
+      ]);
+    } else if (category === "audit") {
+      headers = [
+        "Timestamp (IST)",
+        "Docket Number",
+        "Event Type",
+        "Actor",
+        "Evidentiary Audit Summary"
+      ];
+
+      formattedRows = data.map((a) => [
+        a.created_at
+          ? new Date(a.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+          : "—",
+        a.docket_number || "—",
+        a.event_type || "—",
+        a.actor_type || "—",
+        (a.change_summary || "—").replace(/\n/g, " ")
       ]);
     } else {
       headers = [
@@ -1224,13 +1325,20 @@ function AdminDashboard() {
           <button
             className="btn gold"
             type="button"
+            aria-label={`Export ${activeTab} registry records to CSV`}
             onClick={() =>
               exportToCSV(
                 activeTab === "disputes"
-                  ? disputes
+                  ? filteredDisputes
+                  : activeTab === "causelist"
+                  ? filteredCauseList
                   : activeTab === "neutrals"
-                  ? neutrals
-                  : consultations,
+                  ? filteredNeutrals
+                  : activeTab === "consultations"
+                  ? filteredConsultations
+                  : activeTab === "notices"
+                  ? filteredNotices
+                  : filteredAuditLogs,
                 activeTab
               )
             }
@@ -1640,12 +1748,21 @@ function AdminDashboard() {
       <div style={{ position: "relative", marginBottom: "14px" }}>
         <input
           type="text"
+          aria-label={`Search ${activeTab} records`}
           placeholder={
             activeTab === "disputes"
               ? "🔍 Search by Docket Number, Claimant, Respondent, or Status..."
+              : activeTab === "causelist"
+              ? "🔍 Search by Docket, Neutral, Hearing Date, or Mode..."
               : activeTab === "neutrals"
-              ? "🔍 Search by Neutral Name, Bar Council ID, Specialization, or Role..."
-              : "🔍 Search by Client Name, Phone Number, Email, or Notes..."
+              ? "🔍 Search by Neutral Name, Bar Council / Registration ID, Specialization, or Role..."
+              : activeTab === "consultations"
+              ? "🔍 Search by Counsel / Client Name, Phone, Email, Disputed Sum, or Notes..."
+              : activeTab === "notices"
+              ? "🔍 Search by Docket Number, Recipient, Channel, or Message ID..."
+              : activeTab === "audit"
+              ? "🔍 Search by Event Type, Docket Number, Actor, or Evidentiary Summary..."
+              : "🔍 Search registry records..."
           }
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -1839,6 +1956,7 @@ function AdminDashboard() {
                         </td>
                         <td style={{ padding: "10px 14px" }}>
                           <select
+                            aria-label={`Update status for docket ${d.docket_number || d.id}`}
                             value={d.status || "Notice Issued"}
                             disabled={updatingId === d.id}
                             onChange={(e) => handleStatusChange("disputes", d.id, e.target.value)}
@@ -1867,6 +1985,7 @@ function AdminDashboard() {
                             <button
                               className="admin-action-btn"
                               type="button"
+                              aria-label={`View and edit case dossier for ${d.docket_number}`}
                               onClick={() => handleOpenCase(d)}
                               style={{
                                 background: "var(--ink)",
@@ -1888,6 +2007,7 @@ function AdminDashboard() {
                             </button>
                             <a
                               className="admin-action-btn"
+                              aria-label={`Send WhatsApp update to claimant ${d.claimant_name}`}
                               href={getWhatsAppUrl(
                                 d.claimant_phone || "",
                                 `Hello ${d.claimant_name}, this is JustNivaran ODR Registry regarding your case docket ${d.docket_number}.\n\nStatus: ${d.status}\n\n👉 Track Live Docket in Registry:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(d.docket_number)}#tracker`
@@ -1914,6 +2034,7 @@ function AdminDashboard() {
                             {d.claimant_email && (
                               <a
                                 className="admin-action-btn"
+                                aria-label={`Send official email notice to claimant ${d.claimant_name}`}
                                 href={`mailto:${encodeURIComponent(d.claimant_email)}?subject=${encodeURIComponent(`[JustNivaran Registry] Case Notice Update - Docket ${d.docket_number} (${d.status})`)}&body=${encodeURIComponent(`Dear ${d.claimant_name},\n\nThis is an official communication from the JustNivaran Online Dispute Resolution (ODR) Registry regarding your case filing:\n\n• Docket Number: ${d.docket_number}\n• Case Status: ${d.status}\n• Claimant: ${d.claimant_name}\n• Respondent: ${d.respondent_name}\n• Disputed Claim: ₹ ${Number(d.claim_amount || 0).toLocaleString("en-IN")}\n• Resolution Mode: ${d.mode}\n\n👉 Access and track your live case dossier:\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(d.docket_number)}#tracker\n\nPlease feel free to reply directly to this email or contact registry@justnivaran.in for any assistance.\n\nSincerely,\nRegistrar Office\nJustNivaran ODR Centre\nNew Delhi, India`)}`}
                                 style={{
                                   background: "#1E3A8A",
@@ -1936,6 +2057,7 @@ function AdminDashboard() {
                             <button
                               className="admin-action-btn"
                               type="button"
+                              aria-label={`Permanently delete case docket ${d.docket_number}`}
                               onClick={() => handleDeleteRecord("disputes", d.id, d.docket_number)}
                               style={{
                                 background: "#FDEDEC",
@@ -2014,6 +2136,7 @@ function AdminDashboard() {
                           target="_blank"
                           rel="noreferrer"
                           className="admin-action-btn"
+                          aria-label={`Enter video hearing room for docket ${d.docket_number}`}
                           style={{
                             background: "linear-gradient(135deg, #1A365D 0%, #0B1B31 100%)",
                             color: "#F6C878",
@@ -2037,6 +2160,7 @@ function AdminDashboard() {
                           <button
                             className="admin-action-btn"
                             type="button"
+                            aria-label={`View dossier for docket ${d.docket_number}`}
                             onClick={() => handleOpenCase(d)}
                             style={{
                               background: "var(--ink)",
@@ -2097,6 +2221,7 @@ function AdminDashboard() {
                         </td>
                         <td style={{ padding: "14px 18px" }}>
                           <select
+                            aria-label={`Update status for neutral applicant ${n.full_name}`}
                             value={n.status || "Under Review"}
                             disabled={updatingId === n.id}
                             onChange={(e) => handleStatusChange("neutrals", n.id, e.target.value)}
@@ -2123,6 +2248,7 @@ function AdminDashboard() {
                             <button
                               className="admin-action-btn"
                               type="button"
+                              aria-label={`View neutral application details for ${n.full_name}`}
                               onClick={() => setSelectedNeutral(n)}
                               style={{
                                 background: "var(--ink)",
@@ -2144,6 +2270,7 @@ function AdminDashboard() {
                             {n.email && (
                               <a
                                 className="admin-action-btn"
+                                aria-label={`Send official email to neutral applicant ${n.full_name}`}
                                 href={`mailto:${encodeURIComponent(n.email)}?subject=${encodeURIComponent(`[JustNivaran Registry] Empanelment Application Update - ${n.full_name} (${n.status})`)}&body=${encodeURIComponent(`Dear ${n.full_name},\n\nThank you for applying to the JustNivaran Panel of Neutrals.\n\nYour application status has been updated to: ${n.status}.\n\nRole: ${n.role}\nSpecialization: ${n.specialization}\nBar Council / Accreditation ID: ${n.bar_council_id}\n\nOur Registrar team will connect with you regarding the next steps.\n\nSincerely,\nRegistrar Office\nJustNivaran ODR Centre\nNew Delhi, India`)}`}
                                 style={{
                                   background: "#1E3A8A",
@@ -2166,6 +2293,7 @@ function AdminDashboard() {
                             <button
                               className="admin-action-btn"
                               type="button"
+                              aria-label={`Permanently delete neutral application for ${n.full_name}`}
                               onClick={() => handleDeleteRecord("neutrals", n.id, n.full_name)}
                               style={{
                                 background: "#FDEDEC",
@@ -2233,6 +2361,7 @@ function AdminDashboard() {
                         <td style={{ padding: "14px 18px", fontSize: "12px", color: "var(--slate)", maxWidth: "200px" }}>{c.notes || "—"}</td>
                         <td style={{ padding: "14px 18px" }}>
                           <select
+                            aria-label={`Update consultation status for ${c.name}`}
                             value={c.status || "Pending"}
                             disabled={updatingId === c.id}
                             onChange={(e) => handleStatusChange("consultations", c.id, e.target.value)}
@@ -2259,6 +2388,7 @@ function AdminDashboard() {
                             <button
                               className="admin-action-btn"
                               type="button"
+                              aria-label={`View consultation brief and notes for ${c.name}`}
                               onClick={() => setSelectedConsultation(c)}
                               style={{
                                 background: "var(--ink)",
@@ -2280,6 +2410,7 @@ function AdminDashboard() {
                             {c.phone && (
                               <a
                                 className="admin-action-btn"
+                                aria-label={`Connect on WhatsApp with client ${c.name}`}
                                 href={getWhatsAppUrl(c.phone, `Hello ${c.name}, JustNivaran Registry is following up on your consultation booked for ${c.preferred_date || ""}.`)}
                                 target="_blank"
                                 rel="noreferrer"
@@ -2304,6 +2435,7 @@ function AdminDashboard() {
                             {c.email && (
                               <a
                                 className="admin-action-btn"
+                                aria-label={`Send confirmation email to client ${c.name}`}
                                 href={`mailto:${encodeURIComponent(c.email)}?subject=${encodeURIComponent(`[JustNivaran Registry] Case Consultation Confirmation - ${c.name} (${c.status})`)}&body=${encodeURIComponent(`Dear ${c.name},\n\nThis is regarding your case consultation appointment with the JustNivaran Registry:\n\n• Preferred Date: ${c.preferred_date}\n• Time Slot: ${c.preferred_time}\n• Format: ${c.format}\n• Status: ${c.status}\n\nOur Registry Officer will join the session at the scheduled time.\n\nSincerely,\nRegistry Office\nJustNivaran ODR Centre\nNew Delhi, India`)}`}
                                 style={{
                                   background: "#1E3A8A",
@@ -2325,6 +2457,8 @@ function AdminDashboard() {
                             )}
                             <button
                               type="button"
+                              className="admin-action-btn"
+                              aria-label={`Permanently delete consultation booking for ${c.name}`}
                               onClick={() => handleDeleteRecord("consultations", c.id, c.name)}
                               style={{
                                 background: "#FDEDEC",
@@ -2354,6 +2488,15 @@ function AdminDashboard() {
             </table>
           </div>
         ) : activeTab === "notices" ? (
+          noticesError ? (
+            <div style={{ padding: "24px", margin: "16px", background: "rgba(235, 151, 78, 0.08)", border: "1px solid var(--gold-soft)", borderRadius: "6px" }}>
+              <h4 style={{ margin: "0 0 6px 0", color: "var(--gold-deep)", fontSize: "14px" }}>⚠️ Notice Registry Connection Notice</h4>
+              <p style={{ margin: "0 0 12px 0", fontSize: "12.5px", color: "var(--slate)" }}>
+                Database notification logs table could not be queried: <strong>{noticesError}</strong>. If the notice deliveries table is being provisioned or requires RLS grants, notifications dispatched from the docket engine will appear here.
+              </p>
+              <button type="button" onClick={fetchData} className="btn ghost" style={{ fontSize: "12px", padding: "5px 12px" }}>↻ Retry Sync</button>
+            </div>
+          ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", textAlign: "left" }}>
               <thead>
@@ -2371,7 +2514,7 @@ function AdminDashboard() {
                 {filteredNotices.length === 0 ? (
                   <tr>
                     <td colSpan="7" style={{ padding: "36px", textAlign: "center", color: "var(--slate)" }}>
-                      {search ? "No matching notice delivery logs." : "No notice delivery logs recorded yet."}
+                      {search ? "No matching notice delivery logs." : "No notice delivery logs recorded yet (0 entries in registry)."}
                     </td>
                   </tr>
                 ) : (
@@ -2441,7 +2584,17 @@ function AdminDashboard() {
               </tbody>
             </table>
           </div>
+          )
         ) : activeTab === "audit" ? (
+          auditError ? (
+            <div style={{ padding: "24px", margin: "16px", background: "rgba(235, 151, 78, 0.08)", border: "1px solid var(--gold-soft)", borderRadius: "6px" }}>
+              <h4 style={{ margin: "0 0 6px 0", color: "var(--gold-deep)", fontSize: "14px" }}>⚠️ Audit Trail Registry Notice</h4>
+              <p style={{ margin: "0 0 12px 0", fontSize: "12.5px", color: "var(--slate)" }}>
+                Database case audit logs table could not be queried: <strong>{auditError}</strong>. If the audit logs table is being provisioned or requires RLS grants, administrative and party events will be logged here.
+              </p>
+              <button type="button" onClick={fetchData} className="btn ghost" style={{ fontSize: "12px", padding: "5px 12px" }}>↻ Retry Sync</button>
+            </div>
+          ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", textAlign: "left" }}>
               <thead>
@@ -2457,7 +2610,7 @@ function AdminDashboard() {
                 {filteredAuditLogs.length === 0 ? (
                   <tr>
                     <td colSpan="5" style={{ padding: "36px", textAlign: "center", color: "var(--slate)" }}>
-                      {search ? "No matching audit log entries." : "No audit trail logs recorded yet."}
+                      {search ? "No matching audit log entries." : "No audit trail logs recorded yet (0 entries in registry)."}
                     </td>
                   </tr>
                 ) : (
@@ -2496,6 +2649,7 @@ function AdminDashboard() {
               </tbody>
             </table>
           </div>
+          )
         ) : (
           /* activeTab === "security" */
           <div style={{ padding: "24px 20px" }}>
@@ -2892,10 +3046,12 @@ function AdminDashboard() {
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "14px" }}>
                   <div>
-                    <label style={{ display: "block", fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", marginBottom: "4px", textTransform: "uppercase" }}>
+                    <label htmlFor="scheduler-neutral-select" style={{ display: "block", fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", marginBottom: "4px", textTransform: "uppercase" }}>
                       Assign Presiding Neutral
                     </label>
                     <select
+                      id="scheduler-neutral-select"
+                      aria-label="Assign Presiding Neutral"
                       value={assignedNeutral}
                       onChange={(e) => setAssignedNeutral(e.target.value)}
                       style={{
@@ -2921,10 +3077,12 @@ function AdminDashboard() {
                   </div>
 
                   <div>
-                    <label style={{ display: "block", fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", marginBottom: "4px", textTransform: "uppercase" }}>
+                    <label htmlFor="scheduler-hearing-date" style={{ display: "block", fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", marginBottom: "4px", textTransform: "uppercase" }}>
                       Hearing Date
                     </label>
                     <input
+                      id="scheduler-hearing-date"
+                      aria-label="Hearing Date"
                       type="date"
                       value={hearingDate}
                       onChange={(e) => setHearingDate(e.target.value)}
@@ -2943,10 +3101,12 @@ function AdminDashboard() {
                   </div>
 
                   <div>
-                    <label style={{ display: "block", fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", marginBottom: "4px", textTransform: "uppercase" }}>
+                    <label htmlFor="scheduler-hearing-time" style={{ display: "block", fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", marginBottom: "4px", textTransform: "uppercase" }}>
                       Hearing Time Slot
                     </label>
                     <select
+                      id="scheduler-hearing-time"
+                      aria-label="Hearing Time Slot"
                       value={hearingTime}
                       onChange={(e) => setHearingTime(e.target.value)}
                       style={{

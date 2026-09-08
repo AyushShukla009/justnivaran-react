@@ -213,7 +213,7 @@ function Header({ onOpenFileModal }) {
             🚨 Emergency Relief (48–72h)
           </Link>
           <Link to="/for-neutrals" onClick={() => setIsMobileMenuOpen(false)}>
-            👨‍⚖️ For Neutrals / Empanelment
+            👨‍⚖️ Neutral Empanelment
           </Link>
           <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)}>
             📞 Contact &amp; Consultation

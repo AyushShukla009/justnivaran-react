@@ -171,7 +171,7 @@ function EmpanelmentModal({ isOpen, onClose }) {
       <div ref={modalRef} className="modal-card" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
-            <span className="modal-subtitle">Panel of Neutrals</span>
+            <span className="modal-subtitle">Neutral Empanelment</span>
             <h3 id="empanelment-modal-title">{isSuccess ? "Application Received" : "Apply for Neutral Empanelment"}</h3>
           </div>
           <button className="modal-close" onClick={handleReset} type="button" aria-label="Close empanelment modal">

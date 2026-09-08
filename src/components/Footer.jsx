@@ -43,7 +43,7 @@ export default function Footer() {
               <li><Link to="/legal-assessment" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>AI Legal Assessment</Link></li>
               <li><Link to="/fast-track-arbitration" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Fast-Track Arbitration (s. 29B)</Link></li>
               <li><Link to="/emergency-relief" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Emergency Relief (48–72h)</Link></li>
-              <li><Link to="/for-neutrals" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Panel of Neutrals</Link></li>
+              <li><Link to="/for-neutrals" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Neutral Empanelment</Link></li>
               <li><Link to="/fee-schedule" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Fee Schedule</Link></li>
               <li><a href="/#tracker" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Live Docket Tracker</a></li>
               <li><a href="/#calculator" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Cost Calculator</a></li>

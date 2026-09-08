@@ -198,33 +198,46 @@ function CostCalculator({ onOpenFileModal }) {
               >
                 JustNivaran Fast-Track Arbitration (s. 29B)
               </div>
-              <h3 style={{ fontSize: "22px", margin: "0 0 8px", color: "#fff" }}>
-                ₹ {odrCost.toLocaleString("en-IN")}{" "}
-                <small style={{ fontSize: "11px", color: "var(--gold-soft)", fontWeight: "normal" }}>
-                  + 18% GST (₹ {feeInfo.gstAmount.toLocaleString("en-IN")})
-                </small>
-              </h3>
+              <div style={{ margin: "0 0 10px" }}>
+                <h3 style={{ fontSize: "24px", margin: "0 0 4px", color: "#fff" }}>
+                  ₹ {feeInfo.totalWithGst.toLocaleString("en-IN")}{" "}
+                  <small style={{ fontSize: "12px", color: "var(--gold-soft)", fontWeight: "normal" }}>
+                    Total Payable (incl. 18% GST)
+                  </small>
+                </h3>
+                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.85)", fontFamily: "var(--mono)" }}>
+                  ₹ {odrCost.toLocaleString("en-IN")} Base Fee + ₹ {feeInfo.gstAmount.toLocaleString("en-IN")} GST (18%) = ₹ {feeInfo.totalWithGst.toLocaleString("en-IN")}
+                </div>
+              </div>
 
               {/* Component breakdown */}
               <div
                 style={{
                   background: "rgba(255,255,255,0.06)",
-                  padding: "8px 12px",
-                  borderRadius: "3px",
+                  padding: "10px 12px",
+                  borderRadius: "4px",
                   fontSize: "11.5px",
                   marginBottom: "12px",
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr",
-                  gap: "6px"
+                  gap: "8px"
                 }}
               >
                 <div>
-                  <span style={{ color: "var(--slate-light)" }}>Registry Fee (35%):</span>
+                  <span style={{ color: "var(--slate-light)" }}>Institutional Registry (35%):</span>
                   <div style={{ color: "#fff", fontWeight: 500 }}>₹ {feeInfo.registryFee.toLocaleString("en-IN")}</div>
                 </div>
                 <div>
                   <span style={{ color: "var(--slate-light)" }}>Arbitrator Honorarium (65%):</span>
                   <div style={{ color: "var(--gold)", fontWeight: 500 }}>₹ {feeInfo.neutralHonorarium.toLocaleString("en-IN")}</div>
+                </div>
+                <div>
+                  <span style={{ color: "var(--slate-light)" }}>Statutory GST (18%):</span>
+                  <div style={{ color: "#fff", fontWeight: 500 }}>₹ {feeInfo.gstAmount.toLocaleString("en-IN")}</div>
+                </div>
+                <div>
+                  <span style={{ color: "var(--slate-light)" }}>Total Invoiced Payable:</span>
+                  <div style={{ color: "var(--gold)", fontWeight: 700 }}>₹ {feeInfo.totalWithGst.toLocaleString("en-IN")}</div>
                 </div>
               </div>
 
@@ -235,6 +248,9 @@ function CostCalculator({ onOpenFileModal }) {
                   💰 <strong>Estimated Cost Savings:</strong>{" "}
                   <span style={{ color: "var(--gold)", fontWeight: 600 }}>
                     ₹ {savings.toLocaleString("en-IN")}
+                  </span>{" "}
+                  <span style={{ fontSize: "11px", color: "var(--slate-light)" }}>
+                    (Calculated on base fee before GST)
                   </span>
                 </div>
               </div>

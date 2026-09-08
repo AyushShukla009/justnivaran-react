@@ -30,7 +30,7 @@ const STEPS = [
   {
     step: "03",
     label: "AI Reasoning",
-    detail: "Gemini Structured Issue Mapping",
+    detail: "Structured Issue & Precedent Mapping",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />

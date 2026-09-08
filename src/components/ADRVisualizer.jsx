@@ -221,7 +221,7 @@ function ADRVisualizer({ onOpenFileModal }) {
                 ● {current.preview.tag}
               </span>
               <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#8FA4BE" }}>
-                AUDIT: VERIFIED
+                SIMULATED AUDIT EXAMPLE
               </span>
             </div>
 

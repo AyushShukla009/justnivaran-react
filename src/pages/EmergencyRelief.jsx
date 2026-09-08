@@ -116,7 +116,7 @@ export default function EmergencyRelief({ onOpenFileModal }) {
               textTransform: "uppercase"
             }}
           >
-            48–72h Appointment Target
+            24–48h Appointment • 48–72h Order Target
           </span>
         </div>
         <p className="lede" style={{ color: "var(--slate)", maxWidth: "860px", margin: 0 }}>
