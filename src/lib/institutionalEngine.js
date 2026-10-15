@@ -443,6 +443,11 @@ export function generateInstitutionalAssessment(cleanData, requestId) {
     materialFacts.push("Contemporary documentary trail includes signed agreements, tax invoices, and formal demand communications.");
   }
 
+  if (userClaims && userClaims.length > 10) {
+    const claimSnippet = userClaims.split("\n")[0].trim().slice(0, 150);
+    materialFacts.push(`Specific relief asserted: ${claimSnippet}`);
+  }
+
   // 4. Build Custom Legal Issues
   const legalIssues = [...profile.legalIssues];
   if (userDefenses && userDefenses.length > 15) {
@@ -526,6 +531,10 @@ export function generateInstitutionalAssessment(cleanData, requestId) {
     `Commercial settlement corridor estimated at ${settlementText} with structured 30-day payout schedule.`,
     "JustNivaran Institutional Mediation Rules provide automatic fee credits toward arbitration if dispute requires escalation."
   ];
+
+  if (userResolution && userResolution.length > 5) {
+    settlementConsiderations.unshift(`Applicant target resolution: ${userResolution.slice(0, 150)}.`);
+  }
 
   return {
     requestId: requestId || `JN-AI-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`,

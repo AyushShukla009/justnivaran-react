@@ -4,7 +4,6 @@ import { fetchAILegalOutcome, checkAIEngineHealth, generateClientInstitutionalAs
 import {
   ALLOWED_CATEGORIES,
   ALLOWED_ARBITRATION_STATUSES,
-  validateAssessmentPayload,
   MANDATORY_LEGAL_DISCLAIMER
 } from "../lib/legalAssessmentValidation";
 import LegalOutcomeReport from "../components/LegalOutcomeReport";

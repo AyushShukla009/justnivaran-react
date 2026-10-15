@@ -63,8 +63,8 @@ export const FEE_SLABS = [
 export function calculateAuthoritativeFee(claimAmount, track = "arbitration") {
   const quantum = Math.max(0, Number(claimAmount) || 0);
 
-  let baseFee = 15000;
-  let slab = FEE_SLABS[0];
+  let baseFee;
+  let slab;
 
   if (quantum <= 500000) {
     slab = FEE_SLABS[0];
