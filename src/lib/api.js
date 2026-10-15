@@ -647,7 +647,7 @@ export async function checkAIEngineHealth() {
         status: "active",
         keyConfigured: true,
         providerVerified: true,
-        model: data.model || "JustNivaran Legal Reasoning Engine (v2.4)",
+        model: data.model || "JustNivaran Legal Reasoning Engine (v2.5)",
         message: "AI Analysis Engine Active • Beta"
       };
     }
@@ -655,7 +655,7 @@ export async function checkAIEngineHealth() {
       status: "active",
       keyConfigured: true,
       providerVerified: true,
-      model: "JustNivaran Legal Reasoning Engine (v2.4)",
+      model: "JustNivaran Legal Reasoning Engine (v2.5)",
       message: "AI Analysis Engine Active • Beta"
     };
   } catch {
@@ -663,7 +663,7 @@ export async function checkAIEngineHealth() {
       status: "active",
       keyConfigured: true,
       providerVerified: true,
-      model: "JustNivaran Legal Reasoning Engine (v2.4)",
+      model: "JustNivaran Legal Reasoning Engine (v2.5)",
       message: "AI Analysis Engine Active • Beta"
     };
   }

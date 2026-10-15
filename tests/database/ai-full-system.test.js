@@ -24,7 +24,7 @@ async function runAIFullSystemTests() {
     status: "active",
     keyConfigured: true,
     providerVerified: true,
-    model: "JustNivaran Legal Reasoning Engine (v2.4)",
+    model: "JustNivaran Legal Reasoning Engine (v2.5)",
     message: "AI Analysis Engine Active • Beta"
   };
   if (simulatedHealth.status !== "active" || !simulatedHealth.keyConfigured || !simulatedHealth.providerVerified) {
