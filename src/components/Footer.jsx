@@ -60,7 +60,7 @@ export default function Footer() {
               <li><Link to="/negotiation-guidelines" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Negotiation Guidelines</Link></li>
               <li><Link to="/mediation-rules" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Mediation Rules (2023 Act)</Link></li>
               <li><Link to="/conciliation-rules" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Conciliation Rules 2026</Link></li>
-              <li><Link to="/arbitration-rules" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Arbitration Rules (s. 29B)</Link></li>
+              <li><Link to="/arbitration-rules" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Arbitration Rules</Link></li>
               <li><Link to="/neutral-code-of-conduct" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Core Values &amp; Code of Conduct</Link></li>
               <li><a href="/#clause" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Model Contract Clause</a></li>
             </ul>
