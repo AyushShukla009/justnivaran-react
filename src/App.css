@@ -2241,3 +2241,184 @@ html, body {
     letter-spacing: 0.1em;
   }
 }
+
+/* ==========================================================================
+   CASE ASSESSMENT BRIEF — DEDICATED PRINT STYLESHEET (A4 PORTRAIT)
+   ========================================================================== */
+
+/* Screen Defaults for Print Elements */
+.print-watermark {
+  display: none;
+}
+.brief-print-header {
+  display: none;
+}
+.print-running-footer {
+  display: none;
+}
+table.print-report-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: none;
+  table-layout: fixed;
+}
+table.print-report-table td {
+  padding: 0;
+  border: none;
+}
+table.print-report-table tfoot {
+  display: none;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 12mm 12mm 15mm 12mm;
+}
+
+@media print {
+  /* 1. Hide site navigation, header, footer, buttons, cookie banner, floating dock, modals */
+  header,
+  footer,
+  nav,
+  aside,
+  [aria-label*="Cookie"],
+  [aria-label*="cookie"],
+  .site-header,
+  .site-footer,
+  #header,
+  #scroll-progress,
+  .floating-quick-dock,
+  .cookie-banner,
+  .admin-modal-zoom,
+  .no-print,
+  button,
+  .btn,
+  a.btn,
+  iframe {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 2. Page & Root Setup */
+  html,
+  body {
+    background: #ffffff !important;
+    color: #0b1b31 !important;
+    font-size: 10.5pt !important;
+    line-height: 1.45 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #root {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  main,
+  .wrap,
+  .legal-assessment-main {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    padding-block: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .case-assessment-brief-report {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  /* 3. Light Diagonal Watermark */
+  .print-watermark {
+    display: block !important;
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) rotate(-45deg) !important;
+    font-size: 68pt !important;
+    font-weight: 700 !important;
+    font-family: var(--serif, "Newsreader", Georgia, serif) !important;
+    color: rgba(11, 27, 49, 0.04) !important;
+    letter-spacing: 0.18em !important;
+    pointer-events: none !important;
+    z-index: 9999 !important;
+    white-space: nowrap !important;
+    text-transform: uppercase !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+  }
+
+  /* 4. Table wrapper & Running Footer on every page */
+  table.print-report-table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+    border: none !important;
+  }
+
+  table.print-report-table td {
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  table.print-report-table tfoot {
+    display: table-footer-group !important;
+  }
+
+  .print-running-footer {
+    display: block !important;
+    text-align: center !important;
+    font-size: 7.5pt !important;
+    font-family: var(--mono, "IBM Plex Mono", monospace) !important;
+    color: #64748b !important;
+    border-top: 1px solid #cbd5e1 !important;
+    padding-top: 3mm !important;
+    padding-bottom: 1mm !important;
+    margin-top: 4mm !important;
+    background: transparent !important;
+    line-height: 1.4 !important;
+  }
+
+  /* 5. Top Letterhead with Logo */
+  .brief-print-header {
+    display: block !important;
+    margin-bottom: 20px !important;
+  }
+
+  /* 6. Avoid Page Breaks inside cards and tables */
+  .case-assessment-brief-report section,
+  .case-assessment-brief-report .avoid-page-break,
+  .case-assessment-brief-report table,
+  .case-assessment-brief-report tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .case-assessment-brief-report h1,
+  .case-assessment-brief-report h2,
+  .case-assessment-brief-report h3,
+  .case-assessment-brief-report h4 {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  /* Compact spacing for printed report */
+  .case-assessment-brief-report section {
+    margin-bottom: 20px !important;
+    padding: 18px 20px !important;
+  }
+}

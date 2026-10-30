@@ -231,9 +231,10 @@ export default function LegalAssessment() {
   };
 
   return (
-    <main className="wrap" style={{ paddingBlock: "48px 90px", maxWidth: "1100px" }}>
-      {/* Top Breadcrumb & Engine Health */}
+    <main className="wrap legal-assessment-main" style={{ paddingBlock: "48px 90px", maxWidth: "1100px" }}>
+      {/* Top Breadcrumb & Engine Health (Screen Only) */}
       <div
+        className="no-print"
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -267,8 +268,8 @@ export default function LegalAssessment() {
         </div>
       </div>
 
-      {/* Main Title Header (Removed PRIMARY USP label, renamed to AI Dispute Assessment) */}
-      <div style={{ marginBottom: "36px" }}>
+      {/* Main Title Header (Screen Only) */}
+      <div className="no-print" style={{ marginBottom: "36px" }}>
         <h1 style={{ fontSize: "clamp(30px, 4.2vw, 44px)", margin: "0 0 10px 0", color: "var(--ink)" }}>
           AI Dispute Assessment
         </h1>

@@ -12,7 +12,8 @@
  * - Printable PDF brief export
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import logo from "../assets/logo1.jpeg";
 
 function getStrengthLevelIndex(level) {
   const norm = String(level || "").toLowerCase();
@@ -36,8 +37,32 @@ function getOutlookBadgeStyle(rating) {
   return { bg: "#fee2e2", color: "#b91c1c", border: "#fca5a5" };
 }
 
+function getFormattedPrintTimestamp() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  });
+  const timeStr = now.toLocaleTimeString("en-IN", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  });
+  return `${dateStr}, ${timeStr}`;
+}
+
 export default function LegalOutcomeReport({ report, onReset }) {
   const [copied, setCopied] = useState(false);
+  const [printDateTime, setPrintDateTime] = useState(getFormattedPrintTimestamp);
+
+  useEffect(() => {
+    const handleBeforePrint = () => {
+      setPrintDateTime(getFormattedPrintTimestamp());
+    };
+    window.addEventListener("beforeprint", handleBeforePrint);
+    return () => window.removeEventListener("beforeprint", handleBeforePrint);
+  }, []);
 
   if (!report) return null;
 
@@ -92,6 +117,7 @@ DISCLAIMER: ${report.disclaimer || "AI-assisted indicative assessment. Not legal
   };
 
   const handlePrint = () => {
+    setPrintDateTime(getFormattedPrintTimestamp());
     window.print();
   };
 
@@ -104,22 +130,75 @@ DISCLAIMER: ${report.disclaimer || "AI-assisted indicative assessment. Not legal
         borderRadius: "10px",
         padding: "36px",
         boxShadow: "0 10px 30px rgba(11, 27, 49, 0.06)",
-        fontFamily: "var(--font-sans, system-ui, sans-serif)"
+        fontFamily: "var(--font-sans, system-ui, sans-serif)",
+        position: "relative"
       }}
     >
-      {/* Top Action Header Bar */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "14px",
-          borderBottom: "1px solid var(--line)",
-          paddingBottom: "20px",
-          marginBottom: "28px"
-        }}
-      >
+      {/* Light diagonal watermark for print view */}
+      <div className="print-watermark" aria-hidden="true">
+        JustNivaran
+      </div>
+
+      <table className="print-report-table">
+        <tfoot className="print-report-tfoot">
+          <tr>
+            <td>
+              <div className="print-running-footer">
+                Downloaded from justnivaran-odr.vercel.app on {printDateTime} | Report ID {report.requestId || "JN-AI-962779"} | AI-assisted indicative assessment. Not legal advice.
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+        <tbody>
+          <tr>
+            <td>
+              {/* Official Letterhead Header (Top of Report in Print) */}
+              <div className="brief-print-header">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                    <img
+                      src={logo}
+                      alt="JustNivaran Logo"
+                      style={{
+                        width: "48px",
+                        height: "48px",
+                        objectFit: "contain",
+                        borderRadius: "6px",
+                        border: "1px solid var(--line)"
+                      }}
+                    />
+                    <div>
+                      <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--ink)", letterSpacing: "0.04em", fontFamily: "var(--serif, Georgia, serif)", textTransform: "uppercase" }}>
+                        JustNivaran Online Dispute Resolution Centre
+                      </div>
+                      <div style={{ fontSize: "11px", color: "var(--slate)", fontFamily: "var(--mono, monospace)", letterSpacing: "0.03em" }}>
+                        Case Assessment Brief &bull; Statutory &amp; Evidentiary Dispute Dossier
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ textAlign: "right", fontSize: "11px", fontFamily: "var(--mono, monospace)", color: "var(--slate)" }}>
+                    <div>Dossier ID: <strong style={{ color: "var(--ink)" }}>{report.requestId}</strong></div>
+                    <div>Dispute Quantum: <strong style={{ color: "var(--ink)" }}>{report.claimQuantumFormatted}</strong></div>
+                  </div>
+                </div>
+                <div style={{ height: "2px", background: "linear-gradient(90deg, var(--gold), #f0e0c2, var(--gold))", marginTop: "12px", marginBottom: "16px" }} />
+              </div>
+
+              {/* Top Action Header Bar (Screen Only) */}
+              <div
+                className="no-print"
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: "14px",
+                  borderBottom: "1px solid var(--line)",
+                  paddingBottom: "20px",
+                  marginBottom: "28px"
+                }}
+              >
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
             <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
@@ -178,6 +257,7 @@ DISCLAIMER: ${report.disclaimer || "AI-assisted indicative assessment. Not legal
 
       {/* 1. Headline Institutional Recommendation Card */}
       <section
+        className="avoid-page-break"
         style={{
           background: "linear-gradient(135deg, rgba(11, 27, 49, 0.03) 0%, rgba(209, 154, 52, 0.07) 100%)",
           border: "1px solid rgba(209, 154, 52, 0.35)",
@@ -219,7 +299,7 @@ DISCLAIMER: ${report.disclaimer || "AI-assisted indicative assessment. Not legal
       </section>
 
       {/* 2. Dual Strength Gauges (Claimant vs Defence) */}
-      <section style={{ marginBottom: "32px" }}>
+      <section className="avoid-page-break" style={{ marginBottom: "32px" }}>
         <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "12px" }}>
           Statutory Strength Evaluation (Qualitative Bands Only)
         </div>
@@ -298,7 +378,7 @@ DISCLAIMER: ${report.disclaimer || "AI-assisted indicative assessment. Not legal
       </section>
 
       {/* 3. Statutory Limitation Clock Bar (Limitation Act, 1963) */}
-      <section style={{ background: "#ffffff", border: "1px solid var(--line)", borderRadius: "8px", padding: "22px 24px", marginBottom: "32px" }}>
+      <section className="avoid-page-break" style={{ background: "#ffffff", border: "1px solid var(--line)", borderRadius: "8px", padding: "22px 24px", marginBottom: "32px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
           <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
             Limitation Clock &bull; Articles 55 &amp; 113, Limitation Act, 1963
@@ -352,6 +432,7 @@ DISCLAIMER: ${report.disclaimer || "AI-assisted indicative assessment. Not legal
       {/* 4. MSMED Act Statutory Benefit Card (If applicable) */}
       {msmed.applicable && (
         <section
+          className="avoid-page-break"
           style={{
             background: "rgba(209, 154, 52, 0.05)",
             border: "1px solid rgba(209, 154, 52, 0.35)",
@@ -410,7 +491,7 @@ DISCLAIMER: ${report.disclaimer || "AI-assisted indicative assessment. Not legal
       )}
 
       {/* 5. Qualitative Settlement Outlook & Probable Outcome Scenarios */}
-      <section style={{ marginBottom: "32px" }}>
+      <section className="avoid-page-break" style={{ marginBottom: "32px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
           <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
             Settlement Outlook &amp; Probable Scenarios
@@ -483,7 +564,7 @@ DISCLAIMER: ${report.disclaimer || "AI-assisted indicative assessment. Not legal
       </section>
 
       {/* 6. Evidentiary Record & Procedural Gaps */}
-      <section style={{ background: "#ffffff", border: "1px solid var(--line)", borderRadius: "8px", padding: "22px 24px", marginBottom: "32px" }}>
+      <section className="avoid-page-break" style={{ background: "#ffffff", border: "1px solid var(--line)", borderRadius: "8px", padding: "22px 24px", marginBottom: "32px" }}>
         <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "14px" }}>
           Evidentiary Checklist &amp; Identified Gaps
         </div>
@@ -513,10 +594,18 @@ DISCLAIMER: ${report.disclaimer || "AI-assisted indicative assessment. Not legal
             </ul>
           </div>
         )}
+
+        {(!report.claimantGaps || report.claimantGaps.length === 0) &&
+          (!report.evidenceGaps || report.evidenceGaps.length === 0) && (
+            <div style={{ fontSize: "13px", color: "#15803d", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span>✓</span>
+              <span>All baseline documentary evidence on record. No procedural gaps detected for intake.</span>
+            </div>
+        )}
       </section>
 
       {/* 7. Statutory Process & Authoritative Fee Comparison Table */}
-      <section style={{ marginBottom: "36px" }}>
+      <section className="avoid-page-break" style={{ marginBottom: "36px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
           <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
             ADR Process &amp; Fee Schedule Comparison
@@ -564,6 +653,7 @@ DISCLAIMER: ${report.disclaimer || "AI-assisted indicative assessment. Not legal
 
       {/* 8. Mandatory Statutory Disclaimer */}
       <div
+        className="avoid-page-break"
         style={{
           background: "#f8fafc",
           border: "1px solid #e2e8f0",
@@ -578,8 +668,8 @@ DISCLAIMER: ${report.disclaimer || "AI-assisted indicative assessment. Not legal
         <strong>Statutory Notice &amp; Legal Disclaimer:</strong> {report.disclaimer || "AI-assisted indicative assessment. Not legal advice. Outcomes depend on evidence and the neutral's independent adjudication."}
       </div>
 
-      {/* 9. Final Institutional Action Buttons */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
+      {/* 9. Final Institutional Action Buttons (Screen Only) */}
+      <div className="no-print" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
         <button
           type="button"
           onClick={handlePrint}
@@ -603,6 +693,10 @@ DISCLAIMER: ${report.disclaimer || "AI-assisted indicative assessment. Not legal
           Proceed to File with Digital Registry →
         </a>
       </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }
