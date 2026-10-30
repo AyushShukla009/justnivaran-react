@@ -2,13 +2,31 @@ import { useState } from "react";
 
 function ModelClause() {
   const [copied, setCopied] = useState(false);
+  const [track, setTrack] = useState("full-arbitration");
+  const [rules, setRules] = useState("JustNivaran Arbitration Rules");
+  const [arbitratorCount, setArbitratorCount] = useState("1");
   const [seat, setSeat] = useState("New Delhi, India");
-  const [track, setTrack] = useState("comprehensive");
+  const [language, setLanguage] = useState("English");
+  const [governingLaw, setGoverningLaw] = useState("Indian substantive law");
   const [contractName, setContractName] = useState("");
 
   const getClauseText = () => {
     const seatText = seat || "New Delhi, India";
     const refText = contractName ? `this agreement (${contractName})` : "this contract";
+
+    if (track === "full-arbitration") {
+      const rulesVal = rules === "[to be provided]" ? "[to be provided]" : (rules ? `the ${rules}` : "the JustNivaran Arbitration Rules");
+      const arbCountText = arbitratorCount === "3" 
+        ? "three arbitrators" 
+        : arbitratorCount === "1" 
+          ? "a sole arbitrator" 
+          : (arbitratorCount || "[to be provided]");
+      const seatVal = seat || "[to be provided]";
+      const langVal = language || "[to be provided]";
+      const govLawVal = governingLaw || "[to be provided]";
+
+      return `Any dispute, controversy or claim arising out of or relating to ${refText}, including its formation, validity, breach or termination, shall be submitted to and finally resolved by arbitration administered by JustNivaran in accordance with ${rulesVal}. The Arbitral Tribunal shall consist of ${arbCountText}. The juridical seat of arbitration shall be ${seatVal}. The language of the arbitration shall be ${langVal}. The contract shall be governed by ${govLawVal}.`;
+    }
 
     if (track === "arbitration") {
       return `Any dispute, controversy or claim arising out of or relating to ${refText}, including its formation, validity, breach or termination, shall be submitted to and finally resolved by Fast-Track Arbitration administered by JustNivaran in accordance with Section 29B of the Arbitration and Conciliation Act, 1996. The seat of the arbitration shall be ${seatText}. The proceedings shall be conducted online.`;
@@ -184,60 +202,209 @@ function ModelClause() {
                       background: "#fff"
                     }}
                   >
-                    <option value="comprehensive">Comprehensive ODR (Mediation + Fast-Track Arbitration)</option>
+                    <option value="full-arbitration">Arbitration (JustNivaran Arbitration Rules)</option>
                     <option value="arbitration">Fast-Track Arbitration (Section 29B - 180 Days)</option>
+                    <option value="comprehensive">Comprehensive ODR (Mediation + Fast-Track Arbitration)</option>
                     <option value="mediation">Pre-Litigation Mediation (Mediation Act 2023)</option>
                   </select>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                  <div>
-                    <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
-                      Seat of Proceedings
-                    </label>
-                    <select
-                      value={seat}
-                      onChange={(e) => setSeat(e.target.value)}
-                      style={{
-                        width: "100%",
-                        padding: "8px 10px",
-                        border: "1px solid var(--line)",
-                        borderRadius: "3px",
-                        fontSize: "13px",
-                        outline: "none",
-                        background: "#fff"
-                      }}
-                    >
-                      <option value="New Delhi, India">New Delhi, India</option>
-                      <option value="Mumbai, India">Mumbai, India</option>
-                      <option value="Bengaluru, India">Bengaluru, India</option>
-                      <option value="Hyderabad, India">Hyderabad, India</option>
-                      <option value="Chennai, India">Chennai, India</option>
-                      <option value="Kolkata, India">Kolkata, India</option>
-                    </select>
+                {track === "full-arbitration" ? (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "10px" }}>
+                    <div>
+                      <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                        Institution / Rules
+                      </label>
+                      <select
+                        value={rules}
+                        onChange={(e) => setRules(e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "8px 10px",
+                          border: "1px solid var(--line)",
+                          borderRadius: "3px",
+                          fontSize: "13px",
+                          outline: "none",
+                          background: "#fff"
+                        }}
+                      >
+                        <option value="JustNivaran Arbitration Rules">JustNivaran Arbitration Rules</option>
+                        <option value="JustNivaran Arbitration Rules 2026">JustNivaran Arbitration Rules 2026</option>
+                        <option value="[to be provided]">[to be provided]</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                        Number of Arbitrators
+                      </label>
+                      <select
+                        value={arbitratorCount}
+                        onChange={(e) => setArbitratorCount(e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "8px 10px",
+                          border: "1px solid var(--line)",
+                          borderRadius: "3px",
+                          fontSize: "13px",
+                          outline: "none",
+                          background: "#fff"
+                        }}
+                      >
+                        <option value="1">1 (Sole Arbitrator)</option>
+                        <option value="3">3 (Three Arbitrators)</option>
+                        <option value="[to be provided]">[to be provided]</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                        Juridical Seat
+                      </label>
+                      <select
+                        value={seat}
+                        onChange={(e) => setSeat(e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "8px 10px",
+                          border: "1px solid var(--line)",
+                          borderRadius: "3px",
+                          fontSize: "13px",
+                          outline: "none",
+                          background: "#fff"
+                        }}
+                      >
+                        <option value="New Delhi, India">New Delhi, India</option>
+                        <option value="Mumbai, India">Mumbai, India</option>
+                        <option value="Bengaluru, India">Bengaluru, India</option>
+                        <option value="Hyderabad, India">Hyderabad, India</option>
+                        <option value="Chennai, India">Chennai, India</option>
+                        <option value="Kolkata, India">Kolkata, India</option>
+                        <option value="[to be provided]">[to be provided]</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                        Language of Arbitration
+                      </label>
+                      <select
+                        value={language}
+                        onChange={(e) => setLanguage(e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "8px 10px",
+                          border: "1px solid var(--line)",
+                          borderRadius: "3px",
+                          fontSize: "13px",
+                          outline: "none",
+                          background: "#fff"
+                        }}
+                      >
+                        <option value="English">English</option>
+                        <option value="Hindi">Hindi</option>
+                        <option value="English and Hindi">English and Hindi</option>
+                        <option value="[to be provided]">[to be provided]</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                        Governing Law
+                      </label>
+                      <select
+                        value={governingLaw}
+                        onChange={(e) => setGoverningLaw(e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "8px 10px",
+                          border: "1px solid var(--line)",
+                          borderRadius: "3px",
+                          fontSize: "13px",
+                          outline: "none",
+                          background: "#fff"
+                        }}
+                      >
+                        <option value="Indian substantive law">Indian substantive law</option>
+                        <option value="Arbitration and Conciliation Act, 1996 and Indian substantive law">Arbitration and Conciliation Act, 1996 and Indian substantive law</option>
+                        <option value="Laws of India">Laws of India</option>
+                        <option value="[to be provided]">[to be provided]</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                        Contract Title (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Master Service Agreement"
+                        value={contractName}
+                        onChange={(e) => setContractName(e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "8px 10px",
+                          border: "1px solid var(--line)",
+                          borderRadius: "3px",
+                          fontSize: "13px",
+                          outline: "none",
+                          background: "#fff",
+                          boxSizing: "border-box"
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
-                      Contract Title (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Master Service Agreement"
-                      value={contractName}
-                      onChange={(e) => setContractName(e.target.value)}
-                      style={{
-                        width: "100%",
-                        padding: "8px 10px",
-                        border: "1px solid var(--line)",
-                        borderRadius: "3px",
-                        fontSize: "13px",
-                        outline: "none",
-                        background: "#fff",
-                        boxSizing: "border-box"
-                      }}
-                    />
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "10px" }}>
+                    <div>
+                      <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                        Seat of Proceedings
+                      </label>
+                      <select
+                        value={seat}
+                        onChange={(e) => setSeat(e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "8px 10px",
+                          border: "1px solid var(--line)",
+                          borderRadius: "3px",
+                          fontSize: "13px",
+                          outline: "none",
+                          background: "#fff"
+                        }}
+                      >
+                        <option value="New Delhi, India">New Delhi, India</option>
+                        <option value="Mumbai, India">Mumbai, India</option>
+                        <option value="Bengaluru, India">Bengaluru, India</option>
+                        <option value="Hyderabad, India">Hyderabad, India</option>
+                        <option value="Chennai, India">Chennai, India</option>
+                        <option value="Kolkata, India">Kolkata, India</option>
+                        <option value="[to be provided]">[to be provided]</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                        Contract Title (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Master Service Agreement"
+                        value={contractName}
+                        onChange={(e) => setContractName(e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "8px 10px",
+                          border: "1px solid var(--line)",
+                          borderRadius: "3px",
+                          fontSize: "13px",
+                          outline: "none",
+                          background: "#fff",
+                          boxSizing: "border-box"
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
