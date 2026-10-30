@@ -55,7 +55,7 @@ function Hero({ onOpenFileModal }) {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--ink)", fontWeight: 500 }}>
               <span style={{ fontSize: "15px" }}>🔒</span>
-              <span>BSA 2023 / IT Act Record Audit</span>
+              <span>IT Act Record Audit</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--ink)", fontWeight: 500 }}>
               <span style={{ fontSize: "15px" }}>🇮🇳</span>

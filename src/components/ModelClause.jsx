@@ -98,7 +98,6 @@ function ModelClause() {
           <ul class="statutory-list">
             <li><strong>Mediation Act, 2023 (Sections 27 &amp; 28):</strong> Mediated Settlement Agreements authenticated by the Registry possess statutory enforceability (subject to Central Government commencement notifications and Section 27 procedures).</li>
             <li><strong>Arbitration and Conciliation Act, 1996 (Sections 7, 29A &amp; 29B):</strong> Mandates binding arbitral awards within statutory ceilings enforceable under Section 36.</li>
-            <li><strong>Bharatiya Sakshya Adhiniyam, 2023 (Section 63) &amp; IT Act 2000:</strong> Electronic records, case audit timestamps, and digital awards are admissible as primary electronic evidence.</li>
             <li><strong>Information Technology Act, 2000 (Section 10A):</strong> Validates the legal enforceability of contracts and settlement terms executed electronically.</li>
           </ul>
 

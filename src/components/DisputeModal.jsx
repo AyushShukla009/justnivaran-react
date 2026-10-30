@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase";
-import { submitDisputeFiling } from "../lib/api";
+import { submitDisputeFiling, formatDbError } from "../lib/api";
 
 const INITIAL_FORM_DATA = {
   claimantName: "",
@@ -189,7 +189,7 @@ function DisputeModal({ isOpen, onClose }) {
       const result = await submitDisputeFiling(payload);
 
       if (!result.success || !result.data) {
-        setSubmissionError(result.error || "Dispute filing could not be completed. Please check your data and retry.");
+        setSubmissionError(formatDbError(result.error || "Dispute filing could not be completed. Please check your data and retry."));
         return;
       }
 
@@ -198,7 +198,7 @@ function DisputeModal({ isOpen, onClose }) {
       setStep(3);
     } catch (err) {
       console.error("Submission failed:", err);
-      setSubmissionError(`Unexpected error during submission: ${err.message || "Network timeout"}. Please retry.`);
+      setSubmissionError(formatDbError(err?.message));
     } finally {
       setIsSubmitting(false);
       setUploadProgress("");
@@ -700,6 +700,29 @@ function DisputeModal({ isOpen, onClose }) {
                   >
                     🔗 Copy 1-Click Magic Link
                   </button>
+                  <a
+                    href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                      `JustNivaran ODR Registry - Official Case Filing\n\n• Case Docket: ${docketNumber}\n• Status: Notice Issued\n• 🔐 Case Access PIN: ${accessPin}\n\n👉 Track Live Docket in Registry (Instant Auto-Unlock):\nhttps://justnivaran-odr.vercel.app/?docket=${encodeURIComponent(docketNumber)}&pin=${encodeURIComponent(accessPin)}#tracker`
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      background: "#25D366",
+                      color: "#ffffff",
+                      borderRadius: "4px",
+                      padding: "6px 14px",
+                      fontSize: "11.5px",
+                      fontFamily: "var(--mono)",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      textDecoration: "none"
+                    }}
+                  >
+                    💬 Share on WhatsApp
+                  </a>
                   <a
                     href={`/?docket=${encodeURIComponent(docketNumber)}&pin=${encodeURIComponent(accessPin)}#tracker`}
                     onClick={() => {

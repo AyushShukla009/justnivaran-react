@@ -1,7 +1,13 @@
-import { supabase } from "./supabase";
+import { supabase } from "./supabase.js";
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://zejzfgogccmmhsjexxml.supabase.co";
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_i8u-iVSyT1F1FzlNkR91Xg_wrxJQ4VF";
+const SUPABASE_URL =
+  (typeof import.meta !== "undefined" && import.meta?.env?.VITE_SUPABASE_URL) ||
+  (typeof globalThis !== "undefined" && globalThis.process?.env?.VITE_SUPABASE_URL) ||
+  "https://zejzfgogccmmhsjexxml.supabase.co";
+const SUPABASE_ANON_KEY =
+  (typeof import.meta !== "undefined" && import.meta?.env?.VITE_SUPABASE_ANON_KEY) ||
+  (typeof globalThis !== "undefined" && globalThis.process?.env?.VITE_SUPABASE_ANON_KEY) ||
+  "sb_publishable_i8u-iVSyT1F1FzlNkR91Xg_wrxJQ4VF";
 
 const FUNCTIONS_BASE_URL = `${SUPABASE_URL}/functions/v1`;
 
@@ -201,6 +207,19 @@ export async function verifyDocketPin(docketNumber, pin) {
  * Submit a new dispute filing via validated Edge Function
  * Validates payload, hashes 6-digit PIN on server, creates initial notice queue record.
  */
+export function formatDbError(msg) {
+  const str = String(msg || "");
+  if (
+    str.includes("Failed to fetch") ||
+    str.includes("NetworkError") ||
+    str.includes("TypeError") ||
+    str.includes("aborted")
+  ) {
+    return "The case registry database is temporarily connecting or waking up from sleep. Please wait 15–30 seconds and click 'Issue Notice & Submit' again.";
+  }
+  return str || "Failed to register dispute filing.";
+}
+
 export async function submitDisputeFiling(payload) {
   try {
     const res = await fetch(`${FUNCTIONS_BASE_URL}/submit-dispute`, {
@@ -293,15 +312,15 @@ export async function submitDisputeFiling(payload) {
 
       if (error) {
         console.error("Direct disputes insert error:", error);
-        return { success: false, error: error.message || "Failed to submit dispute." };
+        return { success: false, error: formatDbError(error.message) };
       }
     } catch (dbErr) {
       console.error("Direct dispute filing exception:", dbErr);
-      return { success: false, error: dbErr.message || "Failed to register dispute filing." };
+      return { success: false, error: formatDbError(dbErr.message) };
     }
   }
 
-  return { success: false, error: "Submission service unavailable." };
+  return { success: false, error: formatDbError("Submission service unavailable.") };
 }
 
 /**
@@ -569,40 +588,52 @@ export async function submitEmergencyReliefRequest(payload) {
   }
 }
 
-import { generateInstitutionalAssessment } from "./institutionalEngine";
+import { generateDeterministicAssessment } from "./deterministicEngine.js";
 
 /**
  * Generates an authoritative institutional assessment report client-side if the serverless endpoint
  * is unreachable (e.g. static previews or network failures).
  */
 export function generateClientInstitutionalAssessment(payload) {
-  return generateInstitutionalAssessment(payload);
+  return generateDeterministicAssessment(payload);
 }
 
 /**
- * Query the server-side Legal Outcome AI Predictor endpoint (/api/legal-outcome)
+ * Query the server-side Legal Outcome AI Predictor endpoint (/api/assess)
  */
 export async function fetchAILegalOutcome(payload, signal) {
   try {
-    const res = await fetch("/api/legal-outcome", {
+    let res = await fetch("/api/assess", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify(payload),
       signal
-    });
+    }).catch(() => null);
 
-    const result = await res.json().catch(() => ({}));
+    // Fallback attempt to canonical /api/legal-outcome if /api/assess fails
+    if (!res || !res.ok) {
+      res = await fetch("/api/legal-outcome", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload),
+        signal
+      }).catch(() => null);
+    }
 
-    if (res.ok && result.success && result.data) {
+    const result = res ? await res.json().catch(() => ({})) : {};
+
+    if (res && res.ok && result.success && result.data) {
       return {
         success: true,
         data: result.data
       };
     }
 
-    // If server returned an error status or missing data, seamlessly fallback to institutional engine
+    // If server returned an error status or missing data, seamlessly fallback to deterministic engine
     if (result.data) {
       return {
         success: true,
@@ -620,7 +651,7 @@ export async function fetchAILegalOutcome(payload, signal) {
       return {
         success: false,
         error: "ABORTED",
-        message: "AI analysis request was cancelled or timed out after 30 seconds."
+        message: "AI analysis request was cancelled or timed out after 12 seconds."
       };
     }
     // Fallback for static preview / network drops
@@ -637,34 +668,42 @@ export async function fetchAILegalOutcome(payload, signal) {
  */
 export async function checkAIEngineHealth() {
   try {
-    const res = await fetch("/api/legal-outcome?health=1", {
+    let res = await fetch("/api/assess?health=1", {
       method: "GET",
       headers: { "Content-Type": "application/json" }
-    });
-    if (res.ok) {
+    }).catch(() => null);
+
+    if (!res || !res.ok) {
+      res = await fetch("/api/legal-outcome?health=1", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+      }).catch(() => null);
+    }
+
+    if (res && res.ok) {
       const data = await res.json().catch(() => ({}));
       return {
         status: "active",
-        keyConfigured: true,
+        keyConfigured: Boolean(data.keyConfigured),
         providerVerified: true,
-        model: data.model || "JustNivaran Legal Reasoning Engine (v2.5)",
-        message: "AI Analysis Engine Active • Beta"
+        model: data.model || "Anthropic Claude Sonnet 5.5",
+        message: data.message || "AI Analysis Engine Active • Claude Sonnet 5.5"
       };
     }
     return {
       status: "active",
-      keyConfigured: true,
+      keyConfigured: false,
       providerVerified: true,
-      model: "JustNivaran Legal Reasoning Engine (v2.5)",
-      message: "AI Analysis Engine Active • Beta"
+      model: "JustNivaran Institutional Rules Engine (Deterministic v3.1)",
+      message: "Rules-Engine Active • Deterministic Mode"
     };
   } catch {
     return {
       status: "active",
-      keyConfigured: true,
+      keyConfigured: false,
       providerVerified: true,
-      model: "JustNivaran Legal Reasoning Engine (v2.5)",
-      message: "AI Analysis Engine Active • Beta"
+      model: "JustNivaran Institutional Rules Engine (Deterministic v3.1)",
+      message: "Rules-Engine Active • Deterministic Mode"
     };
   }
 }

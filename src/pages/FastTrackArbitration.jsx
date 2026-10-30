@@ -193,7 +193,7 @@ export default function FastTrackArbitration({ onOpenFileModal }) {
           <div style={{ borderLeft: "3px solid var(--gold)", paddingLeft: "12px" }}>
             <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--gold-deep)", fontWeight: 600 }}>DAY 46 – 90</span>
             <div style={{ fontWeight: 600, fontSize: "13.5px", color: "var(--ink)", marginTop: "2px" }}>Document Scrutiny</div>
-            <div style={{ fontSize: "12px", color: "var(--slate)", marginTop: "4px" }}>Evaluation of Section 63 BSA certified electronic records.</div>
+            <div style={{ fontSize: "12px", color: "var(--slate)", marginTop: "4px" }}>Evaluation of submitted electronic records.</div>
           </div>
 
           <div style={{ borderLeft: "3px solid var(--gold)", paddingLeft: "12px" }}>

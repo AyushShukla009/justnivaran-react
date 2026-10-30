@@ -15,8 +15,7 @@ const CATEGORY_LEGAL_PROFILES = {
     statutes: [
       "Micro, Small and Medium Enterprises Development (MSMED) Act, 2006 (Sections 15, 16, 17, 18, 24)",
       "Indian Contract Act, 1872 (Section 70 - Obligation of Person Enjoying Benefit of Non-Gratuitous Act)",
-      "Arbitration and Conciliation Act, 1996 (Sections 29B, 31(7))",
-      "Bharatiya Sakshya Adhiniyam, 2023 (Section 63 - Electronic Record Admissibility)"
+      "Arbitration and Conciliation Act, 1996 (Sections 29B, 31(7))"
     ],
     legalIssues: [
       {
@@ -41,7 +40,7 @@ const CATEGORY_LEGAL_PROFILES = {
       name: "Scenario A: Primary MSME Claim Awarded in Full with Section 16 Statutory Compound Interest",
       likelihood: "More Likely",
       support: "Supply delivery acknowledged, credit window elapsed beyond 45 days, and statutory interest rate of 3x RBI bank rate mandated under Section 16 MSMED Act.",
-      contrary: "Respondent may raise procedural objections regarding Section 63 BSA electronic certificates for email records.",
+      contrary: "Respondent may raise procedural objections regarding electronic email records.",
       evidence: "Udyam registration certificate, delivery challans, tax invoices, and bank statement."
     },
     scenarioB: {
@@ -67,8 +66,7 @@ const CATEGORY_LEGAL_PROFILES = {
     statutes: [
       "Indian Contract Act, 1872 (Sections 55 - Time as Essence, 73 - Breach Compensation, 74 - Liquidated Damages)",
       "Specific Relief Act, 1963 (Sections 20A, 20B - Infrastructure Injunction Bar)",
-      "Arbitration and Conciliation Act, 1996 (Sections 29B, 31(7), 34(2A))",
-      "Bharatiya Sakshya Adhiniyam, 2023 (Section 63 - Electronic Project Measurement Logs)"
+      "Arbitration and Conciliation Act, 1996 (Sections 29B, 31(7), 34(2A))"
     ],
     legalIssues: [
       {
@@ -117,7 +115,7 @@ const CATEGORY_LEGAL_PROFILES = {
     governingDoctrine: "Indian Contract Act, 1872, Information Technology Act, 2000 & Copyright Act, 1957",
     authorities: ["AUTH_KAILASH_NATH_2015", "AUTH_ENERGY_WATCHDOG_2017", "AUTH_PERKINS_EASTMAN_2019"],
     statutes: [
-      "Information Technology Act, 2000 (Section 43A - Data Protection, Section 65B/63 BSA Admissibility)",
+      "Information Technology Act, 2000 (Section 43A - Data Protection)",
       "Indian Contract Act, 1872 (Sections 70 - Quantum Meruit, 73 - Breach Compensation, 74 - Liquidated Damages)",
       "Copyright Act, 1957 (Sections 14, 18 - Software License Scope)",
       "Arbitration and Conciliation Act, 1996 (Sections 29B, 31(7))"
@@ -134,8 +132,8 @@ const CATEGORY_LEGAL_PROFILES = {
         riskLevel: "Medium"
       },
       {
-        issueTitle: "Source Code Escrow, IP License Scope & Section 63 BSA Server Log Admissibility",
-        legalBasis: "Copyright Act 1957 & Section 63 Bharatiya Sakshya Adhiniyam 2023",
+        issueTitle: "Source Code Escrow & IP License Scope",
+        legalBasis: "Copyright Act 1957",
         riskLevel: "Medium"
       }
     ],
@@ -146,7 +144,7 @@ const CATEGORY_LEGAL_PROFILES = {
       likelihood: "More Likely",
       support: "Production deployment and lack of timely written bug rejection within the contract UAT window confirms deliverable acceptance.",
       contrary: "Respondent may present post-facto issue tickets or uptime SLA penalty calculations.",
-      evidence: "UAT signoff emails, server deployment logs, and Section 63 BSA electronic certificates."
+      evidence: "UAT signoff emails and server deployment logs."
     },
     scenarioB: {
       name: "Scenario B: Milestone Adjustment Subject to Minor SLA Rectification Credits",
@@ -171,8 +169,7 @@ const CATEGORY_LEGAL_PROFILES = {
     statutes: [
       "Transfer of Property Act, 1882 (Sections 106 - Notice to Quit, 108 - Rights/Liabilities, 111 - Determination of Lease)",
       "Specific Relief Act, 1963 (Section 10 - Specific Performance, Section 14 - Contracts Not Specifically Enforceable)",
-      "Arbitration and Conciliation Act, 1996 (Sections 29B, 31(7))",
-      "Bharatiya Sakshya Adhiniyam, 2023 (Section 63 - Electronic Lease Correspondence)"
+      "Arbitration and Conciliation Act, 1996 (Sections 29B, 31(7))"
     ],
     legalIssues: [
       {
@@ -327,8 +324,7 @@ const CATEGORY_LEGAL_PROFILES = {
     statutes: [
       "Indian Contract Act, 1872 (Sections 70 - Quantum Meruit, 73 - Compensation for Loss, 74 - Liquidated Damages)",
       "Sale of Goods Act, 1930 (Sections 41 - Examination Right, 42 - Acceptance, 55 - Action for Price)",
-      "Arbitration and Conciliation Act, 1996 (Sections 29B - Fast-Track Procedure, 31(7) - Statutory Interest)",
-      "Bharatiya Sakshya Adhiniyam, 2023 (Section 63 - Electronic Invoices & Delivery Receipts)"
+      "Arbitration and Conciliation Act, 1996 (Sections 29B - Fast-Track Procedure, 31(7) - Statutory Interest)"
     ],
     legalIssues: [
       {
@@ -353,7 +349,7 @@ const CATEGORY_LEGAL_PROFILES = {
       name: "Scenario A: Primary Invoiced Claim Sustained in Full with Statutory Interest",
       likelihood: "More Likely",
       support: "Documented proof of delivery, clear invoice trail, and absence of timely written rejection under Sale of Goods Act principles.",
-      contrary: "Respondent may raise procedural objections regarding Section 63 BSA electronic certificates for email records.",
+      contrary: "Respondent may raise procedural objections regarding electronic email records.",
       evidence: "Signed Master Agreement, Purchase Orders, Tax Invoices, and signed Delivery Receipts."
     },
     scenarioB: {
@@ -518,12 +514,8 @@ export function generateInstitutionalAssessment(cleanData, requestId) {
   ];
 
   const evidenceGaps = userMissing && userMissing.length > 5
-    ? [
-        userMissing,
-        "Section 63 Bharatiya Sakshya Adhiniyam (BSA) 2023 certificate for electronic communications and messaging records."
-      ]
+    ? [userMissing]
     : [
-        "Section 63 Bharatiya Sakshya Adhiniyam (BSA) 2023 certificate for electronic email records and WhatsApp chats.",
         "Certified bank ledger statement of accounts showing non-receipt of payment."
       ];
 

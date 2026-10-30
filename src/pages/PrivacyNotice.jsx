@@ -351,6 +351,9 @@ export default function PrivacyNotice() {
             <p>
               When you access our website, you may come across links to another website plugins or applications that are controlled by third party. By clicking and providing your consent to access such links, plugins or applications, you are enabling the third party to collect your personal data/information from the website. We are not in control of any such third party and shall in no manner be held liable for the manner in which they collect and make use of your data. It is advisable that you may visit their privacy policy / notice / statement to know more about their information practices and procedures.
             </p>
+            <p style={{ marginTop: "12px" }}>
+              <strong>AI Processing Services:</strong> When you utilize our Institutional Legal Outcome Assessment tool, dispute details and chronological parameters you submit are transmitted securely to Anthropic, PBC via their Claude API for analytical dispute evaluation. Under its commercial terms, case submissions are not used to train Anthropic's models; retained temporarily per Anthropic's data policy (see <a href="https://www.anthropic.com/legal/commercial-terms" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gold-deep)", textDecoration: "underline" }}>Anthropic Commercial Terms</a> and <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gold-deep)", textDecoration: "underline" }}>Anthropic Privacy Policy</a>).
+            </p>
           </div>
         </section>
 

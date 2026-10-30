@@ -7,7 +7,7 @@ const FAQ_DATA = [
   },
   {
     q: "How does the counterparty / respondent get notified of a dispute filing?",
-    a: "Upon docket registration, the JustNivaran Registry formally transmits the dispute notice to the respondent via verified Email, WhatsApp, and SMS with SHA-256 electronic timestamping admissible under Section 63 of Bharatiya Sakshya Adhiniyam (BSA), 2023 and the Information Technology Act, 2000."
+    a: "Upon docket registration, the JustNivaran Registry formally transmits the dispute notice to the respondent via verified Email, WhatsApp, and SMS with SHA-256 electronic timestamping admissible under the Information Technology Act, 2000."
   },
   {
     q: "What happens if the opposite party does not respond to a negotiation notice?",

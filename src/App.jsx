@@ -90,8 +90,8 @@ const ROUTE_SEO = {
   },
   "/arbitration-rules": {
     title: "Institutional Arbitration Rules — JustNivaran ODR",
-    description: "Standard and Fast-Track Arbitration Rules under the Arbitration and Conciliation Act, 1996 (Sections 29A & 29B) with BSA 2023 electronic record certification.",
-    keywords: "Arbitration Rules, Fast Track Arbitration 29B, Section 29A, Section 34 challenge, BSA 2023 Section 63"
+    description: "Standard and Fast-Track Arbitration Rules under the Arbitration and Conciliation Act, 1996 (Sections 29A & 29B).",
+    keywords: "Arbitration Rules, Fast Track Arbitration 29B, Section 29A, Section 34 challenge"
   },
   "/for-neutrals": {
     title: "Empanelment of Neutrals — JustNivaran ODR",
@@ -156,7 +156,7 @@ const ROUTE_SEO = {
   "/data-retention": {
     title: "Data Retention & Archival Policy — JustNivaran ODR",
     description: "Protocols for Section 34 challenge window archival (3 years), Article 136 Limitation Act execution preservation (12 years), and DPDP data erasure.",
-    keywords: "Data retention, Limitation Act 1963, Section 34(3), BSA 2023 evidence, data deletion"
+    keywords: "Data retention, Limitation Act 1963, Section 34(3), data deletion"
   },
   "/grievance": {
     title: "Grievance Redressal & DPO Desk — JustNivaran ODR",

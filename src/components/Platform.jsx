@@ -9,7 +9,7 @@ function Platform() {
           Technology engineered for legal enforceability.
         </h2>
         <p className="lede" style={{ marginTop: "20px" }}>
-          Nothing here replaces human adjudicators or neutral mediators. Every system capability exists to maintain procedural sanctity, guarantee evidentiary integrity under BSA 2023, and accelerate resolution timelines.
+          Nothing here replaces human adjudicators or neutral mediators. Every system capability exists to maintain procedural sanctity and accelerate resolution timelines.
         </p>
 
         <div className="caps">
@@ -27,7 +27,7 @@ function Platform() {
             </span>
             <h3>Cryptographic SHA-256 Audit Trail</h3>
             <p>
-              Every filing, notice dispatch, viewing event, and procedural order is timestamped and cryptographically hashed, generating an immutable BSA 2023 §63 electronic record certificate for court enforcement.
+              Every filing, notice dispatch, viewing event, and procedural order is timestamped and cryptographically hashed for court enforcement.
             </p>
           </div>
 

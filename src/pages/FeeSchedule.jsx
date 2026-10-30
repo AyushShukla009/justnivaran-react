@@ -49,7 +49,7 @@ function FeeSchedule({ onOpenFileModal }) {
         <div>
           <h3 style={{ fontSize: "18px", color: "var(--ink)", marginBottom: "8px" }}>Fee Breakdown &amp; Invoicing</h3>
           <p>
-            Fees comprise (i) Institutional Case Administration &amp; Registry Fee, (ii) Neutral Honorarium, and (iii) Electronic Record and Audit Certificate under applicable Indian law (Section 63, Bharatiya Sakshya Adhiniyam 2023 &amp; IT Act 2000). All fees are exclusive of applicable GST (18%). Official tax invoices and GST receipts are issued electronically.
+            Fees comprise (i) Institutional Case Administration &amp; Registry Fee, (ii) Neutral Honorarium, and (iii) Electronic Record and Audit Certificate under applicable Indian law (IT Act 2000). All fees are exclusive of applicable GST (18%). Official tax invoices and GST receipts are issued electronically.
           </p>
         </div>
 

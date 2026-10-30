@@ -576,7 +576,7 @@ export default function ArbitrationRules({ onOpenFileModal }) {
           <div style={{ display: "grid", gap: "16px" }}>
             <div style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: "4px", padding: "18px" }}>
               <h3 style={{ fontSize: "16px", color: "var(--ink)", margin: "0 0 8px" }}>Rules 39 &amp; 40: Confidentiality &amp; Preservation of Records</h3>
-              <p style={{ margin: 0 }}>Strict confidentiality under Section 42A. Encrypted digital archive maintained in compliance with DPDP Act 2023 and BSA 2023.</p>
+              <p style={{ margin: 0 }}>Strict confidentiality under Section 42A. Encrypted digital archive maintained in compliance with DPDP Act 2023.</p>
             </div>
 
             <div id="applicable-law" style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: "4px", padding: "18px", scrollMarginTop: "150px" }}>
@@ -587,7 +587,7 @@ export default function ArbitrationRules({ onOpenFileModal }) {
             <div id="admin-misc" style={{ background: "#fff", border: "1px solid var(--line)", borderRadius: "4px", padding: "18px", scrollMarginTop: "150px" }}>
               <h3 style={{ fontSize: "16px", color: "var(--ink)", margin: "0 0 8px" }}>Rules 43–48: Administrative Support, Certified Copies &amp; Severability</h3>
               <p style={{ margin: "0 0 6px" }}>Case administrators assist with technical coordination without impinging on judicial independence.</p>
-              <p style={{ margin: 0 }}>Certified electronic copies issued under Section 63 BSA 2023. Unenforceable provisions severed without invalidating remaining Rules.</p>
+              <p style={{ margin: 0 }}>Certified electronic copies issued. Unenforceable provisions severed without invalidating remaining Rules.</p>
             </div>
           </div>
         </section>

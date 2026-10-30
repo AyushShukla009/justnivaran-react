@@ -122,7 +122,7 @@ export function validateAssessmentPayload(data) {
   const availableEvidence = Array.isArray(data.availableEvidence)
     ? data.availableEvidence.map(sanitizeText).filter(Boolean).join(", ")
     : (sanitizeText(data.availableEvidence) || "Signed invoices, communication records, and delivery receipts.");
-  const missingEvidence = sanitizeText(data.missingEvidence) || "Section 63 BSA electronic evidence certificate for digital communications.";
+  const missingEvidence = sanitizeText(data.missingEvidence) || "";
   const desiredResolution = sanitizeText(data.desiredResolution) || `Full recovery of principal sum of INR ${claimValue.toLocaleString("en-IN")} with statutory interest.`;
 
   return {

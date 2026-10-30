@@ -323,7 +323,7 @@ export default function MediationRules({ onOpenFileModal }) {
             <p><strong>14.2</strong> The mediator may request additional information where reasonably necessary to understand the dispute or facilitate settlement.</p>
             <p><strong>14.3</strong> The mediator shall not conduct an adjudicatory examination of evidence.</p>
             <p><strong>14.4</strong> A party shall not knowingly submit materially false information for the purpose of misleading the mediator or another party.</p>
-            <p><strong>14.5</strong> The Platform may maintain an electronic record of procedural events, notices, submissions and communications as required for administration and audit purposes under Section 63 BSA 2023.</p>
+            <p><strong>14.5</strong> The Platform may maintain an electronic record of procedural events, notices, submissions and communications as required for administration and audit purposes.</p>
           </div>
         </section>
 
@@ -466,7 +466,7 @@ export default function MediationRules({ onOpenFileModal }) {
           </h3>
           <div style={{ display: "grid", gap: "10px" }}>
             <p><strong>26.1</strong> Notices, communications and documents may be exchanged electronically through the Platform.</p>
-            <p><strong>26.2</strong> Electronic records generated or maintained by the Platform may be used for establishing procedural events, including submission, receipt, scheduling and completion, subject to applicable law under Section 63 of the Bharatiya Sakshya Adhiniyam (BSA), 2023.</p>
+            <p><strong>26.2</strong> Electronic records generated or maintained by the Platform may be used for establishing procedural events, including submission, receipt, scheduling and completion, subject to applicable law.</p>
             <p><strong>26.3</strong> The Platform may retain records for the period required by law or its applicable <Link to="/data-retention" style={{ color: "var(--gold-deep)" }}>record-retention policy</Link>.</p>
             <p><strong>26.4</strong> Retention of administrative records shall not amount to retention or disclosure of confidential mediation content beyond what is legally permissible.</p>
           </div>

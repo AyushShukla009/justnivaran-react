@@ -1,35 +1,39 @@
-import { useState } from "react";
-import { MANDATORY_LEGAL_DISCLAIMER } from "../lib/legalAssessmentValidation";
+/**
+ * Premium Case Assessment Brief Dashboard (LegalOutcomeReport.jsx)
+ * Institutional Legal Outcome & Statutory Risk Report
+ *
+ * Design Language:
+ * - Navy (#0b1b31) & Gold (#d19a34)
+ * - Serif headings (Newsreader/Georgia)
+ * - Monospace tags & metadata
+ * - Dual qualitative strength dials
+ * - Interactive Limitation timeline bar
+ * - 3-Process comparison table matching /fee-schedule
+ * - Printable PDF brief export
+ */
 
-function getStrengthBadgeStyle(level) {
+import { useState } from "react";
+
+function getStrengthLevelIndex(level) {
   const norm = String(level || "").toLowerCase();
-  if (norm.includes("strong") && !norm.includes("moderate")) {
-    return { bg: "#dcfce7", color: "#15803d", border: "#86efac" };
-  }
-  if (norm.includes("moderate–strong") || norm.includes("moderate-strong")) {
-    return { bg: "rgba(209, 154, 52, 0.15)", color: "var(--gold-deep)", border: "rgba(209, 154, 52, 0.4)" };
-  }
-  if (norm.includes("moderate")) {
-    return { bg: "#fef3c7", color: "#b45309", border: "#fde68a" };
-  }
-  if (norm.includes("weak")) {
-    return { bg: "#fee2e2", color: "#b91c1c", border: "#fca5a5" };
-  }
-  return { bg: "#f1f5f9", color: "#475569", border: "#cbd5e1" };
+  if (norm.includes("strong")) return 3;
+  if (norm.includes("moderate")) return 2;
+  if (norm.includes("weak")) return 1;
+  return 2;
 }
 
-function getLikelihoodBadgeStyle(band) {
-  const norm = String(band || "").toLowerCase();
-  if (norm.includes("more likely")) {
-    return { bg: "#dcfce7", color: "#15803d" };
+function getOutlookBadgeStyle(rating) {
+  const norm = String(rating || "").toLowerCase();
+  if (norm.includes("full recovery")) {
+    return { bg: "#dcfce7", color: "#15803d", border: "#86efac" };
   }
-  if (norm.includes("plausible")) {
-    return { bg: "rgba(209, 154, 52, 0.15)", color: "var(--gold-deep)" };
+  if (norm.includes("substantial")) {
+    return { bg: "rgba(209, 154, 52, 0.15)", color: "var(--gold-deep)", border: "rgba(209, 154, 52, 0.4)" };
   }
-  if (norm.includes("less likely")) {
-    return { bg: "#fee2e2", color: "#b91c1c" };
+  if (norm.includes("partial")) {
+    return { bg: "#fef3c7", color: "#b45309", border: "#fde68a" };
   }
-  return { bg: "#f1f5f9", color: "#475569" };
+  return { bg: "#fee2e2", color: "#b91c1c", border: "#fca5a5" };
 }
 
 export default function LegalOutcomeReport({ report, onReset }) {
@@ -37,30 +41,50 @@ export default function LegalOutcomeReport({ report, onReset }) {
 
   if (!report) return null;
 
+  const isLiveClaude = Boolean(report.isLiveAI || String(report.requestId || "").startsWith("JN-AI-"));
+  const limitation = report.limitation || {};
+  const section12A = report.section12A || {};
+  const msmed = report.msmed || {};
+  const forum = report.forumRecommendation || {};
+  const processComparison = report.processComparison || [];
+  const claimantStrength = report.claimStrength || { rating: "Moderate", reasons: [] };
+  const defenceStrength = report.defenceStrength || { rating: "Moderate", reasons: [] };
+  const settlementOutlook = report.settlementOutlook || {
+    rating: "Substantial partial recovery likely",
+    explanation: "Substantive documentary record supports principal recovery, subject to procedural negotiations."
+  };
+
   const handleCopy = () => {
-    const plainText = `JUSTNIVARAN LEGAL OUTCOME AI PREDICTOR — ASSESSMENT DOSSIER
-Reference: ${report.requestId}
-Date: ${new Date(report.generatedAt).toLocaleString("en-IN")}
-Confidence: ${report.confidenceBand}
-Model: ${report.modelUsed || "Gemini"}
+    const plainText = `JUSTNIVARAN AI DISPUTE ASSESSMENT — CASE ASSESSMENT BRIEF
+Dossier ID: ${report.requestId}
+Engine Type: ${isLiveClaude ? "AI-assisted assessment (Claude)" : "Rules-engine assessment"}
+Generated: ${new Date(report.generatedAt).toLocaleString("en-IN")} IST
+Dispute Category: ${report.category}
+Claim Quantum: ${report.claimQuantumFormatted}
 
---- EXECUTIVE SUMMARY ---
-${report.assessmentSummary}
+1. RECOMMENDED FORUM:
+${forum.recommendedForum} (${forum.statutoryBasis})
+Rationale: ${forum.rationale}
 
---- STRENGTH EVALUATION ---
-- Claimant Strength: ${report.claimantStrength}
-- Defence Strength: ${report.defenceStrength}
-- Evidence Readiness: ${report.evidenceReadiness}
+2. STATUTORY LIMITATION CLOCK (Limitation Act, 1963):
+Status: ${limitation.status}
+Breach Date: ${limitation.breachDate} | Expiry: ${limitation.expiryDate}
+Days Remaining: ${limitation.daysRemaining} days
 
---- LIKELY OUTCOME SCENARIOS ---
-${report.likelyOutcomeScenarios?.map((s, idx) => `${idx + 1}. ${s.scenarioName} [${s.likelihoodBand}]\n   Reasons: ${s.supportingReasons}\n   Risks: ${s.contraryFactors}`).join("\n\n")}
+3. SECTION 12A COMMERCIAL COURTS ACT, 2015:
+Status: ${section12A.status}
 
---- VERIFIED LEGAL AUTHORITIES ---
-${report.verifiedAuthorities?.map((a) => `- ${a.caseName} (${a.citation})\n  Proposition: ${a.legalProposition}\n  URL: ${a.sourceUrl}`).join("\n\n")}
+4. MSMED ACT, 2006 (SECTIONS 15, 16, 18 & 19):
+Applicable: ${msmed.applicable ? "YES" : "NO"}
+${msmed.applicable ? `Appointed Day: ${msmed.appointedDay} | Indicative Overdue Interest: ₹${msmed.estimatedStatutoryInterest?.toLocaleString("en-IN")}` : ""}
 
---- DISCLAIMER ---
-${MANDATORY_LEGAL_DISCLAIMER}
-`;
+5. QUALITATIVE STRENGTH EVALUATION:
+Claimant Strength: ${claimantStrength.rating}
+Defence Strength: ${defenceStrength.rating}
+Settlement Outlook: ${settlementOutlook.rating} (${settlementOutlook.explanation})
+
+DISCLAIMER: ${report.disclaimer || "AI-assisted indicative assessment. Not legal advice."}`;
+
     navigator.clipboard.writeText(plainText).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
@@ -71,40 +95,56 @@ ${MANDATORY_LEGAL_DISCLAIMER}
     window.print();
   };
 
-  const claimantStyle = getStrengthBadgeStyle(report.claimantStrength);
-  const defenceStyle = getStrengthBadgeStyle(report.defenceStrength);
-  const evidenceStyle = getStrengthBadgeStyle(report.evidenceReadiness);
-
   return (
     <div
-      className="ai-outcome-report"
+      className="case-assessment-brief-report"
       style={{
         background: "#ffffff",
         border: "1px solid var(--line)",
-        borderRadius: "8px",
+        borderRadius: "10px",
         padding: "36px",
-        boxShadow: "0 10px 30px rgba(11, 27, 49, 0.06)"
+        boxShadow: "0 10px 30px rgba(11, 27, 49, 0.06)",
+        fontFamily: "var(--font-sans, system-ui, sans-serif)"
       }}
     >
-      {/* Top Action Bar */}
+      {/* Top Action Header Bar */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
-          gap: "12px",
+          gap: "14px",
           borderBottom: "1px solid var(--line)",
           paddingBottom: "20px",
-          marginBottom: "24px"
+          marginBottom: "28px"
         }}
       >
         <div>
-          <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>
-            Assessment Dossier &bull; {report.requestId}
-          </span>
-          <div style={{ fontSize: "12px", color: "var(--slate)", marginTop: "2px" }}>
-            Generated: {new Date(report.generatedAt).toLocaleString("en-IN")} IST &bull; Confidence: <strong>{report.confidenceBand}</strong>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+            <span style={{ fontFamily: "var(--mono)", fontSize: "12px", color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Dossier ID: <strong style={{ color: "var(--ink)" }}>{report.requestId}</strong>
+            </span>
+
+            {/* Strict engineType badge — never a combined label */}
+            <span
+              style={{
+                fontFamily: "var(--mono)",
+                fontSize: "11px",
+                fontWeight: 700,
+                padding: "3px 10px",
+                borderRadius: "16px",
+                background: isLiveClaude ? "rgba(34, 197, 94, 0.12)" : "rgba(209, 154, 52, 0.12)",
+                color: isLiveClaude ? "#15803d" : "var(--gold-deep)",
+                border: `1px solid ${isLiveClaude ? "rgba(34, 197, 94, 0.35)" : "rgba(209, 154, 52, 0.35)"}`
+              }}
+            >
+              {isLiveClaude ? "AI-assisted assessment (Claude)" : "Rules-engine assessment"}
+            </span>
+          </div>
+
+          <div style={{ fontSize: "12px", color: "var(--slate)", marginTop: "4px" }}>
+            Generated: {new Date(report.generatedAt).toLocaleString("en-IN")} IST &bull; Dispute Quantum: <strong>{report.claimQuantumFormatted}</strong>
           </div>
         </div>
 
@@ -113,7 +153,7 @@ ${MANDATORY_LEGAL_DISCLAIMER}
             type="button"
             onClick={handleCopy}
             className="btn ghost"
-            style={{ padding: "7px 14px", fontSize: "12.5px" }}
+            style={{ padding: "8px 14px", fontSize: "12.5px" }}
           >
             {copied ? "✓ Copied to Clipboard" : "📋 Copy Dossier"}
           </button>
@@ -121,338 +161,447 @@ ${MANDATORY_LEGAL_DISCLAIMER}
             type="button"
             onClick={handlePrint}
             className="btn ghost"
-            style={{ padding: "7px 14px", fontSize: "12.5px" }}
+            style={{ padding: "8px 14px", fontSize: "12.5px" }}
           >
-            🖨️ Print Dossier
+            🖨️ Download / Print Brief
           </button>
           <button
             type="button"
             onClick={onReset}
             className="btn gold"
-            style={{ padding: "7px 14px", fontSize: "12.5px" }}
+            style={{ padding: "8px 16px", fontSize: "12.5px", fontWeight: 600 }}
           >
-            🔄 New Assessment
+            ↺ New Assessment
           </button>
         </div>
       </div>
 
-      {/* Top Disclaimer Notice */}
-      <div
+      {/* 1. Headline Institutional Recommendation Card */}
+      <section
         style={{
-          background: "rgba(209, 154, 52, 0.08)",
+          background: "linear-gradient(135deg, rgba(11, 27, 49, 0.03) 0%, rgba(209, 154, 52, 0.07) 100%)",
           border: "1px solid rgba(209, 154, 52, 0.35)",
-          borderRadius: "6px",
-          padding: "14px 18px",
+          borderRadius: "8px",
+          padding: "24px 28px",
           marginBottom: "32px",
-          fontSize: "12px",
-          lineHeight: "1.6",
-          color: "var(--ink)"
+          position: "relative"
         }}
       >
-        <strong>MANDATORY STATUTORY NOTICE:</strong> {MANDATORY_LEGAL_DISCLAIMER}
-      </div>
-
-      {/* Strength & Readiness Scorecards */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-          gap: "16px",
-          marginBottom: "32px"
-        }}
-      >
-        <div style={{ background: "var(--paper-hi)", border: "1px solid var(--line)", borderRadius: "6px", padding: "18px" }}>
-          <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>
-            Claimant Position Strength
-          </span>
-          <div style={{ marginTop: "8px" }}>
-            <span
-              style={{
-                fontFamily: "var(--mono)",
-                fontSize: "13px",
-                fontWeight: 700,
-                padding: "4px 10px",
-                borderRadius: "4px",
-                background: claimantStyle.bg,
-                color: claimantStyle.color,
-                border: `1px solid ${claimantStyle.border}`
-              }}
-            >
-              {report.claimantStrength}
-            </span>
-          </div>
+        <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--gold-deep)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+          Recommended Resolution Pathway
         </div>
-
-        <div style={{ background: "var(--paper-hi)", border: "1px solid var(--line)", borderRadius: "6px", padding: "18px" }}>
-          <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>
-            Expected Defence Exposure
-          </span>
-          <div style={{ marginTop: "8px" }}>
-            <span
-              style={{
-                fontFamily: "var(--mono)",
-                fontSize: "13px",
-                fontWeight: 700,
-                padding: "4px 10px",
-                borderRadius: "4px",
-                background: defenceStyle.bg,
-                color: defenceStyle.color,
-                border: `1px solid ${defenceStyle.border}`
-              }}
-            >
-              {report.defenceStrength}
-            </span>
-          </div>
+        <h2 style={{ fontSize: "24px", color: "var(--ink)", margin: "0 0 8px 0", fontFamily: "var(--serif, Georgia, serif)" }}>
+          {forum.recommendedForum || "Institutional Commercial Mediation"}
+        </h2>
+        <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--slate)", marginBottom: "12px" }}>
+          Statutory Framework: <span style={{ color: "var(--ink)" }}>{forum.statutoryBasis}</span>
         </div>
-
-        <div style={{ background: "var(--paper-hi)", border: "1px solid var(--line)", borderRadius: "6px", padding: "18px" }}>
-          <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>
-            Evidentiary Completeness
-          </span>
-          <div style={{ marginTop: "8px" }}>
-            <span
-              style={{
-                fontFamily: "var(--mono)",
-                fontSize: "13px",
-                fontWeight: 700,
-                padding: "4px 10px",
-                borderRadius: "4px",
-                background: evidenceStyle.bg,
-                color: evidenceStyle.color,
-                border: `1px solid ${evidenceStyle.border}`
-              }}
-            >
-              {report.evidenceReadiness}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* 1. Assessment Summary */}
-      <div style={{ marginBottom: "32px" }}>
-        <h3 style={{ fontSize: "18px", color: "var(--ink)", marginBottom: "12px", borderBottom: "1px solid var(--line)", paddingBottom: "8px" }}>
-          1. AI Assessment Summary
-        </h3>
-        <p style={{ fontSize: "14px", color: "#2d3748", lineHeight: "1.7", whiteSpace: "pre-line", margin: 0 }}>
-          {report.assessmentSummary}
+        <p style={{ fontSize: "14px", color: "#334155", lineHeight: "1.65", margin: 0 }}>
+          {forum.rationale}
         </p>
-      </div>
 
-      {/* 2. Key Legal Issues */}
-      {report.legalIssues && report.legalIssues.length > 0 && (
-        <div style={{ marginBottom: "32px" }}>
-          <h3 style={{ fontSize: "18px", color: "var(--ink)", marginBottom: "12px", borderBottom: "1px solid var(--line)", paddingBottom: "8px" }}>
-            2. Primary Legal &amp; Contractual Issues
-          </h3>
-          <div style={{ display: "grid", gap: "12px" }}>
-            {report.legalIssues.map((issue, idx) => (
-              <div
-                key={idx}
+        {section12A.statutoryAdvisory && (
+          <div
+            style={{
+              marginTop: "16px",
+              padding: "12px 16px",
+              background: "#ffffff",
+              border: "1px solid var(--line)",
+              borderRadius: "6px",
+              fontSize: "12.5px",
+              color: "var(--slate)",
+              lineHeight: "1.5"
+            }}
+          >
+            ⚖️ <strong>Statutory Note on Section 12A:</strong> {section12A.statutoryAdvisory}
+          </div>
+        )}
+      </section>
+
+      {/* 2. Dual Strength Gauges (Claimant vs Defence) */}
+      <section style={{ marginBottom: "32px" }}>
+        <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "12px" }}>
+          Statutory Strength Evaluation (Qualitative Bands Only)
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px" }}>
+          {/* Claimant Strength Card */}
+          <div style={{ background: "#fafbfc", border: "1px solid var(--line)", borderRadius: "8px", padding: "20px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--ink)" }}>
+                Claimant's Case Strength
+              </span>
+              <span
                 style={{
-                  background: "var(--paper-hi)",
-                  border: "1px solid var(--line)",
-                  borderRadius: "6px",
-                  padding: "16px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  gap: "16px"
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  fontFamily: "var(--mono)",
+                  padding: "4px 10px",
+                  borderRadius: "12px",
+                  background: claimantStrength.rating === "Strong" ? "#dcfce7" : claimantStrength.rating === "Moderate" ? "#fef3c7" : "#fee2e2",
+                  color: claimantStrength.rating === "Strong" ? "#15803d" : claimantStrength.rating === "Moderate" ? "#b45309" : "#b91c1c"
                 }}
               >
-                <div>
-                  <strong style={{ fontSize: "14px", color: "var(--ink)" }}>{issue.issueTitle}</strong>
-                  <div style={{ fontSize: "12.5px", color: "var(--slate)", marginTop: "4px" }}>
-                    Legal Foundation: {issue.legalBasis}
-                  </div>
-                </div>
-                <span
-                  style={{
-                    fontFamily: "var(--mono)",
-                    fontSize: "10.5px",
-                    fontWeight: 600,
-                    padding: "3px 8px",
-                    borderRadius: "3px",
-                    background: issue.riskLevel === "High" ? "#fee2e2" : issue.riskLevel === "Medium" ? "#fef3c7" : "#dcfce7",
-                    color: issue.riskLevel === "High" ? "#b91c1c" : issue.riskLevel === "Medium" ? "#b45309" : "#15803d"
-                  }}
-                >
-                  {issue.riskLevel} Risk
-                </span>
+                {claimantStrength.rating}
+              </span>
+            </div>
+
+            {/* Visual 3-Segment Gauge */}
+            <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
+              <div style={{ flex: 1, height: "8px", borderRadius: "4px", background: getStrengthLevelIndex(claimantStrength.rating) >= 1 ? "#ef4444" : "#e2e8f0" }} />
+              <div style={{ flex: 1, height: "8px", borderRadius: "4px", background: getStrengthLevelIndex(claimantStrength.rating) >= 2 ? "#f59e0b" : "#e2e8f0" }} />
+              <div style={{ flex: 1, height: "8px", borderRadius: "4px", background: getStrengthLevelIndex(claimantStrength.rating) >= 3 ? "#10b981" : "#e2e8f0" }} />
+            </div>
+
+            <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "13px", color: "#334155", lineHeight: "1.6" }}>
+              {claimantStrength.reasons.map((r, i) => (
+                <li key={i} style={{ marginBottom: "6px" }}>{r}</li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Defence Strength Card */}
+          <div style={{ background: "#fafbfc", border: "1px solid var(--line)", borderRadius: "8px", padding: "20px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--ink)" }}>
+                Respondent's Substantive Defense
+              </span>
+              <span
+                style={{
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  fontFamily: "var(--mono)",
+                  padding: "4px 10px",
+                  borderRadius: "12px",
+                  background: defenceStrength.rating === "Strong" ? "#fee2e2" : defenceStrength.rating === "Moderate" ? "#fef3c7" : "#dcfce7",
+                  color: defenceStrength.rating === "Strong" ? "#b91c1c" : defenceStrength.rating === "Moderate" ? "#b45309" : "#15803d"
+                }}
+              >
+                {defenceStrength.rating}
+              </span>
+            </div>
+
+            {/* Visual 3-Segment Gauge */}
+            <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
+              <div style={{ flex: 1, height: "8px", borderRadius: "4px", background: getStrengthLevelIndex(defenceStrength.rating) >= 1 ? "#10b981" : "#e2e8f0" }} />
+              <div style={{ flex: 1, height: "8px", borderRadius: "4px", background: getStrengthLevelIndex(defenceStrength.rating) >= 2 ? "#f59e0b" : "#e2e8f0" }} />
+              <div style={{ flex: 1, height: "8px", borderRadius: "4px", background: getStrengthLevelIndex(defenceStrength.rating) >= 3 ? "#ef4444" : "#e2e8f0" }} />
+            </div>
+
+            <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "13px", color: "#334155", lineHeight: "1.6" }}>
+              {defenceStrength.reasons.map((r, i) => (
+                <li key={i} style={{ marginBottom: "6px" }}>{r}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Statutory Limitation Clock Bar (Limitation Act, 1963) */}
+      <section style={{ background: "#ffffff", border: "1px solid var(--line)", borderRadius: "8px", padding: "22px 24px", marginBottom: "32px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
+          <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            Limitation Clock &bull; Articles 55 &amp; 113, Limitation Act, 1963
+          </div>
+          <span
+            style={{
+              fontSize: "12px",
+              fontWeight: 700,
+              fontFamily: "var(--mono)",
+              padding: "4px 10px",
+              borderRadius: "4px",
+              background: limitation.status === "In time" ? "#dcfce7" : limitation.status === "Close to expiry" ? "#fef3c7" : "#fee2e2",
+              color: limitation.status === "In time" ? "#15803d" : limitation.status === "Close to expiry" ? "#b45309" : "#b91c1c"
+            }}
+          >
+            {limitation.label || limitation.status}
+          </span>
+        </div>
+
+        {/* Visual Progress Bar */}
+        <div style={{ width: "100%", height: "10px", background: "#e2e8f0", borderRadius: "5px", overflow: "hidden", marginBottom: "14px" }}>
+          <div
+            style={{
+              width: limitation.status === "Likely barred" ? "100%" : `${Math.min(100, Math.max(10, ((1095 - (limitation.daysRemaining || 0)) / 1095) * 100))}%`,
+              height: "100%",
+              background: limitation.status === "Likely barred" ? "#ef4444" : limitation.status === "Close to expiry" ? "#f59e0b" : "var(--gold)",
+              transition: "width 0.4s ease"
+            }}
+          />
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px", fontSize: "12.5px", color: "var(--slate)" }}>
+          <div>Breach Accrued: <strong style={{ color: "var(--ink)" }}>{limitation.breachDate}</strong></div>
+          <div>Effective Expiry: <strong style={{ color: "var(--ink)" }}>{limitation.expiryDate}</strong></div>
+          <div>
+            Days Remaining:{" "}
+            <strong style={{ color: limitation.daysRemaining <= 90 ? "#b91c1c" : "var(--ink)", fontFamily: "var(--mono)" }}>
+              {limitation.daysRemaining !== null ? `${limitation.daysRemaining} Days` : "N/A"}
+            </strong>
+          </div>
+          <div>COVID Exclusion: <strong>{limitation.covidExcludedDays ? `${limitation.covidExcludedDays} Days Excluded` : "None"}</strong></div>
+        </div>
+
+        {limitation.acknowledgmentReviewNote && (
+          <div style={{ marginTop: "12px", fontSize: "12px", color: "#334155", background: "#f8fafc", padding: "10px 14px", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
+            📝 <strong>Section 18 Limitation Note:</strong> {limitation.acknowledgmentReviewNote}
+          </div>
+        )}
+      </section>
+
+      {/* 4. MSMED Act Statutory Benefit Card (If applicable) */}
+      {msmed.applicable && (
+        <section
+          style={{
+            background: "rgba(209, 154, 52, 0.05)",
+            border: "1px solid rgba(209, 154, 52, 0.35)",
+            borderRadius: "8px",
+            padding: "22px 24px",
+            marginBottom: "32px"
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
+            <span style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--gold-deep)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              MSMED Act 2006 &bull; Sections 15, 16 &amp; 18 Statutory Rights
+            </span>
+            <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--ink)" }}>
+              Registered {msmed.enterpriseType} Enterprise
+            </span>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "14px" }}>
+            <div>
+              <div style={{ fontSize: "11.5px", color: "var(--slate)" }}>Section 15 Appointed Day</div>
+              <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--ink)", fontFamily: "var(--mono)" }}>
+                {msmed.appointedDay}
               </div>
-            ))}
+            </div>
+
+            <div>
+              <div style={{ fontSize: "11.5px", color: "var(--slate)" }}>Statutory Interest Rate (3x RBI)</div>
+              <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--gold-deep)", fontFamily: "var(--mono)" }}>
+                {msmed.statutoryInterestRatePercent} p.a.
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: "11.5px", color: "var(--slate)" }}>Indicative Overdue Interest</div>
+              <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--ink)", fontFamily: "var(--mono)" }}>
+                ₹ {msmed.estimatedStatutoryInterest?.toLocaleString("en-IN")}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: "11.5px", color: "var(--slate)" }}>Total Claim + Interest</div>
+              <div style={{ fontSize: "16px", fontWeight: 700, color: "#15803d", fontFamily: "var(--mono)" }}>
+                ₹ {msmed.totalClaimWithInterest?.toLocaleString("en-IN")}
+              </div>
+            </div>
           </div>
-        </div>
+
+          <p style={{ fontSize: "12.5px", color: "#334155", margin: "0 0 10px 0", lineHeight: "1.5" }}>
+            {msmed.interestStartExplanation}
+          </p>
+
+          <div style={{ fontSize: "12px", color: "var(--slate)", background: "#ffffff", padding: "10px 14px", borderRadius: "4px", border: "1px solid var(--line)" }}>
+            ⚖️ {msmed.section19PreDepositRule}
+          </div>
+        </section>
       )}
 
-      {/* 3. Likely Outcome Scenarios */}
-      {report.likelyOutcomeScenarios && report.likelyOutcomeScenarios.length > 0 && (
-        <div style={{ marginBottom: "32px" }}>
-          <h3 style={{ fontSize: "18px", color: "var(--ink)", marginBottom: "12px", borderBottom: "1px solid var(--line)", paddingBottom: "8px" }}>
-            3. Probable Outcome Scenarios
-          </h3>
-          <div style={{ display: "grid", gap: "16px" }}>
-            {report.likelyOutcomeScenarios.map((sc, idx) => {
-              const scBadge = getLikelihoodBadgeStyle(sc.likelihoodBand);
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    background: "#ffffff",
-                    border: "1.5px solid var(--line)",
-                    borderRadius: "6px",
-                    padding: "18px"
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
-                    <h4 style={{ fontSize: "15px", color: "var(--ink)", margin: 0 }}>{sc.scenarioName}</h4>
-                    <span
-                      style={{
-                        fontFamily: "var(--mono)",
-                        fontSize: "11px",
-                        fontWeight: 700,
-                        padding: "3px 8px",
-                        borderRadius: "3px",
-                        background: scBadge.bg,
-                        color: scBadge.color
-                      }}
-                    >
-                      {sc.likelihoodBand}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: "13px", color: "#3B4E68", lineHeight: "1.6", display: "grid", gap: "6px" }}>
-                    <div>
-                      <strong style={{ color: "var(--ink)" }}>Supporting Factors:</strong> {sc.supportingReasons}
-                    </div>
-                    {sc.contraryFactors && (
-                      <div>
-                        <strong style={{ color: "var(--ink)" }}>Counter Arguments / Vulnerabilities:</strong> {sc.contraryFactors}
-                      </div>
-                    )}
-                    {sc.additionalEvidenceRequired && (
-                      <div>
-                        <strong style={{ color: "var(--ink)" }}>Required Evidence:</strong> {sc.additionalEvidenceRequired}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+      {/* 5. Qualitative Settlement Outlook & Probable Outcome Scenarios */}
+      <section style={{ marginBottom: "32px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
+          <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            Settlement Outlook &amp; Probable Scenarios
+          </div>
+
+          {/* Qualitative Settlement Outlook Badge (NO percentages, NO rupee figures from AI) */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "4px 12px",
+              borderRadius: "16px",
+              ...getOutlookBadgeStyle(settlementOutlook.rating),
+              fontSize: "12px",
+              fontWeight: 700
+            }}
+          >
+            <span>Settlement Outlook: {settlementOutlook.rating}</span>
           </div>
         </div>
-      )}
 
-      {/* 4. Verified Legal Authorities */}
-      {report.verifiedAuthorities && report.verifiedAuthorities.length > 0 && (
-        <div style={{ marginBottom: "32px" }}>
-          <h3 style={{ fontSize: "18px", color: "var(--ink)", marginBottom: "12px", borderBottom: "1px solid var(--line)", paddingBottom: "8px" }}>
-            4. Verified Legal Authorities &amp; Judicial Precedents
-          </h3>
-          <div style={{ display: "grid", gap: "14px" }}>
-            {report.verifiedAuthorities.map((auth, idx) => (
-              <div
-                key={idx}
-                style={{
-                  background: "var(--paper-hi)",
-                  border: "1px solid var(--line)",
-                  borderRadius: "6px",
-                  padding: "16px"
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
-                  <div>
-                    <a
-                      href={auth.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        fontSize: "14.5px",
-                        fontWeight: 700,
-                        color: "var(--ink)",
-                        textDecoration: "underline",
-                        textDecorationColor: "var(--gold)"
-                      }}
-                    >
-                      {auth.caseName} ↗
-                    </a>
-                    <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--gold-deep)", marginTop: "2px" }}>
-                      {auth.citation} &bull; {auth.court} ({auth.judgmentDate})
-                    </div>
-                  </div>
+        <div style={{ fontSize: "13px", color: "var(--slate)", marginBottom: "16px", fontStyle: "italic" }}>
+          "{settlementOutlook.explanation}"
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+          {(report.likelyOutcomeScenarios || []).map((sc, idx) => (
+            <div
+              key={idx}
+              style={{
+                background: "#fafbfc",
+                border: "1px solid var(--line)",
+                borderRadius: "8px",
+                padding: "18px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between"
+              }}
+            >
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                  <span style={{ fontSize: "13.5px", fontWeight: 700, color: "var(--ink)" }}>
+                    Scenario {String.fromCharCode(65 + idx)}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      fontFamily: "var(--mono)",
+                      padding: "2px 8px",
+                      borderRadius: "10px",
+                      background: sc.likelihood === "High" ? "#dcfce7" : sc.likelihood === "Medium" ? "#fef3c7" : "#fee2e2",
+                      color: sc.likelihood === "High" ? "#15803d" : sc.likelihood === "Medium" ? "#b45309" : "#b91c1c"
+                    }}
+                  >
+                    Likelihood: {sc.likelihood}
+                  </span>
                 </div>
-                <p style={{ fontSize: "13px", color: "#3B4E68", margin: "8px 0 6px", lineHeight: "1.5" }}>
-                  <strong>Legal Proposition:</strong> {auth.legalProposition}
+                <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                  {sc.scenario}
+                </div>
+                <p style={{ fontSize: "12.5px", color: "#475569", lineHeight: "1.55", margin: 0 }}>
+                  {sc.explanation}
                 </p>
-                {auth.applicationToDispute && (
-                  <p style={{ fontSize: "12.5px", color: "var(--slate)", margin: 0, fontStyle: "italic" }}>
-                    Application: {auth.applicationToDispute}
-                  </p>
-                )}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
-      )}
+      </section>
 
-      {/* 5. Evidentiary Gaps & Settlement Considerations */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "32px" }}>
+      {/* 6. Evidentiary Record & Procedural Gaps */}
+      <section style={{ background: "#ffffff", border: "1px solid var(--line)", borderRadius: "8px", padding: "22px 24px", marginBottom: "32px" }}>
+        <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "14px" }}>
+          Evidentiary Checklist &amp; Identified Gaps
+        </div>
+
+        {report.claimantGaps && report.claimantGaps.length > 0 && (
+          <div style={{ marginBottom: "16px" }}>
+            <div style={{ fontSize: "12.5px", fontWeight: 700, color: "#b45309", marginBottom: "8px" }}>
+              ⚠️ Procedural Omissions &amp; Proof Deficiencies:
+            </div>
+            <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "13px", color: "#334155", lineHeight: "1.6" }}>
+              {report.claimantGaps.map((g, i) => (
+                <li key={i}>{g}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {report.evidenceGaps && report.evidenceGaps.length > 0 && (
-          <div style={{ background: "var(--paper-hi)", border: "1px solid var(--line)", borderRadius: "6px", padding: "18px" }}>
-            <h4 style={{ fontSize: "14.5px", color: "var(--ink)", margin: "0 0 10px" }}>
-              ⚠️ Evidentiary Gaps to Address
-            </h4>
-            <ul style={{ fontSize: "12.5px", color: "#3B4E68", paddingLeft: "18px", margin: 0, lineHeight: "1.6" }}>
+          <div>
+            <div style={{ fontSize: "12.5px", fontWeight: 700, color: "var(--ink)", marginBottom: "8px" }}>
+              📋 Evidentiary Requirements to Satisfy Before Filing:
+            </div>
+            <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "13px", color: "#475569", lineHeight: "1.6" }}>
               {report.evidenceGaps.map((gap, idx) => (
                 <li key={idx}>{gap}</li>
               ))}
             </ul>
           </div>
         )}
+      </section>
 
-        {report.settlementConsiderations && report.settlementConsiderations.length > 0 && (
-          <div style={{ background: "var(--paper-hi)", border: "1px solid var(--line)", borderRadius: "6px", padding: "18px" }}>
-            <h4 style={{ fontSize: "14.5px", color: "var(--ink)", margin: "0 0 10px" }}>
-              🤝 Settlement Opportunities
-            </h4>
-            <ul style={{ fontSize: "12.5px", color: "#3B4E68", paddingLeft: "18px", margin: 0, lineHeight: "1.6" }}>
-              {report.settlementConsiderations.map((sc, idx) => (
-                <li key={idx}>{sc}</li>
-              ))}
-            </ul>
+      {/* 7. Statutory Process & Authoritative Fee Comparison Table */}
+      <section style={{ marginBottom: "36px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
+          <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            ADR Process &amp; Fee Schedule Comparison
           </div>
-        )}
-      </div>
-
-      {/* 6. Assumptions and Limitations */}
-      <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "6px", padding: "16px", marginBottom: "32px" }}>
-        <h4 style={{ fontSize: "13.5px", color: "#334155", margin: "0 0 8px" }}>
-          Analytical Assumptions &amp; Algorithmic Limitations
-        </h4>
-        <div style={{ fontSize: "12px", color: "#64748b", lineHeight: "1.6" }}>
-          {report.assumptions?.length > 0 && (
-            <div style={{ marginBottom: "6px" }}>
-              <strong>Assumptions:</strong> {report.assumptions.join("; ")}
-            </div>
-          )}
-          {report.limitations?.length > 0 && (
-            <div>
-              <strong>Limitations:</strong> {report.limitations.join("; ")}
-            </div>
-          )}
+          <span style={{ fontSize: "12px", color: "var(--slate)" }}>
+            Authoritative Institutional Fee Schedule v2.4 (Excl. 18% GST)
+          </span>
         </div>
-      </div>
 
-      {/* Bottom Disclaimer */}
+        <div style={{ overflowX: "auto", border: "1px solid var(--line)", borderRadius: "8px" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13.5px", textAlign: "left" }}>
+            <thead>
+              <tr style={{ background: "var(--ink)", color: "#ffffff" }}>
+                <th style={{ padding: "12px 16px", fontWeight: 600 }}>Dispute Track</th>
+                <th style={{ padding: "12px 16px", fontWeight: 600 }}>Timeline</th>
+                <th style={{ padding: "12px 16px", fontWeight: 600 }}>Base Fee</th>
+                <th style={{ padding: "12px 16px", fontWeight: 600 }}>Total (18% GST)</th>
+                <th style={{ padding: "12px 16px", fontWeight: 600 }}>Consent Requirement</th>
+              </tr>
+            </thead>
+            <tbody>
+              {processComparison.map((p, idx) => (
+                <tr key={p.processId || idx} style={{ borderBottom: "1px solid var(--line)", background: idx % 2 === 1 ? "#fafbfc" : "#ffffff" }}>
+                  <td style={{ padding: "12px 16px", fontWeight: 600, color: "var(--ink)" }}>
+                    {p.name}
+                  </td>
+                  <td style={{ padding: "12px 16px", color: "var(--slate)" }}>
+                    {p.timeline}
+                  </td>
+                  <td style={{ padding: "12px 16px", fontFamily: "var(--mono)", color: "var(--ink)" }}>
+                    ₹ {p.baseFee?.toLocaleString("en-IN")}
+                  </td>
+                  <td style={{ padding: "12px 16px", fontFamily: "var(--mono)", fontWeight: 700, color: "var(--gold-deep)" }}>
+                    ₹ {p.totalWithGst?.toLocaleString("en-IN")}
+                  </td>
+                  <td style={{ padding: "12px 16px", fontSize: "12px", color: "#475569" }}>
+                    {p.consentRequirement}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* 8. Mandatory Statutory Disclaimer */}
       <div
         style={{
-          borderTop: "1px solid var(--line)",
-          paddingTop: "20px",
-          fontSize: "11.5px",
+          background: "#f8fafc",
+          border: "1px solid #e2e8f0",
+          borderRadius: "6px",
+          padding: "16px 20px",
+          fontSize: "12px",
           color: "var(--slate)",
           lineHeight: "1.6",
-          textAlign: "center"
+          marginBottom: "28px"
         }}
       >
-        {MANDATORY_LEGAL_DISCLAIMER}
+        <strong>Statutory Notice &amp; Legal Disclaimer:</strong> {report.disclaimer || "AI-assisted indicative assessment. Not legal advice. Outcomes depend on evidence and the neutral's independent adjudication."}
+      </div>
+
+      {/* 9. Final Institutional Action Buttons */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
+        <button
+          type="button"
+          onClick={handlePrint}
+          className="btn ghost"
+          style={{ padding: "12px 24px", fontSize: "14px" }}
+        >
+          📄 Download Case Assessment Brief (PDF)
+        </button>
+
+        <a
+          href="/#arbitration-filing"
+          className="btn gold"
+          style={{
+            padding: "12px 28px",
+            fontSize: "14.5px",
+            fontWeight: 700,
+            textDecoration: "none",
+            display: "inline-block"
+          }}
+        >
+          Proceed to File with Digital Registry →
+        </a>
       </div>
     </div>
   );

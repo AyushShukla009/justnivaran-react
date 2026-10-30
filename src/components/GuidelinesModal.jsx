@@ -79,7 +79,7 @@ const GUIDELINES_DATA = {
       },
       {
         heading: "2. Digital Pleadings & Evidentiary Timestamping",
-        body: "Statements of claim, defense, and counterclaims are submitted through the cryptographic digital docket compliant with Section 63 of the Bharatiya Sakshya Adhiniyam (BSA), 2023."
+        body: "Statements of claim, defense, and counterclaims are submitted through the cryptographic digital docket."
       },
       {
         heading: "3. Encrypted Virtual Hearings & Evidentiary Records",

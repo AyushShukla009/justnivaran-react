@@ -1,126 +1,123 @@
+/**
+ * JustNivaran AI Dispute Assessment Wizard
+ * Institutional Intake & Statutory Risk Predictor
+ *
+ * Design Language: Navy (--ink: #0b1b31) + Gold (--gold: #d19a34), serif headings, mono labels.
+ */
+
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
 import { fetchAILegalOutcome, checkAIEngineHealth, generateClientInstitutionalAssessment } from "../lib/api";
-import {
-  ALLOWED_CATEGORIES,
-  ALLOWED_ARBITRATION_STATUSES,
-  MANDATORY_LEGAL_DISCLAIMER
-} from "../lib/legalAssessmentValidation";
+import { BENCHMARK_PRESETS } from "../lib/deterministicEngine";
 import LegalOutcomeReport from "../components/LegalOutcomeReport";
 
+const ALLOWED_CATEGORIES = [
+  "Commercial Contract & Supply Default",
+  "MSME Delayed Payments (MSMED Act 2006)",
+  "Construction, EPC & Infrastructure Delays",
+  "IT Services, Software SLA & Technology Licensing",
+  "Banking, NBFC & Financial Debt Recovery",
+  "Partnership, Joint Venture & Shareholder Disputes",
+  "Intellectual Property & Licensing Default"
+];
+
+const EVIDENCE_OPTIONS = [
+  { id: "invoices", label: "Commercial Tax Invoices", icon: "📄" },
+  { id: "delivery_proof", label: "Signed / Stamped Delivery Challan", icon: "📦" },
+  { id: "purchase_order", label: "Purchase Order / Work Order", icon: "📑" },
+  { id: "contract", label: "Executed Master Contract / Agreement", icon: "📜" },
+  { id: "emails_whatsapp", label: "Email / WhatsApp Correspondence", icon: "💬" },
+  { id: "part_payment_proof", label: "Bank Statement / Part-Payment Proof", icon: "🏦" },
+  { id: "udyam_certificate", label: "Udyam Registration Certificate (MSE)", icon: "🏭" },
+  { id: "joint_measurement_sheets", label: "Work Completion / Joint Measurement Sheet", icon: "📐" }
+];
+
 const PROGRESS_STAGES = [
-  "Structuring material facts & dispute timeline",
-  "Mapping contractual provisions & statutory doctrines",
-  "Checking curated Supreme Court authorities repository",
-  "Evaluating competing legal arguments & evidentiary gaps",
-  "Formulating probable outcome scenarios & settlement ranges"
+  "Calculating limitation clock under Limitation Act, 1963...",
+  "Assessing Section 12A Commercial Courts Act pre-institution requirements...",
+  "Checking MSMED statutory interest and Section 15 credit compliance...",
+  "Evaluating strength ratings and evidentiary gaps...",
+  "Synthesizing institutional dossier and forum comparison matrix..."
 ];
 
-const SAMPLE_DISPUTE_DATA = {
-  category: "Commercial Contract & Supply Default",
-  claimValue: "1500000",
-  breachDetails: "Non-payment of final commercial supply invoice overdue by 90 days.",
-  factualChronology:
-    "1. On 10 January 2026, Company A entered into a Master Supply Agreement with Company B for commercial goods worth ₹15,00,000.\n2. On 15 February 2026, goods were delivered and acknowledged by Company B.\n3. Final invoice was due within 30 days.\n4. Payment remains overdue by 90 days. Company B now alleges delayed delivery as grounds to withhold payment.",
-  primaryClaims:
-    "1. Recovery of outstanding principal invoice sum of INR 15,00,000.\n2. Statutory pre-award and post-award interest under Section 31(7)(a) of the Arbitration and Conciliation Act, 1996.\n3. Institutional arbitration costs.",
-  expectedDefenses:
-    "Company B alleges delayed delivery of user manuals and seeks set-off or waiver.",
-  contractualClauses:
-    "Clause 14 (Dispute Resolution): All disputes arising out of or in connection with this agreement shall be submitted to institutional fast-track arbitration administered by JustNivaran in New Delhi under its Fast-Track Arbitration Rules and Section 29B of the Arbitration and Conciliation Act, 1996.\nClause 18 (Governing Law): This agreement is governed by the laws of India.",
-  governingLaw: "Laws of India (New Delhi Seat)",
-  arbitrationClauseStatus: "Yes - Institutional Arbitration Clause (Specified Institution)",
-  availableEvidence:
-    "1. Signed Master Supply Agreement.\n2. Delivery receipt note signed by Company B.\n3. Commercial Tax Invoices.\n4. Email admissions of debt.",
-  missingEvidence:
-    "Formal physical inspection certificate for user manuals.",
-  desiredResolution:
-    "Full recovery of principal sum of ₹15,00,000 with statutory interest and costs.",
-  consentAccepted: false
-};
-
-const PRESET_DISPUTES = [
-  {
-    label: "💰 Unpaid Invoices (₹15L)",
-    category: "Commercial Contract & Supply Default",
-    claimValue: "1500000",
-    breachDetails: "Non-payment of final commercial tax invoice overdue by 90 days."
-  },
-  {
-    label: "🏭 MSME Vendor Dues (₹4.5L)",
-    category: "MSME Delayed Payments (MSMED Act 2006)",
-    claimValue: "450000",
-    breachDetails: "Non-payment exceeding statutory 45-day credit window under Section 15 of MSMED Act."
-  },
-  {
-    label: "🏗️ Construction & EPC Delay (₹50L)",
-    category: "Construction, EPC & Infrastructure Delays",
-    claimValue: "5000000",
-    breachDetails: "Withholding of milestone certificate and unilateral liquidated damages deduction."
-  },
-  {
-    label: "💻 IT & Software SLA Breach (₹10L)",
-    category: "IT Services, Software SLA & Technology Licensing",
-    claimValue: "1000000",
-    breachDetails: "Non-payment of SaaS development milestone fees and unauthorized code deployment."
+function formatIndianNumber(val) {
+  if (!val && val !== 0) return "";
+  const numStr = String(val).replace(/[^0-9]/g, "");
+  if (!numStr) return "";
+  let lastThree = numStr.substring(numStr.length - 3);
+  const otherNumbers = numStr.substring(0, numStr.length - 3);
+  if (otherNumbers !== "") {
+    lastThree = "," + lastThree;
   }
-];
+  return otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree;
+}
+
+function getIndianCurrencyWords(val) {
+  const n = Number(String(val).replace(/[^0-9]/g, ""));
+  if (isNaN(n) || n <= 0) return "";
+  if (n >= 10000000) {
+    return `(₹ ${(n / 10000000).toFixed(2).replace(/\.00$/, "")} Crore)`;
+  }
+  if (n >= 100000) {
+    return `(₹ ${(n / 100000).toFixed(2).replace(/\.00$/, "")} Lakh)`;
+  }
+  if (n >= 1000) {
+    return `(₹ ${(n / 1000).toFixed(1).replace(/\.0$/, "")} Thousand)`;
+  }
+  return "";
+}
 
 const INITIAL_FORM_DATA = {
   category: "Commercial Contract & Supply Default",
   claimValue: "",
-  breachDetails: "",
-  factualChronology: "",
-  primaryClaims: "",
-  expectedDefenses: "",
-  contractualClauses: "",
-  governingLaw: "Laws of India",
+  enterpriseType: "None", // 'None' | 'Micro' | 'Small' | 'Medium'
+  udyamRegisteredAtContract: false,
+  acceptanceDate: "",
+  agreedCreditDays: 45,
+  breachDate: "",
+  factsSummary: "",
+  hasWrittenContract: true,
+  hasArbitrationClause: true,
   arbitrationClauseStatus: "Yes - Institutional Arbitration Clause (Specified Institution)",
-  availableEvidence: "",
-  missingEvidence: "",
-  desiredResolution: "",
+  hasNoticeSent: false,
+  urgentInterimRelief: false,
+  signedWrittenAcknowledgment: false,
+  acknowledgmentDate: "",
+  acknowledgmentDocumentType: "",
+  evidenceList: ["invoices", "delivery_proof", "contract"],
   consentAccepted: true
 };
 
 export default function LegalAssessment() {
   const [activeView, setActiveView] = useState("intake"); // 'intake' | 'report'
-  const [step, setStep] = useState(1);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progressStageIndex, setProgressStageIndex] = useState(0);
   const [engineHealth, setEngineHealth] = useState({
     status: "active",
     keyConfigured: true,
-    providerVerified: true,
-    message: "AI Analysis Engine Active • Beta"
+    model: "Anthropic Claude Sonnet 5.5",
+    message: "AI Dispute Assessment Active"
   });
   const [aiReport, setAiReport] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const abortControllerRef = useRef(null);
 
-  // Form State
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
 
-  // Check Engine Health on mount
   useEffect(() => {
     let isMounted = true;
     checkAIEngineHealth().then((health) => {
-      if (isMounted) {
-        setEngineHealth(health);
-      }
+      if (isMounted) setEngineHealth(health);
     });
     return () => {
       isMounted = false;
     };
   }, []);
 
-  // Animate progress stages during inference
   useEffect(() => {
     if (!isAnalyzing) return;
-
     const interval = setInterval(() => {
       setProgressStageIndex((prev) => (prev < PROGRESS_STAGES.length - 1 ? prev + 1 : prev));
-    }, 4500);
-
+    }, 2400);
     return () => clearInterval(interval);
   }, [isAnalyzing]);
 
@@ -132,891 +129,752 @@ export default function LegalAssessment() {
     }));
   };
 
-  const validateStep = (stepNumber) => {
+  const handleCurrencyChange = (e) => {
+    const rawVal = e.target.value.replace(/[^0-9]/g, "");
+    setFormData((prev) => ({
+      ...prev,
+      claimValue: rawVal
+    }));
+  };
+
+  const handleEvidenceToggle = (itemId) => {
+    setFormData((prev) => {
+      const exists = prev.evidenceList.includes(itemId);
+      const updated = exists
+        ? prev.evidenceList.filter((id) => id !== itemId)
+        : [...prev.evidenceList, itemId];
+      return { ...prev, evidenceList: updated };
+    });
+  };
+
+  const handleLoadPreset = (preset) => {
+    setFormData({
+      category: preset.category,
+      claimValue: String(preset.claimValue),
+      enterpriseType: preset.enterpriseType || "None",
+      udyamRegisteredAtContract: Boolean(preset.udyamRegisteredAtContract),
+      acceptanceDate: preset.acceptanceDate || "",
+      agreedCreditDays: preset.agreedCreditDays || 45,
+      breachDate: preset.breachDate || "",
+      factsSummary: preset.factsSummary || preset.breachDetails || "",
+      hasWrittenContract: preset.hasWrittenContract !== undefined ? preset.hasWrittenContract : true,
+      hasArbitrationClause: Boolean(preset.hasArbitrationClause),
+      arbitrationClauseStatus: preset.arbitrationClauseStatus || "Yes",
+      hasNoticeSent: Boolean(preset.hasNoticeSent),
+      urgentInterimRelief: Boolean(preset.urgentInterimRelief),
+      signedWrittenAcknowledgment: Boolean(preset.signedWrittenAcknowledgment),
+      acknowledgmentDate: preset.acknowledgmentDate || "",
+      acknowledgmentDocumentType: preset.acknowledgmentDocumentType || "",
+      evidenceList: Array.isArray(preset.evidenceList) ? preset.evidenceList : [],
+      consentAccepted: true
+    });
     setErrorMessage("");
+  };
 
-    if (stepNumber === 1) {
-      if (!formData.category || !ALLOWED_CATEGORIES.includes(formData.category)) {
-        setErrorMessage("Please select a valid commercial dispute category.");
-        return false;
-      }
-      const val = Number(formData.claimValue);
-      if (!formData.claimValue || isNaN(val) || val <= 0) {
-        setErrorMessage("Please enter your Disputed Claim Quantum (in INR) on Step 1 before moving to the next step.");
-        return false;
-      }
-      if (!formData.breachDetails || formData.breachDetails.trim().length < 3) {
-        setErrorMessage("Please describe your dispute details and date/nature of breach on Step 1 before moving to the next step.");
-        return false;
-      }
+  const validateForm = () => {
+    setErrorMessage("");
+    const val = Number(formData.claimValue);
+    if (!formData.claimValue || isNaN(val) || val <= 0) {
+      setErrorMessage("Please enter a valid Disputed Claim Quantum (in INR).");
+      return false;
     }
-
-    if (stepNumber === 2) {
-      const chron = formData.factualChronology ? formData.factualChronology.trim() : "";
-      const claims = formData.primaryClaims ? formData.primaryClaims.trim() : "";
-      if (chron.length < 5) {
-        setErrorMessage("Please outline your factual chronology on Step 2 before proceeding.");
-        return false;
-      }
-      if (claims.length < 5) {
-        setErrorMessage("Please specify your primary claims on Step 2 before proceeding.");
-        return false;
-      }
+    if (!formData.factsSummary || formData.factsSummary.trim().length < 20) {
+      setErrorMessage("Please provide at least 20 characters summarizing the dispute facts and nature of breach.");
+      return false;
     }
-
+    if (!formData.breachDate) {
+      setErrorMessage("Please select the Date of Breach / Default to calculate statutory limitation.");
+      return false;
+    }
     return true;
   };
 
-  const handleNextStep = () => {
-    if (validateStep(step)) {
-      setStep((prev) => Math.min(prev + 1, 5));
-      window.scrollTo({ top: 180, behavior: "smooth" });
-    }
-  };
-
-  const handlePrevStep = () => {
-    setErrorMessage("");
-    setStep((prev) => Math.max(prev - 1, 1));
-    window.scrollTo({ top: 180, behavior: "smooth" });
-  };
-
-  const handleCancelAnalysis = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    setIsAnalyzing(false);
-    setErrorMessage("Assessment request was cancelled.");
-  };
-
-  const executeAssessment = async (overrideData = null) => {
-    setErrorMessage("");
-
-    // If user is on Step 1, validate Step 1 fields
-    if (step === 1 && !overrideData) {
-      if (!validateStep(1)) {
-        return;
-      }
-    }
-
-    // Prepare complete payload, filling any blank fields with benchmark defaults so submission is always seamless
-    const dataToUse = overrideData || formData;
-    const val = Number(dataToUse.claimValue);
-    const preparedData = {
-      ...SAMPLE_DISPUTE_DATA,
-      ...dataToUse,
-      claimValue: (!isNaN(val) && val > 0) ? val : SAMPLE_DISPUTE_DATA.claimValue,
-      breachDetails: dataToUse.breachDetails?.trim() || SAMPLE_DISPUTE_DATA.breachDetails,
-      factualChronology: dataToUse.factualChronology?.trim() || SAMPLE_DISPUTE_DATA.factualChronology,
-      primaryClaims: dataToUse.primaryClaims?.trim() || SAMPLE_DISPUTE_DATA.primaryClaims,
-      consentAccepted: true
-    };
+  const executeAssessment = async () => {
+    if (!validateForm()) return;
 
     setProgressStageIndex(0);
     setIsAnalyzing(true);
     abortControllerRef.current = new AbortController();
 
-    try {
-      const result = await fetchAILegalOutcome(preparedData, abortControllerRef.current.signal);
+    const payload = {
+      ...formData,
+      claimValue: Number(formData.claimValue)
+    };
 
+    try {
+      const result = await fetchAILegalOutcome(payload, abortControllerRef.current.signal);
       if (result.success && result.data) {
         setAiReport(result.data);
         setActiveView("report");
-        window.scrollTo({ top: 100, behavior: "smooth" });
-      } else if (result.data) {
-        setAiReport(result.data);
-        setActiveView("report");
-        window.scrollTo({ top: 100, behavior: "smooth" });
+        window.scrollTo({ top: 120, behavior: "smooth" });
       } else {
-        const fallback = generateClientInstitutionalAssessment(preparedData);
+        const fallback = generateClientInstitutionalAssessment(payload);
         setAiReport(fallback);
         setActiveView("report");
-        window.scrollTo({ top: 100, behavior: "smooth" });
+        window.scrollTo({ top: 120, behavior: "smooth" });
       }
     } catch (err) {
-      console.error("AI Predictor invocation error:", err);
-      const fallback = generateClientInstitutionalAssessment(preparedData);
+      console.warn("Dispute assessment network fallback invoked:", err?.message || err);
+      const fallback = generateClientInstitutionalAssessment(payload);
       setAiReport(fallback);
       setActiveView("report");
-      window.scrollTo({ top: 100, behavior: "smooth" });
+      window.scrollTo({ top: 120, behavior: "smooth" });
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const handleSubmit = (e) => {
-    if (e && e.preventDefault) e.preventDefault();
-    if (step < 5) {
-      handleNextStep();
-      return;
-    }
-    executeAssessment();
-  };
-
   const handleReset = () => {
     setAiReport(null);
     setActiveView("intake");
-    setStep(1);
     setErrorMessage("");
-  };
-
-  const handleLoadSample = () => {
-    setFormData(SAMPLE_DISPUTE_DATA);
-    setErrorMessage("");
-  };
-
-  const handleClearForm = () => {
-    setFormData(INITIAL_FORM_DATA);
-    setErrorMessage("");
-    setStep(1);
   };
 
   return (
-    <main className="wrap" style={{ paddingBlock: "48px 90px", maxWidth: "1060px" }}>
-      {/* Header Section */}
-      <div style={{ marginBottom: "32px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "12px", marginBottom: "8px" }}>
-          <p className="eyebrow" style={{ color: "var(--slate)", margin: 0 }}>
-            <b>Primary USP</b> Institutional Decision-Support System
-          </p>
+    <main className="wrap" style={{ paddingBlock: "48px 90px", maxWidth: "1100px" }}>
+      {/* Top Breadcrumb & Engine Health */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "12px",
+          marginBottom: "16px"
+        }}
+      >
+        <p className="eyebrow" style={{ margin: 0 }}>
+          <b>Institutional Intelligence</b> JustNivaran ODR Centre
+        </p>
 
-          {/* Honest Live AI Status Badge */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              background:
-                engineHealth.status === "active"
-                  ? "rgba(34, 197, 94, 0.12)"
-                  : engineHealth.status === "configured_not_verified"
-                  ? "rgba(209, 154, 52, 0.12)"
-                  : "rgba(100, 116, 139, 0.12)",
-              border: `1px solid ${
-                engineHealth.status === "active"
-                  ? "rgba(34, 197, 94, 0.35)"
-                  : engineHealth.status === "configured_not_verified"
-                  ? "rgba(209, 154, 52, 0.35)"
-                  : "rgba(100, 116, 139, 0.35)"
-              }`,
-              padding: "4px 12px",
-              borderRadius: "20px",
-              fontSize: "11px",
-              fontFamily: "var(--mono)",
-              color:
-                engineHealth.status === "active"
-                  ? "#15803d"
-                  : engineHealth.status === "configured_not_verified"
-                  ? "var(--gold-deep)"
-                  : "var(--slate)",
-              fontWeight: 600
-            }}
-          >
-            <span
-              style={{
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                background:
-                  engineHealth.status === "active"
-                    ? "#16a34a"
-                    : engineHealth.status === "configured_not_verified"
-                    ? "var(--gold-deep)"
-                    : "#94a3b8"
-              }}
-            />
-            <span>{engineHealth.message}</span>
-          </div>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            background: "rgba(34, 197, 94, 0.08)",
+            border: "1px solid rgba(34, 197, 94, 0.3)",
+            padding: "5px 12px",
+            borderRadius: "20px",
+            fontSize: "11.5px",
+            fontFamily: "var(--mono)",
+            color: "#15803d",
+            fontWeight: 600
+          }}
+        >
+          <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#16a34a" }} />
+          <span>{engineHealth.message || "AI Dispute Assessment Active"}</span>
         </div>
+      </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", marginBottom: "12px" }}>
-          <h1 style={{ fontSize: "clamp(28px, 4vw, 42px)", margin: 0, color: "var(--ink)" }}>
-            Legal Outcome AI Predictor
-          </h1>
-          <span
-            style={{
-              fontFamily: "var(--mono)",
-              fontSize: "11px",
-              fontWeight: 700,
-              padding: "4px 10px",
-              borderRadius: "4px",
-              background: "rgba(209, 154, 52, 0.15)",
-              color: "var(--gold-deep)",
-              border: "1px solid rgba(209, 154, 52, 0.35)",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase"
-            }}
-          >
-            AI Beta
-          </span>
-        </div>
-
-        <p className="lede" style={{ color: "var(--slate)", maxWidth: "900px", margin: 0 }}>
-          Analyse the relative strength of claims and defences, identify potentially applicable legal principles and explore probable outcome scenarios before selecting the next dispute-resolution step.
+      {/* Main Title Header (Removed PRIMARY USP label, renamed to AI Dispute Assessment) */}
+      <div style={{ marginBottom: "36px" }}>
+        <h1 style={{ fontSize: "clamp(30px, 4.2vw, 44px)", margin: "0 0 10px 0", color: "var(--ink)" }}>
+          AI Dispute Assessment
+        </h1>
+        <p className="lede" style={{ color: "var(--slate)", margin: 0, maxWidth: "900px" }}>
+          Authoritative institutional analysis uniting deterministic Indian statutory rules (Limitation Act 1963, Commercial Courts Act 2015, MSMED Act 2006) with advanced Claude Sonnet 5.5 legal reasoning.
         </p>
       </div>
 
-      {/* Top Anonymization & Privacy Guard Notice */}
-      <div
-        style={{
-          background: "rgba(11, 27, 49, 0.04)",
-          border: "1px solid var(--line)",
-          borderRadius: "6px",
-          padding: "16px 20px",
-          marginBottom: "32px",
-          display: "flex",
-          gap: "14px",
-          alignItems: "flex-start"
-        }}
-      >
-        <span style={{ fontSize: "20px", lineHeight: 1 }}>🛡️</span>
-        <div style={{ fontSize: "12.5px", color: "var(--ink)", lineHeight: "1.6" }}>
-          <strong>PRIVACY &amp; ANONYMIZATION PROTOCOL:</strong> Please replace real party, enterprise, or individual names with generic placeholders such as <code>Claimant</code>, <code>Respondent</code>, <code>Party A</code>, and <code>Party B</code>. Do not enter Aadhaar/PAN numbers or upload confidential documents in this beta version. Submissions are processed in a secure ephemeral sandbox and are <strong>not</strong> retained for public model training.
-        </div>
-      </div>
-
-      {/* View Switcher if Report is Available */}
-      {aiReport && (
-        <div style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
-          <button
-            type="button"
-            onClick={() => setActiveView("report")}
-            className={activeView === "report" ? "btn gold" : "btn ghost"}
-            style={{ padding: "8px 18px", fontSize: "13px" }}
-          >
-            📊 View AI Outcome Dossier
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveView("intake")}
-            className={activeView === "intake" ? "btn gold" : "btn ghost"}
-            style={{ padding: "8px 18px", fontSize: "13px" }}
-          >
-            📝 Edit Input Parameters
-          </button>
-        </div>
-      )}
-
-      {/* REPORT VIEW */}
-      {activeView === "report" && aiReport && (
+      {activeView === "report" && aiReport ? (
         <LegalOutcomeReport report={aiReport} onReset={handleReset} />
-      )}
+      ) : (
+        <div style={{ display: "grid", gap: "32px" }}>
+          {/* Preset Benchmark Quick-Load Bar */}
+          <section
+            style={{
+              background: "#ffffff",
+              border: "1px solid var(--line)",
+              borderRadius: "8px",
+              padding: "20px 24px",
+              boxShadow: "0 2px 8px rgba(11, 27, 49, 0.04)"
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
+              <span style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                ⚡ Quick-Load Institutional Benchmark Presets (One-Click)
+              </span>
+              <span style={{ fontSize: "12px", color: "var(--slate)" }}>
+                Pre-configured synthetic case facts for immediate demonstration
+              </span>
+            </div>
 
-      {/* INTAKE FORM VIEW */}
-      {activeView === "intake" && (
-        <div style={{ background: "#ffffff", border: "1px solid var(--line)", borderRadius: "8px", padding: "36px" }}>
-          {isAnalyzing ? (
-            /* Loading Experience Panel */
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
+              {BENCHMARK_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => handleLoadPreset(preset)}
+                  className="btn ghost"
+                  style={{
+                    padding: "10px 14px",
+                    textAlign: "left",
+                    fontSize: "12.5px",
+                    fontWeight: 600,
+                    borderRadius: "6px",
+                    borderColor: formData.category === preset.category && formData.claimValue === String(preset.claimValue) ? "var(--gold)" : "var(--line)",
+                    background: formData.category === preset.category && formData.claimValue === String(preset.claimValue) ? "rgba(209, 154, 52, 0.08)" : "#fafbfc",
+                    color: "var(--ink)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "4px"
+                  }}
+                >
+                  <span style={{ color: "var(--ink)" }}>{preset.label}</span>
+                  <span style={{ fontSize: "11px", color: "var(--slate)", fontWeight: 400 }}>
+                    {preset.category}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          {/* Intake Form Container */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              executeAssessment();
+            }}
+            style={{
+              background: "#ffffff",
+              border: "1px solid var(--line)",
+              borderRadius: "8px",
+              padding: "32px",
+              boxShadow: "0 6px 20px rgba(11, 27, 49, 0.05)"
+            }}
+          >
+            {/* Section 1: Claim Profile & Statutory Quantum */}
+            <div style={{ borderBottom: "1px solid var(--line)", paddingBottom: "28px", marginBottom: "28px" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--gold-deep)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+                Step 1 &bull; Claim Profile &amp; Quantum
+              </div>
+              <h2 style={{ fontSize: "20px", margin: "0 0 20px 0", color: "var(--ink)" }}>
+                Dispute Classification &amp; Financial Scope
+              </h2>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                    Commercial Dispute Category <span style={{ color: "#dc2626" }}>*</span>
+                  </label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    style={{ width: "100%", padding: "10px 12px", borderRadius: "6px", border: "1px solid var(--line)", fontSize: "14px", background: "#ffffff" }}
+                  >
+                    {ALLOWED_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                    Disputed Claim Quantum (INR) <span style={{ color: "#dc2626" }}>*</span>
+                  </label>
+                  <div style={{ position: "relative" }}>
+                    <span style={{ position: "absolute", left: "12px", top: "10px", color: "var(--slate)", fontWeight: 600, fontSize: "14px" }}>₹</span>
+                    <input
+                      type="text"
+                      name="claimValue"
+                      value={formatIndianNumber(formData.claimValue)}
+                      onChange={handleCurrencyChange}
+                      placeholder="e.g. 15,00,000"
+                      style={{ width: "100%", padding: "10px 12px 10px 28px", borderRadius: "6px", border: "1px solid var(--line)", fontSize: "14.5px", fontWeight: 600, fontFamily: "var(--mono)" }}
+                    />
+                  </div>
+                  {formData.claimValue && (
+                    <div style={{ fontSize: "12px", color: "var(--gold-deep)", marginTop: "4px", fontWeight: 500 }}>
+                      Formatted: ₹ {formatIndianNumber(formData.claimValue)} {getIndianCurrencyWords(formData.claimValue)}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Section 2: Enterprise Classification & MSMED Act */}
+            <div style={{ borderBottom: "1px solid var(--line)", paddingBottom: "28px", marginBottom: "28px" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--gold-deep)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+                Step 2 &bull; Enterprise Status &amp; MSMED Act (2006)
+              </div>
+              <h2 style={{ fontSize: "20px", margin: "0 0 16px 0", color: "var(--ink)" }}>
+                Supplier Classification (Sections 15, 16 &amp; 18)
+              </h2>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px", marginBottom: "16px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                    Enterprise Category (MSMED Act)
+                  </label>
+                  <select
+                    name="enterpriseType"
+                    value={formData.enterpriseType}
+                    onChange={handleInputChange}
+                    style={{ width: "100%", padding: "10px 12px", borderRadius: "6px", border: "1px solid var(--line)", fontSize: "14px" }}
+                  >
+                    <option value="None">Non-MSME / Large Corporate / Individual</option>
+                    <option value="Micro">Micro Enterprise (Investment ≤ ₹1 Cr / Turnover ≤ ₹5 Cr)</option>
+                    <option value="Small">Small Enterprise (Investment ≤ ₹10 Cr / Turnover ≤ ₹50 Cr)</option>
+                    <option value="Medium">Medium Enterprise (Sections 15-16 do not apply)</option>
+                  </select>
+                </div>
+
+                {(formData.enterpriseType === "Micro" || formData.enterpriseType === "Small") && (
+                  <div>
+                    <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                      Held Udyam Registration at Date of Contract?
+                    </label>
+                    <div style={{ display: "flex", gap: "20px", marginTop: "10px" }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13.5px", cursor: "pointer" }}>
+                        <input
+                          type="radio"
+                          name="udyamRegisteredAtContract"
+                          checked={formData.udyamRegisteredAtContract === true}
+                          onChange={() => setFormData((prev) => ({ ...prev, udyamRegisteredAtContract: true }))}
+                        />
+                        <span>Yes (Silpi Industries Compliant)</span>
+                      </label>
+                      <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13.5px", cursor: "pointer" }}>
+                        <input
+                          type="radio"
+                          name="udyamRegisteredAtContract"
+                          checked={formData.udyamRegisteredAtContract === false}
+                          onChange={() => setFormData((prev) => ({ ...prev, udyamRegisteredAtContract: false }))}
+                        />
+                        <span>No / Post-Contract Registration</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {(formData.enterpriseType === "Micro" || formData.enterpriseType === "Small") && formData.udyamRegisteredAtContract && (
+                <div style={{ background: "rgba(209, 154, 52, 0.08)", border: "1px solid rgba(209, 154, 52, 0.3)", borderRadius: "6px", padding: "16px 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "12.5px", fontWeight: 600, color: "var(--ink)", marginBottom: "4px" }}>
+                      Date of Goods / Service Acceptance
+                    </label>
+                    <input
+                      type="date"
+                      name="acceptanceDate"
+                      value={formData.acceptanceDate}
+                      onChange={handleInputChange}
+                      style={{ width: "100%", padding: "8px 10px", borderRadius: "4px", border: "1px solid var(--line)", fontSize: "13px" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "12.5px", fontWeight: 600, color: "var(--ink)", marginBottom: "4px" }}>
+                      Agreed Credit Days (Max 45 Days per Sec 15)
+                    </label>
+                    <input
+                      type="number"
+                      max="45"
+                      min="0"
+                      name="agreedCreditDays"
+                      value={formData.agreedCreditDays}
+                      onChange={handleInputChange}
+                      style={{ width: "100%", padding: "8px 10px", borderRadius: "4px", border: "1px solid var(--line)", fontSize: "13px" }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Section 3: Material Facts & Limitation Clock */}
+            <div style={{ borderBottom: "1px solid var(--line)", paddingBottom: "28px", marginBottom: "28px" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--gold-deep)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+                Step 3 &bull; Chronology &amp; Limitation (Limitation Act 1963)
+              </div>
+              <h2 style={{ fontSize: "20px", margin: "0 0 16px 0", color: "var(--ink)" }}>
+                Breach Timeline &amp; Section 18 Acknowledgment
+              </h2>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px", marginBottom: "16px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                    Date of Breach / Cause of Action <span style={{ color: "#dc2626" }}>*</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="breachDate"
+                    value={formData.breachDate}
+                    onChange={handleInputChange}
+                    style={{ width: "100%", padding: "10px 12px", borderRadius: "6px", border: "1px solid var(--line)", fontSize: "14px" }}
+                  />
+                  <span style={{ fontSize: "11.5px", color: "var(--slate)", marginTop: "4px", display: "block" }}>
+                    Statutory 3-year clock starts from this date (Articles 55 &amp; 113).
+                  </span>
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                    Signed Written Acknowledgment of Liability to Pay? (Sec 18)
+                  </label>
+                  <div style={{ display: "flex", gap: "20px", marginTop: "10px" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13.5px", cursor: "pointer" }}>
+                      <input
+                        type="radio"
+                        name="signedWrittenAcknowledgment"
+                        checked={formData.signedWrittenAcknowledgment === true}
+                        onChange={() => setFormData((prev) => ({ ...prev, signedWrittenAcknowledgment: true }))}
+                      />
+                      <span>Yes (Possible Reset, Subject to Review)</span>
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13.5px", cursor: "pointer" }}>
+                      <input
+                        type="radio"
+                        name="signedWrittenAcknowledgment"
+                        checked={formData.signedWrittenAcknowledgment === false}
+                        onChange={() => setFormData((prev) => ({ ...prev, signedWrittenAcknowledgment: false }))}
+                      />
+                      <span>No</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {formData.signedWrittenAcknowledgment && (
+                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "6px", padding: "16px 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px", marginBottom: "16px" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "12.5px", fontWeight: 600, color: "var(--ink)", marginBottom: "4px" }}>
+                      Date of Written Acknowledgment / Part-Payment
+                    </label>
+                    <input
+                      type="date"
+                      name="acknowledgmentDate"
+                      value={formData.acknowledgmentDate}
+                      onChange={handleInputChange}
+                      style={{ width: "100%", padding: "8px 10px", borderRadius: "4px", border: "1px solid var(--line)", fontSize: "13px" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "12.5px", fontWeight: 600, color: "var(--ink)", marginBottom: "4px" }}>
+                      Document Nature (e.g. Joint Site Sheet, Balance Confirmation)
+                    </label>
+                    <input
+                      type="text"
+                      name="acknowledgmentDocumentType"
+                      value={formData.acknowledgmentDocumentType}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Joint Site Measurement Sheet / Email Admission"
+                      style={{ width: "100%", padding: "8px 10px", borderRadius: "4px", border: "1px solid var(--line)", fontSize: "13px" }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                  Material Dispute Facts &amp; Contractual Summary <span style={{ color: "#dc2626" }}>*</span>
+                </label>
+                <textarea
+                  rows="4"
+                  name="factsSummary"
+                  value={formData.factsSummary}
+                  onChange={handleInputChange}
+                  placeholder="Outline the core commercial dispute: goods/services delivered, contractual milestone, non-payment, and respondent's stated reasons..."
+                  style={{ width: "100%", padding: "12px", borderRadius: "6px", border: "1px solid var(--line)", fontSize: "14px", lineHeight: "1.6" }}
+                />
+                {formData.factsSummary.length > 0 && formData.factsSummary.length < 25 && (
+                  <span style={{ fontSize: "12px", color: "#b45309", marginTop: "4px", display: "block" }}>
+                    ⚠️ Narrative is too brief ({formData.factsSummary.length} chars). Please provide substantive details for accurate institutional analysis.
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Section 4: Procedural Prerequisite Selectors */}
+            <div style={{ borderBottom: "1px solid var(--line)", paddingBottom: "28px", marginBottom: "28px" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--gold-deep)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+                Step 4 &bull; Procedural &amp; Institutional Governance
+              </div>
+              <h2 style={{ fontSize: "20px", margin: "0 0 16px 0", color: "var(--ink)" }}>
+                Contractual Clauses &amp; Urgent Relief
+              </h2>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                    Written Contract Executed?
+                  </label>
+                  <div style={{ display: "flex", gap: "16px" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13.5px", cursor: "pointer" }}>
+                      <input
+                        type="radio"
+                        name="hasWrittenContract"
+                        checked={formData.hasWrittenContract === true}
+                        onChange={() => setFormData((prev) => ({ ...prev, hasWrittenContract: true }))}
+                      />
+                      <span>Yes</span>
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13.5px", cursor: "pointer" }}>
+                      <input
+                        type="radio"
+                        name="hasWrittenContract"
+                        checked={formData.hasWrittenContract === false}
+                        onChange={() => setFormData((prev) => ({ ...prev, hasWrittenContract: false }))}
+                      />
+                      <span>No (Oral/Implied)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                    Arbitration Clause in Agreement?
+                  </label>
+                  <div style={{ display: "flex", gap: "16px" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13.5px", cursor: "pointer" }}>
+                      <input
+                        type="radio"
+                        name="hasArbitrationClause"
+                        checked={formData.hasArbitrationClause === true}
+                        onChange={() => setFormData((prev) => ({ ...prev, hasArbitrationClause: true }))}
+                      />
+                      <span>Yes (ACA 1996 Applies)</span>
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13.5px", cursor: "pointer" }}>
+                      <input
+                        type="radio"
+                        name="hasArbitrationClause"
+                        checked={formData.hasArbitrationClause === false}
+                        onChange={() => setFormData((prev) => ({ ...prev, hasArbitrationClause: false }))}
+                      />
+                      <span>No (Court Route / Sec 12A)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                    Formal Demand Notice Sent?
+                  </label>
+                  <div style={{ display: "flex", gap: "16px" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13.5px", cursor: "pointer" }}>
+                      <input
+                        type="radio"
+                        name="hasNoticeSent"
+                        checked={formData.hasNoticeSent === true}
+                        onChange={() => setFormData((prev) => ({ ...prev, hasNoticeSent: true }))}
+                      />
+                      <span>Yes</span>
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13.5px", cursor: "pointer" }}>
+                      <input
+                        type="radio"
+                        name="hasNoticeSent"
+                        checked={formData.hasNoticeSent === false}
+                        onChange={() => setFormData((prev) => ({ ...prev, hasNoticeSent: false }))}
+                      />
+                      <span>No / Pending</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                    Urgent Interim Injunction Needed?
+                  </label>
+                  <div style={{ display: "flex", gap: "16px" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13.5px", cursor: "pointer" }}>
+                      <input
+                        type="radio"
+                        name="urgentInterimRelief"
+                        checked={formData.urgentInterimRelief === true}
+                        onChange={() => setFormData((prev) => ({ ...prev, urgentInterimRelief: true }))}
+                      />
+                      <span>Yes (Sec 12A Proviso)</span>
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13.5px", cursor: "pointer" }}>
+                      <input
+                        type="radio"
+                        name="urgentInterimRelief"
+                        checked={formData.urgentInterimRelief === false}
+                        onChange={() => setFormData((prev) => ({ ...prev, urgentInterimRelief: false }))}
+                      />
+                      <span>No</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 5: Structured Evidence Multi-Select */}
+            <div style={{ borderBottom: "1px solid var(--line)", paddingBottom: "28px", marginBottom: "28px" }}>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--gold-deep)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px" }}>
+                Step 5 &bull; Evidentiary Record
+              </div>
+              <h2 style={{ fontSize: "20px", margin: "0 0 8px 0", color: "var(--ink)" }}>
+                Available Documentary &amp; Electronic Evidence
+              </h2>
+              <p style={{ fontSize: "13px", color: "var(--slate)", margin: "0 0 16px 0" }}>
+                Select all verified documentary records available for submission to evaluate proof readiness and identify statutory gaps.
+              </p>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "10px" }}>
+                {EVIDENCE_OPTIONS.map((opt) => {
+                  const isChecked = formData.evidenceList.includes(opt.id);
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => handleEvidenceToggle(opt.id)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "10px 14px",
+                        borderRadius: "6px",
+                        border: `1px solid ${isChecked ? "var(--gold)" : "var(--line)"}`,
+                        background: isChecked ? "rgba(209, 154, 52, 0.08)" : "#ffffff",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        fontSize: "13px",
+                        color: isChecked ? "var(--ink)" : "var(--slate)",
+                        fontWeight: isChecked ? 600 : 400
+                      }}
+                    >
+                      <span style={{ fontSize: "16px" }}>{opt.icon}</span>
+                      <span style={{ flex: 1 }}>{opt.label}</span>
+                      <span style={{ color: isChecked ? "var(--gold-deep)" : "#cbd5e1", fontWeight: 700 }}>
+                        {isChecked ? "✓" : "+"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Error Message Display */}
+            {errorMessage && (
+              <div
+                style={{
+                  background: "#fee2e2",
+                  border: "1px solid #fca5a5",
+                  borderRadius: "6px",
+                  padding: "12px 16px",
+                  color: "#991b1b",
+                  fontSize: "13.5px",
+                  marginBottom: "20px"
+                }}
+              >
+                ⚠️ {errorMessage}
+              </div>
+            )}
+
+            {/* On-Page Privacy & AI Processing Notice */}
             <div
-              style={{ textAlign: "center", padding: "48px 16px" }}
-              role="status"
-              aria-live="polite"
+              style={{
+                background: "rgba(11, 27, 49, 0.03)",
+                border: "1px solid var(--line)",
+                borderRadius: "6px",
+                padding: "14px 18px",
+                marginBottom: "24px",
+                fontSize: "12.5px",
+                color: "var(--slate)",
+                lineHeight: "1.6"
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", color: "var(--ink)", fontWeight: 600 }}>
+                <span>🔒</span> Privacy &amp; AI Processing Notice
+              </div>
+              Dispute facts, timeline events, and claims entered into this form are securely transmitted to Anthropic&rsquo;s Claude API (<code>claude-sonnet-5-5</code>) for institutional case analysis. Case submissions are not used to train Anthropic&rsquo;s models under its commercial terms; retained temporarily per Anthropic&rsquo;s data policy (see{" "}
+              <a href="https://www.anthropic.com/legal/commercial-terms" style={{ color: "var(--gold-deep)", textDecoration: "underline" }} target="_blank" rel="noopener noreferrer">
+                Anthropic Commercial Terms
+              </a>{" "}
+              and{" "}
+              <a href="https://www.anthropic.com/legal/privacy" style={{ color: "var(--gold-deep)", textDecoration: "underline" }} target="_blank" rel="noopener noreferrer">
+                Anthropic Privacy Policy
+              </a>). Governed by JustNivaran&rsquo;s{" "}
+              <a href="/privacy-policy" style={{ color: "var(--gold-deep)", textDecoration: "underline" }} target="_blank" rel="noopener noreferrer">
+                Privacy Policy
+              </a>.
+            </div>
+
+            {/* Submit Action Bar */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
+              <div style={{ fontSize: "12px", color: "var(--slate)" }}>
+                Institutional predictive assessment under Indian law &bull; Confidential &amp; Encrypted
+              </div>
+
+              <button
+                type="submit"
+                disabled={isAnalyzing}
+                className="btn gold"
+                style={{
+                  padding: "12px 28px",
+                  fontSize: "15px",
+                  fontWeight: 700,
+                  opacity: isAnalyzing ? 0.7 : 1,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px"
+                }}
+              >
+                {isAnalyzing ? "Analyzing Dispute Facts..." : "Generate Institutional Assessment →"}
+              </button>
+            </div>
+          </form>
+
+          {/* Staged Loading Modal during Analysis */}
+          {isAnalyzing && (
+            <div
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(11, 27, 49, 0.75)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 9999,
+                backdropFilter: "blur(4px)"
+              }}
             >
               <div
                 style={{
-                  width: "56px",
-                  height: "56px",
-                  borderRadius: "50%",
-                  border: "3px solid var(--line)",
-                  borderTopColor: "var(--gold)",
-                  animation: "spin 1s linear infinite",
-                  margin: "0 auto 24px"
-                }}
-              />
-              <h2 style={{ fontSize: "22px", color: "var(--ink)", marginBottom: "8px" }}>
-                AI Legal Outcome Predictor in Progress
-              </h2>
-              <p style={{ color: "var(--slate)", fontSize: "14px", maxWidth: "600px", margin: "0 auto 28px" }}>
-                Analyzing structured facts against Supreme Court precedents and commercial contract principles...
-              </p>
-
-              {/* Progress Stage Tracker */}
-              <div
-                style={{
-                  maxWidth: "540px",
-                  margin: "0 auto 32px",
-                  background: "var(--paper-hi)",
-                  border: "1px solid var(--line)",
-                  borderRadius: "6px",
-                  padding: "16px 20px",
-                  textAlign: "left"
+                  background: "#ffffff",
+                  borderRadius: "10px",
+                  padding: "36px",
+                  maxWidth: "500px",
+                  width: "90%",
+                  textAlign: "center",
+                  boxShadow: "0 20px 40px rgba(0,0,0,0.2)"
                 }}
               >
-                <div style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase", marginBottom: "8px" }}>
-                  Pipeline Stage {progressStageIndex + 1} of {PROGRESS_STAGES.length}
-                </div>
-                <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink)" }}>
-                  ⏳ {PROGRESS_STAGES[progressStageIndex]}
-                </div>
-                <div style={{ height: "4px", background: "var(--line)", borderRadius: "2px", overflow: "hidden", marginTop: "12px" }}>
+                <div
+                  style={{
+                    width: "48px",
+                    height: "48px",
+                    border: "4px solid rgba(209, 154, 52, 0.2)",
+                    borderTopColor: "var(--gold)",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                    margin: "0 auto 20px auto"
+                  }}
+                />
+                <h3 style={{ fontSize: "19px", color: "var(--ink)", margin: "0 0 10px 0" }}>
+                  Institutional Legal Analysis in Progress
+                </h3>
+                <p style={{ fontSize: "13.5px", color: "var(--slate)", margin: "0 0 20px 0", minHeight: "40px" }}>
+                  {PROGRESS_STAGES[progressStageIndex]}
+                </p>
+                <div style={{ width: "100%", height: "6px", background: "#e2e8f0", borderRadius: "3px", overflow: "hidden" }}>
                   <div
                     style={{
-                      height: "100%",
                       width: `${((progressStageIndex + 1) / PROGRESS_STAGES.length) * 100}%`,
+                      height: "100%",
                       background: "var(--gold)",
                       transition: "width 0.4s ease"
                     }}
                   />
                 </div>
-                <div style={{ fontSize: "11px", color: "var(--slate)", marginTop: "8px" }}>
-                  * Progress indicator reflects pipeline processing stages. Maximum timeout: 30s.
-                </div>
               </div>
-
-              <button
-                type="button"
-                onClick={handleCancelAnalysis}
-                className="btn ghost"
-                style={{ padding: "8px 20px", fontSize: "13px" }}
-              >
-                Cancel Analysis
-              </button>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              {/* Quick Actions Toolbar */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  background: "var(--paper-hi)",
-                  border: "1px solid var(--line)",
-                  borderRadius: "6px",
-                  padding: "10px 14px",
-                  marginBottom: "24px",
-                  flexWrap: "wrap",
-                  gap: "10px"
-                }}
-              >
-                <div style={{ fontSize: "12.5px", color: "var(--slate)" }}>
-                  💡 Enter your matter details below, or load our synthetic commercial dispute benchmark:
-                </div>
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <button
-                    type="button"
-                    onClick={handleLoadSample}
-                    className="btn ghost"
-                    style={{ padding: "5px 12px", fontSize: "12px", height: "auto" }}
-                  >
-                    📋 Load Benchmark Sample
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleClearForm}
-                    className="btn ghost"
-                    style={{ padding: "5px 12px", fontSize: "12px", height: "auto", color: "var(--slate)" }}
-                  >
-                    🧹 Clear Form
-                  </button>
-                </div>
-              </div>
-
-              {/* Step Progress Header */}
-              <div style={{ marginBottom: "32px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)" }}>
-                  <span>
-                    STEP {step} OF 5: {
-                      step === 1 ? "DISPUTE PROFILE & QUANTUM" :
-                      step === 2 ? "FACTUAL CHRONOLOGY & CLAIMS" :
-                      step === 3 ? "CONTRACTUAL CLAUSES & GOVERNING LAW" :
-                      step === 4 ? "DOCUMENTARY EVIDENCE & GAPS" :
-                      "RELIEF, CONSENT & INFERENCE"
-                    }
-                  </span>
-                  <span>{step * 20}% COMPLETE</span>
-                </div>
-                <div style={{ height: "4px", background: "var(--line)", borderRadius: "2px", overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: `${step * 20}%`, background: "var(--gold)", transition: "width 0.3s ease" }} />
-                </div>
-              </div>
-
-              {errorMessage && (
-                <div
-                  style={{
-                    background: "rgba(220, 38, 38, 0.08)",
-                    border: "1px solid rgba(220, 38, 38, 0.3)",
-                    color: "#dc2626",
-                    padding: "12px 16px",
-                    borderRadius: "4px",
-                    fontSize: "13px",
-                    marginBottom: "24px"
-                  }}
-                  role="alert"
-                >
-                  ⚠️ {errorMessage}
-                </div>
-              )}
-
-              {/* STEP 1: Dispute Profile & Quantum */}
-              {step === 1 && (
-                <div style={{ display: "grid", gap: "20px" }}>
-                  {/* Quick 1-Click Dispute Presets */}
-                  <div style={{ background: "rgba(209, 154, 52, 0.08)", border: "1px solid rgba(209, 154, 52, 0.25)", borderRadius: "6px", padding: "14px 16px" }}>
-                    <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--ink)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      ⚡ Quick 1-Click Dispute Presets (Choose or enter custom below):
-                    </div>
-                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                      {PRESET_DISPUTES.map((preset, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => {
-                            setFormData(prev => ({
-                              ...prev,
-                              ...SAMPLE_DISPUTE_DATA,
-                              category: preset.category,
-                              claimValue: preset.claimValue,
-                              breachDetails: preset.breachDetails
-                            }));
-                            setErrorMessage("");
-                          }}
-                          className="btn ghost"
-                          style={{
-                            padding: "6px 12px",
-                            fontSize: "12px",
-                            height: "auto",
-                            background: formData.category === preset.category && formData.claimValue === preset.claimValue ? "var(--gold)" : "#ffffff",
-                            color: formData.category === preset.category && formData.claimValue === preset.claimValue ? "var(--ink)" : "var(--ink)",
-                            fontWeight: 600,
-                            borderColor: "rgba(209, 154, 52, 0.4)"
-                          }}
-                        >
-                          {preset.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="category" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
-                      1. Commercial Dispute Category <span style={{ color: "#dc2626" }}>*</span>
-                    </label>
-                    <select
-                      id="category"
-                      name="category"
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        border: "1px solid var(--line)",
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                        background: "#ffffff"
-                      }}
-                    >
-                      {ALLOWED_CATEGORIES.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                    <div>
-                      <label htmlFor="claimValue" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
-                        2. Disputed Claim Quantum (INR) <span style={{ color: "#dc2626" }}>*</span>
-                      </label>
-                      <input
-                        id="claimValue"
-                        type="number"
-                        name="claimValue"
-                        value={formData.claimValue}
-                        onChange={handleInputChange}
-                        placeholder="e.g. 8500000"
-                        style={{
-                          width: "100%",
-                          padding: "10px 12px",
-                          border: errorMessage && (!formData.claimValue || Number(formData.claimValue) <= 0) ? "1px solid #dc2626" : "1px solid var(--line)",
-                          borderRadius: "4px",
-                          fontSize: "14px"
-                        }}
-                      />
-                      <span style={{ fontSize: "11px", color: "var(--slate)", marginTop: "4px", display: "block" }}>
-                        Total principal amount claimed (excluding unquantified speculative interest).
-                      </span>
-                    </div>
-
-                    <div>
-                      <label htmlFor="breachDetails" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
-                        3. Dispute Details &amp; Date of Breach <span style={{ color: "#dc2626" }}>*</span>
-                      </label>
-                      <input
-                        id="breachDetails"
-                        type="text"
-                        name="breachDetails"
-                        value={formData.breachDetails}
-                        onChange={handleInputChange}
-                        placeholder="e.g. Unpaid milestone invoices following UAT signoff on 28 Nov 2024"
-                        style={{
-                          width: "100%",
-                          padding: "10px 12px",
-                          border: errorMessage && (!formData.breachDetails || formData.breachDetails.trim().length < 3) ? "1px solid #dc2626" : "1px solid var(--line)",
-                          borderRadius: "4px",
-                          fontSize: "14px"
-                        }}
-                      />
-                      <span style={{ fontSize: "11px", color: "var(--slate)", marginTop: "4px", display: "block" }}>
-                        Defines limitation accrual and causa causans under Indian law.
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 2: Facts & Claims */}
-              {step === 2 && (
-                <div style={{ display: "grid", gap: "20px" }}>
-                  <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                      <label htmlFor="factualChronology" style={{ fontSize: "13px", fontWeight: 600, color: "var(--ink)" }}>
-                        4. Material Factual Chronology <span style={{ color: "#dc2626" }}>*</span>
-                      </label>
-                      <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)" }}>
-                        {formData.factualChronology.length} / 10,000 chars
-                      </span>
-                    </div>
-                    <textarea
-                      id="factualChronology"
-                      name="factualChronology"
-                      rows={6}
-                      value={formData.factualChronology}
-                      onChange={handleInputChange}
-                      placeholder="Outline dates of contract execution, deliverable milestones, payments made, breach event, and demand notices. Use 'Claimant' and 'Respondent' instead of real names..."
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        border: "1px solid var(--line)",
-                        borderRadius: "4px",
-                        fontSize: "13.5px",
-                        fontFamily: "inherit",
-                        lineHeight: "1.5"
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                      <label htmlFor="primaryClaims" style={{ fontSize: "13px", fontWeight: 600, color: "var(--ink)" }}>
-                        5. Claimant&apos;s Specific Claims <span style={{ color: "#dc2626" }}>*</span>
-                      </label>
-                      <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)" }}>
-                        {formData.primaryClaims.length} / 5,000 chars
-                      </span>
-                    </div>
-                    <textarea
-                      id="primaryClaims"
-                      name="primaryClaims"
-                      rows={3}
-                      value={formData.primaryClaims}
-                      onChange={handleInputChange}
-                      placeholder="Specify monetary claims, milestone recoveries, damages, statutory interest claims..."
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        border: "1px solid var(--line)",
-                        borderRadius: "4px",
-                        fontSize: "13.5px",
-                        fontFamily: "inherit",
-                        lineHeight: "1.5"
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="expectedDefenses" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
-                      6. Expected Counterclaims or Defences by Respondent
-                    </label>
-                    <textarea
-                      id="expectedDefenses"
-                      name="expectedDefenses"
-                      rows={2}
-                      value={formData.expectedDefenses}
-                      onChange={handleInputChange}
-                      placeholder="e.g. Liquidated damages deductions for delay, alleged defect in service, force majeure notice..."
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        border: "1px solid var(--line)",
-                        borderRadius: "4px",
-                        fontSize: "13.5px",
-                        fontFamily: "inherit",
-                        lineHeight: "1.5"
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 3: Contractual Clauses & Law */}
-              {step === 3 && (
-                <div style={{ display: "grid", gap: "20px" }}>
-                  <div>
-                    <label htmlFor="contractualClauses" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
-                      7. Key Contractual Provisions / Excerpts
-                    </label>
-                    <textarea
-                      id="contractualClauses"
-                      name="contractualClauses"
-                      rows={4}
-                      value={formData.contractualClauses}
-                      onChange={handleInputChange}
-                      placeholder="Paste key clause excerpts: Liquidated Damages, Limitation of Liability caps, Termination clauses, Indemnity provisions..."
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        border: "1px solid var(--line)",
-                        borderRadius: "4px",
-                        fontSize: "13.5px",
-                        fontFamily: "inherit",
-                        lineHeight: "1.5"
-                      }}
-                    />
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                    <div>
-                      <label htmlFor="governingLaw" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
-                        8. Governing Law &amp; Seat
-                      </label>
-                      <input
-                        id="governingLaw"
-                        type="text"
-                        name="governingLaw"
-                        value={formData.governingLaw}
-                        onChange={handleInputChange}
-                        placeholder="e.g. Laws of India (New Delhi Seat)"
-                        style={{
-                          width: "100%",
-                          padding: "10px 12px",
-                          border: "1px solid var(--line)",
-                          borderRadius: "4px",
-                          fontSize: "14px"
-                        }}
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="arbitrationClauseStatus" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
-                        9. Arbitration Clause Status
-                      </label>
-                      <select
-                        id="arbitrationClauseStatus"
-                        name="arbitrationClauseStatus"
-                        value={formData.arbitrationClauseStatus}
-                        onChange={handleInputChange}
-                        style={{
-                          width: "100%",
-                          padding: "10px 12px",
-                          border: "1px solid var(--line)",
-                          borderRadius: "4px",
-                          fontSize: "14px",
-                          background: "#ffffff"
-                        }}
-                      >
-                        {ALLOWED_ARBITRATION_STATUSES.map((st) => (
-                          <option key={st} value={st}>
-                            {st}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 4: Evidence & Gaps */}
-              {step === 4 && (
-                <div style={{ display: "grid", gap: "20px" }}>
-                  <div>
-                    <label htmlFor="availableEvidence" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
-                      10. Available Documentary Evidence Summary
-                    </label>
-                    <textarea
-                      id="availableEvidence"
-                      name="availableEvidence"
-                      rows={4}
-                      value={formData.availableEvidence}
-                      onChange={handleInputChange}
-                      placeholder="List executed contracts, signed purchase orders, delivery/UAT acceptances, unpaid invoices, formal legal demand notices..."
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        border: "1px solid var(--line)",
-                        borderRadius: "4px",
-                        fontSize: "13.5px",
-                        fontFamily: "inherit",
-                        lineHeight: "1.5"
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="missingEvidence" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
-                      11. Identified Missing Evidence / Unverified Documents
-                    </label>
-                    <textarea
-                      id="missingEvidence"
-                      name="missingEvidence"
-                      rows={3}
-                      value={formData.missingEvidence}
-                      onChange={handleInputChange}
-                      placeholder="e.g. Unsigned change orders, missing server timestamp certificates under Section 63 BSA 2023..."
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        border: "1px solid var(--line)",
-                        borderRadius: "4px",
-                        fontSize: "13.5px",
-                        fontFamily: "inherit",
-                        lineHeight: "1.5"
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 5: Relief, Consent & Submission */}
-              {step === 5 && (
-                <div style={{ display: "grid", gap: "20px" }}>
-                  <div>
-                    <label htmlFor="desiredResolution" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
-                      12. Desired Resolution &amp; Assessment Goal
-                    </label>
-                    <input
-                      id="desiredResolution"
-                      type="text"
-                      name="desiredResolution"
-                      value={formData.desiredResolution}
-                      onChange={handleInputChange}
-                      placeholder="e.g. Full recovery of INR 85,00,000 or evaluating settlement corridor for institutional mediation"
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        border: "1px solid var(--line)",
-                        borderRadius: "4px",
-                        fontSize: "14px"
-                      }}
-                    />
-                  </div>
-
-                  {/* Mandatory Legal Disclaimer & Consent Checkbox */}
-                  <div
-                    style={{
-                      background: "rgba(209, 154, 52, 0.08)",
-                      border: "1px solid rgba(209, 154, 52, 0.35)",
-                      borderRadius: "6px",
-                      padding: "16px",
-                      marginTop: "12px"
-                    }}
-                  >
-                    <label style={{ display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "12.5px", color: "var(--ink)", cursor: "pointer" }}>
-                      <input
-                        type="checkbox"
-                        name="consentAccepted"
-                        checked={formData.consentAccepted}
-                        onChange={handleInputChange}
-                        style={{ marginTop: "3px", accentColor: "var(--gold-deep)" }}
-                      />
-                      <span>
-                        <strong>MANDATORY ACKNOWLEDGMENT:</strong> I understand that this is an indicative AI-assisted assessment and not legal advice, an arbitral award, a judicial decision or a guarantee of outcome.
-                      </span>
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {/* Form Navigation Controls */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginTop: "32px",
-                  paddingTop: "20px",
-                  borderTop: "1px solid var(--line)"
-                }}
-              >
-                {step > 1 ? (
-                  <button
-                    type="button"
-                    onClick={handlePrevStep}
-                    className="btn ghost"
-                    style={{ padding: "8px 18px", fontSize: "13.5px" }}
-                  >
-                    ← Previous Step
-                  </button>
-                ) : (
-                  <div />
-                )}
-
-                {step < 5 ? (
-                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                    <button
-                      type="button"
-                      onClick={() => executeAssessment()}
-                      disabled={isAnalyzing}
-                      className="btn ghost"
-                      style={{
-                        padding: "9px 18px",
-                        fontSize: "13px",
-                        color: "var(--gold-deep)",
-                        borderColor: "rgba(209, 154, 52, 0.4)",
-                        background: "rgba(209, 154, 52, 0.06)"
-                      }}
-                      title="Generate outcome assessment immediately using current inputs and institutional defaults"
-                    >
-                      ⚡ Instant Assess Now
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleNextStep}
-                      className="btn gold"
-                      style={{ padding: "9px 22px", fontSize: "13.5px" }}
-                    >
-                      Next Step →
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="submit"
-                    disabled={isAnalyzing || !formData.consentAccepted}
-                    className="btn gold"
-                    style={{
-                      padding: "11px 26px",
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      opacity: isAnalyzing || !formData.consentAccepted ? 0.6 : 1,
-                      cursor: isAnalyzing || !formData.consentAccepted ? "not-allowed" : "pointer"
-                    }}
-                  >
-                    {isAnalyzing ? "Analyzing Dispute Parameters..." : "Generate AI Outcome Assessment →"}
-                  </button>
-                )}
-              </div>
-            </form>
           )}
         </div>
       )}
-
-      {/* Cross-linking to ADR Mechanisms */}
-      <div style={{ marginTop: "40px", textAlign: "center" }}>
-        <p style={{ fontSize: "13.5px", color: "var(--slate)", marginBottom: "12px" }}>
-          Ready to initiate formal institutional dispute proceedings?
-        </p>
-        <div style={{ display: "flex", justifyContent: "center", gap: "14px", flexWrap: "wrap" }}>
-          <Link to="/fast-track-arbitration" className="btn ghost" style={{ fontSize: "13px", padding: "8px 16px" }}>
-            ⚡ Fast-Track Arbitration (s. 29B)
-          </Link>
-          <Link to="/emergency-relief" className="btn ghost" style={{ fontSize: "13px", padding: "8px 16px" }}>
-            🚨 Emergency Relief (48–72h)
-          </Link>
-          <Link to="/mediation-rules" className="btn ghost" style={{ fontSize: "13px", padding: "8px 16px" }}>
-            ⚖️ Institutional Mediation
-          </Link>
-        </div>
-      </div>
     </main>
   );
 }

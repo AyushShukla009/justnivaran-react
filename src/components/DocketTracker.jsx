@@ -331,7 +331,7 @@ function DocketTracker() {
           </div>
 
           <div class="cert-box">
-            <strong>ELECTRONIC RECORD CERTIFICATE UNDER APPLICABLE INDIAN LAW (SECTION 63, BHARATIYA SAKSHYA ADHINIYAM, 2023 &amp; IT ACT, 2000):</strong><br/>
+            <strong>ELECTRONIC RECORD UNDER APPLICABLE INDIAN LAW (IT ACT, 2000):</strong><br/>
             This electronic case dossier is generated directly from the authenticated JustNivaran institutional registry database. It constitutes an authenticated digital record of dispute proceedings maintainable for production before competent Civil Courts and Commercial Benches across India.
           </div>
 

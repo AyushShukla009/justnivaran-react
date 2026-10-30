@@ -303,7 +303,7 @@ export default function PrivacyPolicy() {
             <div style={{ background: "var(--paper-hi)", padding: "16px 20px", borderRadius: "6px", border: "1px solid var(--line)" }}>
               <h3 style={{ margin: "0 0 6px", fontSize: "16px", color: "var(--ink)" }}>4.3 Engineering and Security Function</h3>
               <p style={{ margin: 0, fontSize: "14px" }}>
-                Responsible for implementing technical safeguards &mdash; encryption in transit (TLS 1.3) and at rest (AES-256), role-based access controls, immutable logging under Section 63 BSA 2023, and secure deletion &mdash; and for supporting breach detection and forensics.
+                Responsible for implementing technical safeguards &mdash; encryption in transit (TLS 1.3) and at rest (AES-256), role-based access controls, immutable logging, and secure deletion &mdash; and for supporting breach detection and forensics.
               </p>
             </div>
 
@@ -442,7 +442,7 @@ export default function PrivacyPolicy() {
           <ul style={{ paddingLeft: "24px", display: "grid", gap: "8px" }}>
             <li><strong>Empanelled neutrals:</strong> Assigned to the specific matter, limited to the Case Data relevant to that proceeding.</li>
             <li><strong>Opposing party and authorised representatives:</strong> To the extent procedurally required for natural justice and evidentiary exchange in the dispute resolution process.</li>
-            <li><strong>Data Processors:</strong> Engaged for hosting, payment, video conferencing, and e-signature, under binding data processing agreements.</li>
+            <li><strong>Data Processors:</strong> Engaged for hosting, payment, video conferencing, e-signature, and institutional AI dispute analysis. Specifically, for users accessing the Legal Assessment tool, dispute facts and narrative parameters are transmitted securely to Anthropic, PBC's Claude API for analytical assessment. Under its commercial terms, case submissions are not used to train Anthropic's models; retained temporarily per Anthropic's data policy (see <a href="https://www.anthropic.com/legal/commercial-terms" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gold-deep)", textDecoration: "underline" }}>Anthropic Commercial Terms</a> and <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "var(--gold-deep)", textDecoration: "underline" }}>Anthropic Privacy Policy</a>).</li>
             <li><strong>Courts, tribunals, or statutory authorities:</strong> Where disclosure is mandated by law, a valid court order, or in connection with enforcement of a settlement or arbitral award.</li>
             <li><strong>Professional advisors:</strong> Auditors and legal counsel under strict confidentiality obligations.</li>
           </ul>
@@ -457,7 +457,7 @@ export default function PrivacyPolicy() {
             8. Cross-Border Data Transfers
           </h2>
           <p>
-            Section 16 of the DPDP Act permits transfer of personal data outside India by default, subject to any country or territory being restricted by the Central Government by notification. Where the Platform uses cloud infrastructure, video-conferencing, or payment processors with servers or sub-processors located outside India, it will:
+            Section 16 of the DPDP Act permits transfer of personal data outside India by default, subject to any country or territory being restricted by the Central Government by notification. Where the Platform uses cloud infrastructure, video-conferencing, payment processors, or AI processors (such as Anthropic's Claude API) with servers located outside India, it will:
           </p>
           <ol style={{ paddingLeft: "24px", display: "grid", gap: "8px" }}>
             <li>Maintain an active inventory of the jurisdictions in which personal data is stored or processed;</li>
@@ -527,8 +527,8 @@ export default function PrivacyPolicy() {
             <li><strong>Cryptographic Safeguards:</strong> 256-bit encryption in transit (TLS 1.3) and at rest (AES-256) across all case dockets, evidentiary vaults, and session media.</li>
             <li><strong>Role-Based Access Control (RBAC):</strong> Strict neutral-specific and case-specific access restrictions preventing unauthorized lateral visibility.</li>
             <li><strong>Multi-Factor Authentication (MFA):</strong> Enforced for administrative personnel and registry case managers.</li>
-            <li><strong>Immutable Audit Logging:</strong> Tamper-proof logging of Case Data access under Section 63 BSA 2023 with SHA-256 cryptographic hashes.</li>
-            <li><strong>Ephemeral &amp; Time-Bound Access:</strong> Secure, expiring access links for opposing parties and neutrals, automatically revoked upon case closure.</li>
+            <li><strong>Immutable Audit Logging:</strong> Tamper-proof logging of Case Data access with SHA-256 cryptographic hashes.</li>
+            <li><strong>Time-Bound Access Control:</strong> Secure, expiring access links for opposing parties and neutrals, automatically revoked upon case closure.</li>
             <li><strong>Vendor Due Diligence:</strong> Rigorous security assessments prior to onboarding Data Processors, accompanied by periodic audits.</li>
             <li><strong>Documented Incident Response:</strong> Rapid containment and breach response protocols governed by statutory reporting timelines.</li>
           </ul>

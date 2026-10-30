@@ -27,7 +27,7 @@ function Contact({ onOpenConsultationModal, onOpenFileModal }) {
         <div style={{ background: "var(--paper-hi)", border: "1px solid var(--line)", padding: "24px", borderRadius: "4px" }}>
           <h3 style={{ fontSize: "19px", marginBottom: "8px" }}>Immediate Case Filing</h3>
           <p style={{ fontSize: "14px", color: "#3B4E68", lineHeight: "1.6", marginBottom: "18px" }}>
-            File your claim online under the Arbitration Act or Mediation Act 2023 to generate an active dispute docket with Section 63 BSA electronic service.
+            File your claim online under the Arbitration Act or Mediation Act 2023 to generate an active dispute docket with electronic service.
           </p>
           <button className="btn" onClick={onOpenFileModal} type="button">
             Open a Dispute Docket →

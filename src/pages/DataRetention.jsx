@@ -2,7 +2,7 @@ function DataRetention() {
   return (
     <main className="wrap" style={{ paddingBlock: "48px 90px", maxWidth: "920px" }}>
       <p className="eyebrow">
-        <b>Data Lifecycle Management</b> DPDP Act 2023 &bull; Limitation Act 1963 &bull; BSA 2023
+        <b>Data Lifecycle Management</b> DPDP Act 2023 &bull; Limitation Act 1963
       </p>
 
       <h1 style={{ marginBottom: "16px" }}>Data Retention &amp; Deletion Policy</h1>
@@ -28,13 +28,10 @@ function DataRetention() {
               <strong>Section 34 Challenge Window:</strong> The complete arbitral record, pleadings, notices, and procedural orders are archived for a standard institutional retention window of <strong>3 years</strong> to accommodate statutory setting-aside applications under Section 34(3) of the Arbitration &amp; Conciliation Act, 1996 (3-month window plus 30-day discretionary extension upon sufficient cause shown), as well as appellate proceedings under Section 37.
             </li>
             <li>
-              <strong>Execution &amp; Enforcement of Awards (Limitation Act 1963):</strong> Certified true copies of final awards, authenticated settlement agreements, and Section 63 BSA electronic audit certificates are archived for <strong>12 years</strong> in alignment with Article 136 of the Limitation Act, 1963 (enforcement of decrees and arbitral awards under Section 36 of the Arbitration Act).
+              <strong>Execution &amp; Enforcement of Awards (Limitation Act 1963):</strong> Certified true copies of final awards and authenticated settlement agreements are archived for <strong>12 years</strong> in alignment with Article 136 of the Limitation Act, 1963 (enforcement of decrees and arbitral awards under Section 36 of the Arbitration Act).
             </li>
             <li>
               <strong>Mediation &amp; Conciliation Settlement Confidentiality:</strong> In accordance with Section 22 and Section 23 of the Mediation Act, 2023, preliminary mediation proposals, without-prejudice settlement offers, notes, and exploratory negotiation chats are permanently purged from active registries within <strong>90 days</strong> of case conclusion or withdrawal, preserving absolute statutory confidentiality.
-            </li>
-            <li>
-              <strong>Bharatiya Sakshya Adhiniyam (BSA) 2023 Electronic Certificates:</strong> Cryptographic SHA-256 hash digests, tamper-evident server audit logs, and digital signing receipts required for Section 63 electronic record certification are preserved alongside the final decree dossier.
             </li>
           </ul>
         </div>

@@ -44,7 +44,7 @@ async function runAIFullSystemTests() {
     contractualClauses: "Clause 14: Disputes shall be referred to institutional arbitration under JustNivaran Fast-Track Rules.",
     arbitrationClauseStatus: "Yes - Institutional Arbitration Clause (Specified Institution)",
     availableEvidence: "Signed tax invoices, e-way bills, proof of delivery receipt, WhatsApp acknowledgment, demand notice dated 1 March 2026.",
-    missingEvidence: "Formal Section 63 BSA certificate for WhatsApp export.",
+    missingEvidence: "Formal acknowledgment for WhatsApp export.",
     desiredResolution: "Full principal recovery of INR 15,00,000 plus 18% p.a. interest within 30 days.",
     governingLaw: "Laws of India / High Court of Delhi jurisdiction",
     consentAccepted: true
