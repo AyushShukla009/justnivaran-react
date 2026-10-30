@@ -7,7 +7,7 @@ function ForNeutrals({ onOpenEmpanelmentModal }) {
 
       <h1 style={{ marginBottom: "16px" }}>Empanelment for Neutrals</h1>
       <p className="lede" style={{ marginBottom: "36px" }}>
-        JustNivaran maintains a high-integrity institutional panel of retired judges, senior advocates, certified commercial mediators, and industry domain experts.
+        JustNivaran maintains a high-integrity institutional panel of Arbitrators, Mediators, and Conciliators.
       </p>
 
       <div style={{
@@ -17,16 +17,12 @@ function ForNeutrals({ onOpenEmpanelmentModal }) {
         padding: "24px",
         marginBottom: "36px",
         display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
+        gridTemplateColumns: "repeat(2, 1fr)",
         gap: "16px"
       }}>
         <div>
           <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>Panel Roles</span>
-          <div style={{ fontWeight: 600, color: "var(--ink)", marginTop: "4px" }}>Arbitrators &amp; Mediators</div>
-        </div>
-        <div>
-          <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>Minimum Experience</span>
-          <div style={{ fontWeight: 600, color: "var(--gold)", marginTop: "4px" }}>7+ Years Standing</div>
+          <div style={{ fontWeight: 600, color: "var(--ink)", marginTop: "4px" }}>Arbitrators, Mediators &amp; Conciliators</div>
         </div>
         <div>
           <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase" }}>Hearing Mode</span>

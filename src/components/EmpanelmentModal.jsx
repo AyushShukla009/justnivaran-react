@@ -209,7 +209,7 @@ function EmpanelmentModal({ isOpen, onClose }) {
           ) : (
             <form onSubmit={handleSubmit}>
               <p style={{ fontSize: "13.5px", color: "var(--slate)", margin: "0 0 16px" }}>
-                For retired judges, senior advocates (7+ yrs), certified mediators, and domain specialists.
+                For Arbitrators, Mediators, and Conciliators.
               </p>
 
               <div className="form-grid">
@@ -229,8 +229,8 @@ function EmpanelmentModal({ isOpen, onClose }) {
                 <div>
                   <label htmlFor="empanelment-role">Primary Role</label>
                   <select id="empanelment-role" name="role" value={formData.role} onChange={handleChange}>
-                    <option value="Arbitrator">Sole Arbitrator</option>
-                    <option value="Mediator">Commercial Mediator (Mediation Act 2023)</option>
+                    <option value="Arbitrator">Arbitrator</option>
+                    <option value="Mediator">Mediator</option>
                     <option value="Conciliator">Conciliator</option>
                   </select>
                 </div>
@@ -279,13 +279,13 @@ function EmpanelmentModal({ isOpen, onClose }) {
                   />
                 </div>
                 <div>
-                  <label htmlFor="empanelment-experience">Years of Practice / Experience</label>
+                  <label htmlFor="empanelment-experience">Years of Practice / Experience (Optional)</label>
                   <input
                     id="empanelment-experience"
                     type="number"
                     name="experienceYears"
-                    required
-                    placeholder="e.g. 14"
+                    min="0"
+                    placeholder="e.g. 5"
                     value={formData.experienceYears}
                     onChange={handleChange}
                   />
@@ -337,7 +337,7 @@ function EmpanelmentModal({ isOpen, onClose }) {
                     onChange={handleConsentChange}
                   />
                   <span>
-                    I affirm that I am an enrolled advocate / accredited mediator / arbitrator in good standing with no adverse ethical findings.
+                    I affirm that I am an enrolled advocate / accredited arbitrator, mediator, or conciliator in good standing with no adverse ethical findings.
                   </span>
                 </label>
 
