@@ -216,7 +216,7 @@ header {
 .nav {
   display: flex;
   align-items: center;
-  height: 92px;
+  height: 114px;
   gap: 20px;
 }
 
@@ -235,7 +235,7 @@ header {
 }
 
 .brand img {
-  height: 84px;
+  height: 114px;
   width: auto;
   object-fit: contain;
   display: block;
@@ -419,16 +419,16 @@ header {
     height: 40px;
   }
   .nav {
-    height: 72px;
+    height: 88px;
   }
   .brand img {
-    height: 56px;
+    height: 76px;
   }
 }
 
 @media (max-width: 768px) {
   .nav {
-    height: 58px;
+    height: 70px;
     gap: 6px;
     padding-inline: 12px;
   }
@@ -436,7 +436,7 @@ header {
     margin-right: auto;
   }
   .brand img {
-    height: 40px;
+    height: 54px;
   }
   .nav-actions {
     display: flex;
@@ -475,7 +475,7 @@ header {
     height: 20px;
   }
   .mobile-drawer {
-    top: 58px;
+    top: 70px;
   }
 }
 
@@ -485,7 +485,7 @@ header {
     padding-inline: 8px;
   }
   .brand img {
-    height: 36px;
+    height: 48px;
   }
   .nav-actions .nav-btn-file {
     padding: 0 8px;
@@ -503,7 +503,7 @@ header {
 
 .mobile-drawer {
   position: fixed;
-  top: 72px;
+  top: 88px;
   left: 0;
   right: 0;
   background: #fff;
