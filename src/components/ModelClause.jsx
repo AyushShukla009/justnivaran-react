@@ -32,10 +32,6 @@ function ModelClause() {
       return `Any dispute, controversy or claim arising out of or relating to ${refText}, including its formation, validity, breach or termination, shall be submitted to and finally resolved by Fast-Track Arbitration administered by JustNivaran in accordance with Section 29B of the Arbitration and Conciliation Act, 1996. The seat of the arbitration shall be ${seatText}. The proceedings shall be conducted online.`;
     }
 
-    if (track === "mediation") {
-      return `Any dispute, controversy or claim arising out of or relating to ${refText} shall first be submitted to institutional online mediation administered by JustNivaran in accordance with the Mediation Act, 2023. Any settlement agreement arrived at shall be final and enforceable under Section 27 of the Act. The seat of the proceedings shall be ${seatText}.`;
-    }
-
     return `Any dispute, controversy or claim arising out of or relating to ${refText}, including its formation, validity, breach or termination, shall be submitted to institutional online dispute resolution (ODR) administered by JustNivaran. The parties agree that the dispute shall first be referred to institutional online mediation in accordance with the Mediation Act, 2023 for a period not exceeding 30 days. If the dispute is not resolved within 30 days, it shall be referred to and finally resolved by Fast-Track Arbitration administered by JustNivaran in accordance with Section 29B of the Arbitration and Conciliation Act, 1996 by a Sole Arbitrator. The seat of the proceedings shall be ${seatText}. The proceedings shall be conducted online.`;
   };
 
@@ -205,7 +201,6 @@ function ModelClause() {
                     <option value="full-arbitration">Arbitration (JustNivaran Arbitration Rules)</option>
                     <option value="arbitration">Fast-Track Arbitration (Section 29B - 180 Days)</option>
                     <option value="comprehensive">Comprehensive ODR (Mediation + Fast-Track Arbitration)</option>
-                    <option value="mediation">Pre-Litigation Mediation (Mediation Act 2023)</option>
                   </select>
                 </div>
 
