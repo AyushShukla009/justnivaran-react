@@ -1,4 +1,5 @@
 import Hero from "../components/Hero";
+import USPCards from "../components/USPCards";
 import Backlog from "../components/Backlog";
 import Process from "../components/Process";
 import ADRVisualizer from "../components/ADRVisualizer";
@@ -18,6 +19,9 @@ function Home({ onOpenFileModal, onOpenEmpanelmentModal, onOpenConsultationModal
     <main>
       {/* 1. Hero: Two sides. One neutral. A record that holds up. */}
       <Hero onOpenFileModal={onOpenFileModal} />
+
+      {/* Flagship USPs: Legal Outcome Predictor & Emergency Arbitration */}
+      <USPCards />
 
       {/* 2. 01 The Backlog */}
       <Backlog />

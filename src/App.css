@@ -2117,3 +2117,127 @@ html, body {
     padding-block: clamp(36px, 6vw, 64px);
   }
 }
+
+/* ---------- Key USPs Section (Navy & Gold Style) ---------- */
+.usp-cards-section {
+  padding-block: clamp(40px, 5vw, 64px);
+  background: var(--paper-hi);
+  border-bottom: 1px solid var(--line-soft);
+  overflow: hidden;
+}
+
+.usp-section-head {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto clamp(24px, 3.5vw, 36px);
+}
+
+.usp-section-title {
+  font-family: var(--serif);
+  font-size: clamp(24px, 3vw, 34px);
+  color: var(--ink);
+  margin: 8px 0 0;
+  line-height: 1.25;
+}
+
+.usp-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.usp-card {
+  background: linear-gradient(145deg, #0B1B31 0%, #12294A 100%);
+  border: 1.5px solid rgba(209, 154, 52, 0.45);
+  border-radius: 8px;
+  padding: clamp(24px, 3vw, 36px) clamp(20px, 2.5vw, 32px);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justifyContent: space-between;
+  box-shadow: 0 8px 24px rgba(11, 27, 49, 0.12);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.usp-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--gold);
+  box-shadow: 0 14px 32px rgba(11, 27, 49, 0.2);
+}
+
+.usp-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.usp-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  background: rgba(209, 154, 52, 0.16);
+  border: 1px solid rgba(209, 154, 52, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.usp-card-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 3px;
+  background: rgba(209, 154, 52, 0.18);
+  color: var(--gold);
+  border: 1px solid rgba(209, 154, 52, 0.4);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.usp-card-heading {
+  font-family: var(--serif);
+  font-size: clamp(21px, 2.2vw, 26px);
+  color: #ffffff;
+  margin: 0 0 12px;
+  line-height: 1.25;
+}
+
+.usp-card-summary {
+  font-size: 14.5px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+
+.usp-card-action {
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.usp-card-link {
+  width: 100%;
+  justify-content: center;
+  padding: 12px 20px;
+  font-size: 14px;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+  .usp-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .usp-card {
+    padding: 24px 18px;
+  }
+  .usp-section-head .eyebrow {
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+  }
+}

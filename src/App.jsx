@@ -24,6 +24,7 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const LegalAssessment = lazy(() => import("./pages/LegalAssessment"));
 const FastTrackArbitration = lazy(() => import("./pages/FastTrackArbitration"));
 const EmergencyRelief = lazy(() => import("./pages/EmergencyRelief"));
+const EmergencyArbitration = lazy(() => import("./pages/EmergencyArbitration"));
 
 // Statutory Legal & Compliance Pages
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -196,6 +197,11 @@ const ROUTE_SEO = {
     title: "Emergency Arbitration & Interim Relief (48–72h) — JustNivaran ODR",
     description: "Urgent institutional emergency arbitrator appointment within 48–72 hours for critical interim protective measures prior to tribunal constitution under Indian law.",
     keywords: "Emergency Arbitration, interim relief, Section 9 Arbitration Act, bank guarantee stay, emergency arbitrator India"
+  },
+  "/emergency-arbitration": {
+    title: "Emergency Arbitration (Coming Soon) — JustNivaran ODR",
+    description: "Expedited institutional emergency arbitration and interim relief portal under JustNivaran institutional rules.",
+    keywords: "Emergency Arbitration, interim relief, Section 9 Arbitration Act, emergency arbitrator India"
   }
 };
 
@@ -424,6 +430,7 @@ function App() {
             <Route path="/legal-assessment" element={<LegalAssessment />} />
             <Route path="/fast-track-arbitration" element={<FastTrackArbitration onOpenFileModal={handleOpenFileModal} />} />
             <Route path="/emergency-relief" element={<EmergencyRelief onOpenFileModal={handleOpenFileModal} />} />
+            <Route path="/emergency-arbitration" element={<EmergencyArbitration onOpenFileModal={handleOpenFileModal} />} />
 
             {/* Statutory Legal & Institutional Policy Routes */}
             <Route path="/privacy-notice" element={<PrivacyNotice />} />
