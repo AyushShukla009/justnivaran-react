@@ -11,8 +11,7 @@ function Hero({ onOpenFileModal }) {
     MED: "Mediation",
     CON: "Conciliation",
     ARB_FAST: "Fast-Track Arbitration",
-    ARB: "Arbitration",
-    LOK: "Lok Adalat"
+    ARB: "Arbitration"
   };
 
   return (
@@ -39,7 +38,7 @@ function Hero({ onOpenFileModal }) {
               File a dispute →
             </button>
             <a className="btn ghost" href="#paths">
-              Explore 6 ADR Tracks
+              Explore 5 ADR Tracks
             </a>
           </div>
 
@@ -137,14 +136,6 @@ function Hero({ onOpenFileModal }) {
                 onClick={() => setActiveKey("ARB")}
               >
                 Arbitration
-              </button>
-              <button
-                className="mode"
-                type="button"
-                aria-selected={activeKey === "LOK"}
-                onClick={() => setActiveKey("LOK")}
-              >
-                Lok Adalat
               </button>
             </div>
 

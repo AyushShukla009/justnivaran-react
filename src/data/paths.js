@@ -83,22 +83,6 @@ export const PATHS = [
       { label: "Award", sub: "Reasoned award, scrutinised before signature." }
     ],
     note: "A challenge under s. 34 is narrow by design."
-  },
-  {
-    key: "LOK",
-    name: "Lok Adalat",
-    basis: "Award deemed a decree of a civil court; final, with no appeal",
-    statute: "Legal Services Authorities Act, 1987 · s. 21",
-    timeline: "Single sitting",
-    outcome: "Award deemed a civil court decree",
-    docket: "JN/LOK/2026/0417",
-    steps: [
-      { label: "Referral", sub: "Matter referred by a party or by a court to the sitting.", active: true },
-      { label: "Bench", sub: "Panel constituted for the sitting." },
-      { label: "Conciliation", sub: "Bench assists the parties towards a compromise." },
-      { label: "Award", sub: "Compromise recorded as an award; no appeal lies." }
-    ],
-    note: "Fastest and cheapest, but it needs agreement — a Lok Adalat cannot adjudicate."
   }
 ];
 
@@ -108,8 +92,7 @@ const paths = {
   CON: PATHS[2],
   ARB_FAST: PATHS[3],
   FTA: PATHS[3],
-  ARB: PATHS[4],
-  LOK: PATHS[5]
+  ARB: PATHS[4]
 };
 
 export default paths;

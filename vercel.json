@@ -4,6 +4,23 @@
       "maxDuration": 30
     }
   },
+  "redirects": [
+    {
+      "source": "/lok-adalat",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/lokadalat",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/online-lok-adalat",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/robots.txt",

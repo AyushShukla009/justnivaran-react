@@ -363,7 +363,6 @@ function DisputeModal({ isOpen, onClose }) {
                     <option value="CON">Conciliation</option>
                     <option value="FTA">Fast-Track Arbitration (s. 29B)</option>
                     <option value="ARB">Arbitration (Arbitration Act 1996)</option>
-                    <option value="LOK">Online Lok Adalat</option>
                   </select>
                 </div>
                 <div>

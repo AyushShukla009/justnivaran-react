@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import "./App.css";
 
@@ -450,6 +450,11 @@ function App() {
             <Route path="/code-of-conduct" element={<NeutralCodeOfConduct onOpenEmpanelmentModal={() => setIsEmpanelmentOpen(true)} />} />
             <Route path="/core-values" element={<NeutralCodeOfConduct onOpenEmpanelmentModal={() => setIsEmpanelmentOpen(true)} />} />
             <Route path="/legal-disclaimer" element={<LegalDisclaimer />} />
+
+            {/* Old Route Permanent Redirects */}
+            <Route path="/lok-adalat" element={<Navigate to="/" replace />} />
+            <Route path="/lokadalat" element={<Navigate to="/" replace />} />
+            <Route path="/online-lok-adalat" element={<Navigate to="/" replace />} />
 
             {/* 404 Catch-All Route */}
             <Route path="*" element={<NotFound />} />
