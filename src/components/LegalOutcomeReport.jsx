@@ -198,7 +198,7 @@ export default function LegalOutcomeReport({ report, onReset }) {
 
               {/* PART I */}
               <Part n={PART.particulars} title="Particulars">
-                <dl style={{ margin: 0, display: "grid", gridTemplateColumns: "minmax(140px, 42%) 1fr", fontSize: "14px" }}>
+                <dl className="brief-particulars-dl" style={{ margin: 0, display: "grid", gridTemplateColumns: "minmax(140px, 42%) 1fr", fontSize: "14px" }}>
                   {brief.particulars.map((p) => (
                     <div key={p.label} style={{ display: "contents" }}>
                       <dt style={{ padding: "10px 14px", borderBottom: "1px solid var(--line)", color: "var(--slate)" }}>{p.label}</dt>
@@ -228,14 +228,14 @@ export default function LegalOutcomeReport({ report, onReset }) {
               {/* PART IV */}
               <Part n={PART.issues} title="Issues and analysis">
                 {brief.issues.map((issue, idx) => (
-                  <article key={issue.id} className="avoid-page-break" style={{ border: "1px solid var(--line)", borderRadius: "8px", padding: "18px 20px", marginBottom: "16px" }}>
+                  <article key={issue.id} className="avoid-page-break brief-issue-card" style={{ border: "1px solid var(--line)", borderRadius: "8px", padding: "18px 20px", marginBottom: "16px" }}>
                     <h4 style={{ fontSize: "15.5px", color: "var(--ink)", margin: "0 0 12px", lineHeight: 1.5 }}>
                       Issue {idx + 1}. {issue.title}
                       {issue.raisedBy === "ai" && (
                         <span style={{ marginLeft: "8px", fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--slate)", fontWeight: 400 }}>[raised on the record by AI analysis]</span>
                       )}
                     </h4>
-                    <dl style={{ margin: 0, display: "grid", gridTemplateColumns: "minmax(110px, 170px) 1fr", gap: "10px 16px", fontSize: "14px", color: "#24364F", lineHeight: 1.65 }}>
+                    <dl className="brief-issue-dl" style={{ margin: 0, display: "grid", gridTemplateColumns: "minmax(110px, 170px) 1fr", gap: "10px 16px", fontSize: "14px", color: "#24364F", lineHeight: 1.65 }}>
                       <dt style={S.rowLabel}>Claimant</dt>
                       <dd style={{ margin: 0 }}>{issue.claimantPosition}</dd>
                       <dt style={S.rowLabel}>Respondent</dt>

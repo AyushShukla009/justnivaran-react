@@ -2287,6 +2287,17 @@ table.print-report-table tfoot {
   padding-top: 3px;
 }
 
+/* Case Assessment Brief on phones: stack labels above content */
+@media (max-width: 600px) {
+  .brief-issue-dl { grid-template-columns: 1fr !important; gap: 4px !important; }
+  .brief-issue-dl dt { padding-top: 10px !important; }
+  .brief-issue-card { padding: 14px 14px !important; }
+  .brief-issue-card blockquote { padding: 10px 12px !important; }
+  .brief-particulars-dl { grid-template-columns: 1fr !important; }
+  .brief-particulars-dl dt { border-bottom: none !important; padding-bottom: 0 !important; }
+  .brief-para { grid-template-columns: 26px 1fr !important; }
+}
+
 /* Related precedents: show source URLs only on the printed brief */
 .print-only-url { display: none; }
 
