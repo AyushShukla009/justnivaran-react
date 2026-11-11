@@ -1,0 +1,23 @@
+[
+  {
+    "name": "PLACEHOLDER — Sample Arbitrator (not a real person)",
+    "role": "Arbitrator",
+    "profile": "Layout preview only. Replace with a 2–3 line profile approved by the neutral.",
+    "photo": "",
+    "consent_confirmed": false
+  },
+  {
+    "name": "PLACEHOLDER — Sample Mediator (not a real person)",
+    "role": "Mediator",
+    "profile": "Layout preview only. Replace with a 2–3 line profile approved by the neutral.",
+    "photo": "",
+    "consent_confirmed": false
+  },
+  {
+    "name": "PLACEHOLDER — Sample Conciliator (not a real person)",
+    "role": "Conciliator",
+    "profile": "Layout preview only. Replace with a 2–3 line profile approved by the neutral.",
+    "photo": "",
+    "consent_confirmed": false
+  }
+]

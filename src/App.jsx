@@ -17,6 +17,7 @@ const ConciliationRules = lazy(() => import("./pages/ConciliationRules"));
 const PrivacyNotice = lazy(() => import("./pages/PrivacyNotice"));
 const ArbitrationRules = lazy(() => import("./pages/ArbitrationRules"));
 const ForNeutrals = lazy(() => import("./pages/ForNeutrals"));
+const OurNeutrals = lazy(() => import("./pages/OurNeutrals"));
 const Contact = lazy(() => import("./pages/Contact"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 
@@ -97,6 +98,11 @@ const ROUTE_SEO = {
     title: "Empanelment of Neutrals — JustNivaran ODR",
     description: "Join JustNivaran's National Panel of Arbitrators, Mediators, and Conciliators. Transparent registry appointments and secure digital case docket management.",
     keywords: "Arbitrator empanelment, Mediator roster, neutral empanelment, legal dispute panel"
+  },
+  "/our-neutrals": {
+    title: "Our Neutrals — JustNivaran ODR",
+    description: "Arbitrators, Mediators and Conciliators on the JustNivaran panel, published with each neutral's confirmed consent.",
+    keywords: "JustNivaran neutrals, arbitrators, mediators, conciliators, ODR panel India"
   },
   "/contact": {
     title: "Contact Institutional Registry — JustNivaran ODR",
@@ -423,6 +429,7 @@ function App() {
                 />
               }
             />
+            <Route path="/our-neutrals" element={<OurNeutrals />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/admin" element={<AdminDashboard />} />
 

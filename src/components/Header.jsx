@@ -147,6 +147,9 @@ function Header({ onOpenFileModal }) {
           <Link to="/for-neutrals" style={linkStyle("/for-neutrals")}>
             Neutral Empanelment
           </Link>
+          <Link to="/our-neutrals" style={linkStyle("/our-neutrals")}>
+            Our Neutrals
+          </Link>
           <Link to="/contact" style={linkStyle("/contact")}>
             Contact
           </Link>
@@ -214,6 +217,9 @@ function Header({ onOpenFileModal }) {
           </Link>
           <Link to="/for-neutrals" onClick={() => setIsMobileMenuOpen(false)}>
             👨‍⚖️ Neutral Empanelment
+          </Link>
+          <Link to="/our-neutrals" onClick={() => setIsMobileMenuOpen(false)}>
+            🧑‍⚖️ Our Neutrals
           </Link>
           <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)}>
             📞 Contact &amp; Consultation
