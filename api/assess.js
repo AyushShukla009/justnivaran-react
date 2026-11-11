@@ -224,7 +224,8 @@ export function validateAITextIntegrity(aiData, deterministicReport, intakeData 
     "15.03.2020",
     "28.02.2022",
     intakeData.factsSummary,
-    intakeData.factualChronology
+    intakeData.factualChronology,
+    deterministicReport.brief ? JSON.stringify(deterministicReport.brief) : ""
   ]
     .filter(Boolean)
     .join(" ");
@@ -292,7 +293,64 @@ export function validateAITextIntegrity(aiData, deterministicReport, intakeData 
     }
   }
 
+  // 5. Neutrality: no outcome predictions, strength ratings, likelihoods or settlement outlook
+  const PREDICTIVE_PATTERNS = [
+    /\blikely to (?:succeed|fail|win|lose|prevail|be (?:allowed|dismissed|decreed|awarded))\b/i,
+    /\b(?:will|would|should) (?:succeed|fail|win|lose|prevail)\b/i,
+    /\b(?:chances?|prospects?|probability|likelihood|odds) of (?:success|winning|losing|recovery|succeeding|prevailing)\b/i,
+    /\b(?:strong|weak|stronger|weaker|robust|winning|losing) (?:case|claim|defen[cs]e|position)\b/i,
+    /\b(?:full|partial|substantial) recovery (?:is )?likely\b/i,
+    /\b(?:high|medium|low|moderate) likelihood\b/i,
+    /\bsettlement outlook\b/i,
+    /\bis bound to (?:succeed|fail)\b/i
+  ];
+  for (const re of PREDICTIVE_PATTERNS) {
+    const m = fullText.match(re);
+    if (m) {
+      violations.push(`AI used outcome-prediction language: "${m[0]}". The brief must stay neutral and must not predict or rate the outcome.`);
+    }
+  }
+
   return violations;
+}
+
+/**
+ * Merge AI analysis into the engine-framed issues. Engine findings stay locked;
+ * the AI contributes positions, analysis and evidence for each issue.
+ */
+export function mergeBriefWithAI(brief, ai) {
+  const byId = new Map((ai.issues || []).map((i) => [i.issue_id, i]));
+  const issues = brief.issues.map((issue) => {
+    const a = byId.get(issue.id);
+    if (!a) return issue;
+    return {
+      ...issue,
+      claimantPosition: a.claimant_position || issue.claimantPosition,
+      respondentPosition: a.respondent_position || issue.respondentPosition,
+      analysis: a.analysis,
+      evidenceNeeded: Array.from(new Set([...(issue.evidenceNeeded || []), ...(a.evidence_needed || [])]))
+    };
+  });
+  (ai.additional_issues || []).forEach((x, idx) => {
+    issues.push({
+      id: `ADDITIONAL_${idx + 1}`,
+      title: x.issue,
+      claimantPosition: x.claimant_position,
+      respondentPosition: x.respondent_position,
+      applicableLaw: x.applicable_law || [],
+      finding: "",
+      analysis: x.analysis,
+      evidenceNeeded: x.evidence_needed || [],
+      raisedBy: "ai"
+    });
+  });
+  return {
+    ...brief,
+    statementOfFacts: ai.statement_of_facts,
+    issues,
+    pointsForDetermination: issues.map((i) => i.title),
+    assumptions: ai.assumptions || []
+  };
 }
 
 /**
@@ -369,20 +427,6 @@ export async function executeAssessment(intakeData = {}, options = {}) {
       const parsedObj = JSON.parse(rawJson);
       validatedAiData = AIAssessmentResponseSchema.parse(parsedObj);
 
-      // Contradiction Check: If AI contradicted the deterministic strength ratings, retry once on attempt 1
-      if (
-        attempt === 1 &&
-        (validatedAiData.claim_strength.rating !== deterministicReport.claimStrength.rating ||
-          validatedAiData.defence_strength.rating !== deterministicReport.defenceStrength.rating)
-      ) {
-        messages.push({ role: "assistant", content: rawJson });
-        messages.push({
-          role: "user",
-          content: `Correction required: The claim strength rating must be "${deterministicReport.claimStrength.rating}" and defence strength rating must be "${deterministicReport.defenceStrength.rating}" as established by the institutional statutory baseline. Please adjust your reasons and output strictly compliant JSON.`
-        });
-        continue;
-      }
-
       // Post-Validation Integrity Check: Prohibit %, invented rupees, unlisted dates, unlisted cases
       const violations = validateAITextIntegrity(validatedAiData, deterministicReport, intakeData);
       if (violations.length > 0) {
@@ -390,7 +434,7 @@ export async function executeAssessment(intakeData = {}, options = {}) {
           messages.push({ role: "assistant", content: rawJson });
           messages.push({
             role: "user",
-            content: `The output failed statutory integrity validation with the following violations:\n${violations.map((v) => `- ${v}`).join("\n")}\n\nSTRICT RULES:\n1. NEVER output the '%' symbol.\n2. Do NOT invent rupee settlement figures.\n3. Do NOT invent any dates not in the input facts.\n4. Do NOT name any unlisted court cases or parties.\nRegenerate strictly compliant JSON.`
+            content: `The output failed validation with the following violations:\n${violations.map((v) => `- ${v}`).join("\n")}\n\nSTRICT RULES:\n1. NEVER output the '%' symbol.\n2. Do NOT invent rupee figures.\n3. Do NOT invent any dates not in the case data or engine findings.\n4. Do NOT name any case or party not in the allowed list.\n5. Do NOT predict, rate or hint at the outcome.\nRegenerate strictly compliant JSON.`
           });
           continue;
         } else {
@@ -432,59 +476,18 @@ export async function executeAssessment(intakeData = {}, options = {}) {
     };
   }
 
-  // Confidence Rule: Confidence cannot be "High" if any evidence gap exists
-  const hasEvidenceGaps =
-    (Array.isArray(validatedAiData.evidence_gaps) && validatedAiData.evidence_gaps.length > 0) ||
-    (Array.isArray(deterministicReport.evidenceGaps) && deterministicReport.evidenceGaps.length > 0) ||
-    (Array.isArray(deterministicReport.claimantGaps) && deterministicReport.claimantGaps.length > 0);
-
-  let finalConfidence = validatedAiData.confidence;
-  if (hasEvidenceGaps && finalConfidence === "High") {
-    finalConfidence = "Moderate";
-  }
-
-  // PROGRAMMATIC IMMUTABLE OVERWRITE:
-  // Overwrite statutory, limitation, Sec 12A, MSMED, fee, forum, and strength fields with authoritative deterministic engine values
+  // ENGINE FIELDS ARE LOCKED; the AI only contributes neutral analysis text.
   const finalReport = {
     ...deterministicReport,
-    ...validatedAiData,
-
-    // Overwrite with JN-AI- dossier reference
     requestId: `JN-AI-${Math.floor(100000 + Math.random() * 900000)}`,
     generatedAt: new Date().toISOString(),
     engineType: "AI-assisted assessment (Claude)",
     modelUsed: `Anthropic Claude Sonnet 5.5 (${model})`,
     isLiveAI: true,
-
-    // Lock statutory deterministic engine fields (Limitation, Section 12A, MSMED, fees, forum)
-    limitation: deterministicReport.limitation,
-    section12A: deterministicReport.section12A,
-    msmed: deterministicReport.msmed,
-    forumRecommendation: deterministicReport.forumRecommendation,
-    processComparison: deterministicReport.processComparison,
-    claimQuantum: deterministicReport.claimQuantum,
-    claimQuantumFormatted: deterministicReport.claimQuantumFormatted,
-    relatedPrecedents: deterministicReport.relatedPrecedents || [],
-
-    // Enforce deterministic strength ratings programmatically
-    claimStrength: {
-      rating: deterministicReport.claimStrength.rating,
-      reasons: validatedAiData.claim_strength.reasons || deterministicReport.claimStrength.reasons
-    },
-    defenceStrength: {
-      rating: deterministicReport.defenceStrength.rating,
-      reasons: validatedAiData.defence_strength.reasons || deterministicReport.defenceStrength.reasons
-    },
-
-    // Qualitative settlement outlook (NO percentages, NO rupee figures from AI)
-    settlementOutlook: validatedAiData.settlement_outlook || deterministicReport.settlementOutlook,
-
-    claimantGaps: deterministicReport.claimantGaps,
-    evidenceGaps: Array.from(new Set([...deterministicReport.evidenceGaps, ...(validatedAiData.evidence_gaps || [])])),
-
-    confidence: finalConfidence,
-
-    disclaimer: "AI-assisted indicative assessment. Not legal advice. Outcomes depend on evidence and the neutral's independent adjudication."
+    brief: mergeBriefWithAI(deterministicReport.brief, validatedAiData),
+    evidenceGaps: Array.from(new Set([...(deterministicReport.evidenceGaps || []), ...(validatedAiData.evidence_gaps || [])])),
+    recommendedNextSteps: validatedAiData.procedural_next_steps,
+    disclaimer: "Neutral case brief. Analysis drafted with AI assistance and checked against the rules engine; it records issues and applicable law, does not predict or recommend any outcome, and is not legal advice."
   };
 
   return {

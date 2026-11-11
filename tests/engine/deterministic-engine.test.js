@@ -176,12 +176,14 @@ runTest("Preset 4: Claimant weaknesses separated into claimantGaps / evidenceGap
     asOfDate: FIXED_TODAY
   });
 
-  // Defence reasons must contain only substantive defenses
-  assert.ok(d4.defenceStrength.reasons.some((r) => r.includes("warranty")));
-  assert.ok(!d4.defenceStrength.reasons.some((r) => r.includes("Absence of physical stamped delivery")));
-
-  // User fix 1: Preset 4 claimant strength must be Moderate due to procedural gaps and missing proof of acceptance
-  assert.strictEqual(d4.claimStrength.rating, "Moderate");
+  // Neutral brief: no outcome predictions or strength ratings in the report
+  ["claimStrength", "defenceStrength", "settlementOutlook", "likelyOutcomeScenarios", "confidence"].forEach((k) =>
+    assert.ok(!(k in d4), `report must not contain ${k}`)
+  );
+  const merits = d4.brief.issues.find((i) => i.id === "MERITS");
+  assert.ok(merits, "merits issue is framed");
+  // Claimant's procedural omissions appear as evidence to be produced, not as a defence
+  assert.ok(merits.evidenceNeeded.some((e) => e.includes("Absence of physical stamped delivery")));
   assert.ok(d4.msmed.deemedAcceptanceNote.includes("deemed-acceptance"));
 
   // Claimant gaps must contain procedural omissions
@@ -246,11 +248,8 @@ console.log("-------------------------------------------------------------------
   console.log(`   - Statutory Basis:     ${dossier.forumRecommendation.statutoryBasis}`);
   console.log(`   - Rationale:           ${dossier.forumRecommendation.rationale}`);
   console.log(`-----------------------------------------------------------------------------`);
-  console.log(`5. INSTITUTIONAL STRENGTH EVALUATION:`);
-  console.log(`   - Claimant Strength:   ${dossier.claimStrength.rating}`);
-  dossier.claimStrength.reasons.forEach((r) => console.log(`     * ${r}`));
-  console.log(`   - Defence Strength:    ${dossier.defenceStrength.rating}`);
-  dossier.defenceStrength.reasons.forEach((r) => console.log(`     * ${r}`));
+  console.log(`5. ISSUES FRAMED (NEUTRAL BRIEF):`);
+  dossier.brief.issues.forEach((i, n) => console.log(`     (${n + 1}) ${i.title}`));
   console.log(`   - Gaps in Claimant's Case:`);
   dossier.claimantGaps.forEach((g) => console.log(`     [!] ${g}`));
   console.log(`   - Evidentiary Missing Items:`);

@@ -13,7 +13,8 @@
 import assert from "node:assert";
 import { AIAssessmentResponseSchema } from "../../src/lib/aiAssessmentSchema.js";
 import { executeAssessment } from "../../api/assess.js";
-import { BENCHMARK_PRESETS } from "../../src/lib/deterministicEngine.js";
+import { BENCHMARK_PRESETS, generateDeterministicAssessment } from "../../src/lib/deterministicEngine.js";
+import { compliantAIBrief } from "./fixtures/aiBrief.fixture.js";
 
 const FIXED_TODAY = new Date("2026-10-27T00:00:00Z");
 
@@ -37,68 +38,22 @@ function test(name, fn) {
 // ----------------------------------------------------------------------------
 // TEST 1: ZOD SCHEMA VALIDATION
 // ----------------------------------------------------------------------------
-test("Zod Schema: validates compliant response and rejects invalid ratings", () => {
-  const validMock = {
-    case_summary: "Commercial contract dispute regarding non-payment of invoice worth 15L.",
-    claim_strength: {
-      rating: "Strong",
-      reasons: ["Written agreement on record", "Unexpired limitation period"]
-    },
-    defence_strength: {
-      rating: "Weak",
-      reasons: ["No substantive defense raised on debt"]
-    },
-    key_legal_issues: [
-      "Limitation compliance under Limitation Act 1963",
-      "Section 31(7) interest entitlement"
-    ],
-    applicable_principles: [
-      {
-        name: "Section 73 Indian Contract Act 1872",
-        why_relevant: "Governs damages for breach of contract"
-      }
-    ],
-    evidence_gaps: [
-      "Absence of formal written acknowledgment of debt"
-    ],
-    risks: [
-      "Procedural delays if respondent avoids service"
-    ],
-    likely_outcome_scenarios: [
-      {
-        scenario: "Primary claim sustained",
-        likelihood: "High",
-        explanation: "Documentary trail supports recovery."
-      },
-      {
-        scenario: "Mediated settlement",
-        likelihood: "Medium",
-        explanation: "Parties agree to staggered payment."
-      }
-    ],
-    settlement_outlook: {
-      rating: "Full recovery likely",
-      explanation: "Clear documentary trail and unexpired limitation support full recovery."
-    },
-    recommended_next_steps: [
-      "Initiate Institutional Mediation under Mediation Act 2023",
-      "Obtain formal written confirmation"
-    ],
-    confidence: "High",
-    assumptions: [
-      "All invoices were delivered to authorized email"
-    ]
-  };
-
+test("Zod Schema v2: validates a neutral brief and strips prediction fields", () => {
+  const det = generateDeterministicAssessment({ ...BENCHMARK_PRESETS[0], asOfDate: FIXED_TODAY });
+  const validMock = compliantAIBrief(det);
   const parsed = AIAssessmentResponseSchema.parse(validMock);
-  assert.strictEqual(parsed.claim_strength.rating, "Strong");
+  assert.strictEqual(parsed.issues.length, det.brief.issues.length);
 
-  // Should reject invalid qualitative rating (e.g. "78%" or "Moderate-High")
-  const invalidMock = {
-    ...validMock,
-    claim_strength: { rating: "78%", reasons: ["invalid"] }
-  };
-  assert.throws(() => AIAssessmentResponseSchema.parse(invalidMock));
+  // Prediction fields from the old schema are not part of the output
+  const withPredictions = { ...validMock, claim_strength: { rating: "Strong" }, settlement_outlook: { rating: "Full recovery likely" } };
+  const stripped = AIAssessmentResponseSchema.parse(withPredictions);
+  assert.ok(!("claim_strength" in stripped) && !("settlement_outlook" in stripped));
+
+  // Issues analysis is mandatory
+  assert.throws(() => AIAssessmentResponseSchema.parse({ ...validMock, issues: [] }));
+  // At most two additional issues
+  const extra = { issue: "Whether interest is payable.", claimant_position: "x", respondent_position: "Not on record.", applicable_law: [], analysis: "Analysis of the stated facts.", evidence_needed: [] };
+  assert.throws(() => AIAssessmentResponseSchema.parse({ ...validMock, additional_issues: [extra, extra, extra] }));
 });
 
 // ----------------------------------------------------------------------------
@@ -118,7 +73,10 @@ test("Immutable Overwrite: Deterministic fields cannot be altered by AI output",
   assert.strictEqual(data.limitation.status, "In time");
   assert.strictEqual(data.section12A.status, "Not Required (Arbitration Governs)");
   assert.strictEqual(data.claimQuantum, 1500000);
-  assert.strictEqual(data.claimStrength.rating, "Strong");
+  ["claimStrength", "defenceStrength", "settlementOutlook", "likelyOutcomeScenarios", "confidence"].forEach((k) =>
+    assert.ok(!(k in data), `no prediction field ${k}`)
+  );
+  assert.ok(data.brief.issues.some((i) => i.id === "LIMITATION"));
 });
 
 // ----------------------------------------------------------------------------
@@ -160,10 +118,7 @@ for (let i = 0; i < BENCHMARK_PRESETS.length; i++) {
   console.log(`  • Limitation Status:     ${d.limitation.status} (${d.limitation.daysRemaining} days remaining)`);
   console.log(`  • Section 12A Status:    ${d.section12A.status}`);
   console.log(`  • MSMED Status:          ${d.msmed.applicable ? `APPLICABLE (3x RBI Interest: ₹${d.msmed.estimatedStatutoryInterest.toLocaleString("en-IN")})` : "NOT APPLICABLE"}`);
-  console.log(`  • Claim Strength Band:   ${d.claimStrength.rating}`);
-  console.log(`  • Defence Strength Band: ${d.defenceStrength.rating}`);
-  console.log(`  • Settlement Outlook:    ${d.settlementOutlook.rating} ("${d.settlementOutlook.explanation}")`);
-  console.log(`  • Number of Scenarios:   ${d.likelyOutcomeScenarios.length}\n`);
+  console.log(`  • Issues framed:         ${d.brief.issues.map((x) => x.id).join(", ")}\n`);
 }
 
 test("All 4 presets verified through Step 2 pipeline", () => {

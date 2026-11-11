@@ -6,7 +6,12 @@
     "subject": "commercial contract; supply of goods; unpaid invoice; delivery",
     "holding": "Sample holding for layout and retrieval testing only. Not a statement of law. Replace with a verified 2–3 line holding.",
     "source_link": "https://example.com/sample-case-1",
-    "verified": false
+    "verified": false,
+    "equivalent_citations": [],
+    "bench": "",
+    "decided_on": "",
+    "headnote": "",
+    "treatment": ""
   },
   {
     "citation": "SAMPLE 2 — Gamma Micro Enterprises v. Delta Buyers (SAMPLE, not a real case)",
@@ -15,7 +20,12 @@
     "subject": "MSME; delayed payment; Udyam registration; statutory interest",
     "holding": "Sample holding for layout and retrieval testing only. Not a statement of law. Replace with a verified 2–3 line holding.",
     "source_link": "https://example.com/sample-case-2",
-    "verified": false
+    "verified": false,
+    "equivalent_citations": [],
+    "bench": "",
+    "decided_on": "",
+    "headnote": "",
+    "treatment": ""
   },
   {
     "citation": "SAMPLE 3 — Epsilon Builders v. Zeta Infrastructure (SAMPLE, not a real case)",
@@ -24,7 +34,12 @@
     "subject": "construction; EPC; project delay; liquidated damages",
     "holding": "Sample holding for layout and retrieval testing only. Not a statement of law. Replace with a verified 2–3 line holding.",
     "source_link": "https://example.com/sample-case-3",
-    "verified": false
+    "verified": false,
+    "equivalent_citations": [],
+    "bench": "",
+    "decided_on": "",
+    "headnote": "",
+    "treatment": ""
   },
   {
     "citation": "SAMPLE 4 — Eta Software v. Theta Retail (SAMPLE, not a real case)",
@@ -33,7 +48,12 @@
     "subject": "IT services; software; SLA; milestone payment; acceptance",
     "holding": "Sample holding for layout and retrieval testing only. Not a statement of law. Replace with a verified 2–3 line holding.",
     "source_link": "https://example.com/sample-case-4",
-    "verified": false
+    "verified": false,
+    "equivalent_citations": [],
+    "bench": "",
+    "decided_on": "",
+    "headnote": "",
+    "treatment": ""
   },
   {
     "citation": "SAMPLE 5 — Iota Holdings v. Kappa Ventures (SAMPLE, not a real case)",
@@ -42,6 +62,11 @@
     "subject": "arbitration clause; appointment of arbitrator; arbitration agreement",
     "holding": "Sample holding for layout and retrieval testing only. Not a statement of law. Replace with a verified 2–3 line holding.",
     "source_link": "https://example.com/sample-case-5",
-    "verified": false
+    "verified": false,
+    "equivalent_citations": [],
+    "bench": "",
+    "decided_on": "",
+    "headnote": "",
+    "treatment": ""
   }
 ]

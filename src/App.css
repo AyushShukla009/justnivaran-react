@@ -2262,7 +2262,8 @@ table.print-report-table {
   border: none;
   table-layout: fixed;
 }
-table.print-report-table td {
+table.print-report-table > tbody > tr > td,
+table.print-report-table > tfoot > tr > td {
   padding: 0;
   border: none;
 }
@@ -2273,6 +2274,17 @@ table.print-report-table tfoot {
 @page {
   size: A4 portrait;
   margin: 12mm 12mm 15mm 12mm;
+}
+
+/* Case Assessment Brief: continuous paragraph numbering (screen and print) */
+.case-brief-body { counter-reset: briefpara; }
+.brief-para { counter-increment: briefpara; }
+.brief-para::before {
+  content: counter(briefpara) ".";
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--slate);
+  padding-top: 3px;
 }
 
 /* Related precedents: show source URLs only on the printed brief */
@@ -2375,7 +2387,8 @@ table.print-report-table tfoot {
     border: none !important;
   }
 
-  table.print-report-table td {
+  table.print-report-table > tbody > tr > td,
+  table.print-report-table > tfoot > tr > td {
     padding: 0 !important;
     border: none !important;
   }

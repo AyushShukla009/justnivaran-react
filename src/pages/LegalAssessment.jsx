@@ -44,8 +44,8 @@ const PROGRESS_STAGES = [
   "Calculating limitation clock under Limitation Act, 1963...",
   "Assessing Section 12A Commercial Courts Act pre-institution requirements...",
   "Checking MSMED statutory interest and Section 15 credit compliance...",
-  "Evaluating strength ratings and evidentiary gaps...",
-  "Synthesizing institutional dossier and forum comparison matrix..."
+  "Framing the issues and the applicable law...",
+  "Listing the evidence on which each issue turns..."
 ];
 
 function formatIndianNumber(val) {
@@ -93,6 +93,8 @@ const INITIAL_FORM_DATA = {
   acknowledgmentDate: "",
   acknowledgmentDocumentType: "",
   evidenceList: ["invoices", "delivery_proof", "contract"],
+  primaryClaims: "",
+  expectedDefenses: "",
   consentAccepted: true
 };
 
@@ -176,6 +178,10 @@ export default function LegalAssessment() {
       acknowledgmentDate: preset.acknowledgmentDate || "",
       acknowledgmentDocumentType: preset.acknowledgmentDocumentType || "",
       evidenceList: Array.isArray(preset.evidenceList) ? preset.evidenceList : [],
+      primaryClaims: preset.primaryClaims || "",
+      expectedDefenses: preset.expectedDefenses || "",
+      factualChronology: preset.factualChronology || "",
+      substantiveDefenses: Array.isArray(preset.substantiveDefenses) ? preset.substantiveDefenses : [],
       consentAccepted: true
     });
     setErrorMessage("");
@@ -285,7 +291,7 @@ export default function LegalAssessment() {
         </h1>
         <p className="lede" style={{ color: "var(--slate)", margin: 0, maxWidth: "900px" }}>
           {track === COMMERCIAL_TRACK
-            ? "Authoritative institutional analysis uniting deterministic Indian statutory rules (Limitation Act 1963, Commercial Courts Act 2015, MSMED Act 2006) with advanced Claude Sonnet 5.5 legal reasoning."
+            ? "A neutral case brief: issues framed, each side's position, the applicable law and the evidence on which each issue turns. Statutory checks (limitation, Section 12A, MSMED Act) are computed by a rules engine; no outcome is predicted."
             : "General process guidance for family, non-commercial civil and miscellaneous matters. No AI is used and nothing you enter leaves your browser."}
         </p>
       </div>
@@ -641,6 +647,42 @@ export default function LegalAssessment() {
                     ⚠️ Narrative is too brief ({formData.factsSummary.length} chars). Please provide substantive details for accurate institutional analysis.
                   </span>
                 )}
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: "20px", marginTop: "20px" }}>
+                <div>
+                  <label htmlFor="primaryClaims" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                    Relief claimed <span style={{ color: "var(--slate)", fontWeight: 400 }}>(optional)</span>
+                  </label>
+                  <textarea
+                    id="primaryClaims"
+                    rows="3"
+                    name="primaryClaims"
+                    maxLength={1500}
+                    value={formData.primaryClaims}
+                    onChange={handleInputChange}
+                    placeholder="e.g. Payment of the unpaid invoice amount with interest."
+                    style={{ width: "100%", padding: "12px", borderRadius: "6px", border: "1px solid var(--line)", fontSize: "14px", lineHeight: "1.6" }}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="expectedDefenses" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                    Respondent&rsquo;s position, if known <span style={{ color: "var(--slate)", fontWeight: 400 }}>(optional)</span>
+                  </label>
+                  <textarea
+                    id="expectedDefenses"
+                    rows="3"
+                    name="expectedDefenses"
+                    maxLength={1500}
+                    value={formData.expectedDefenses}
+                    onChange={handleInputChange}
+                    placeholder="What the other side has said in reply, e.g. goods were defective, payment was not due."
+                    style={{ width: "100%", padding: "12px", borderRadius: "6px", border: "1px solid var(--line)", fontSize: "14px", lineHeight: "1.6" }}
+                  />
+                  <div style={{ fontSize: "12px", color: "var(--slate)", marginTop: "4px" }}>
+                    Left blank, the brief records the respondent&rsquo;s position as &ldquo;Not on record.&rdquo;
+                  </div>
+                </div>
               </div>
             </div>
 

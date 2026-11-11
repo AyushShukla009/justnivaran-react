@@ -2,7 +2,8 @@
  * JustNivaran Case-Bank Retrieval Layer (local only — no external legal database)
  *
  * Source: src/data/cases.json
- *   { citation, court, year, subject, holding, source_link, verified }
+ *   { citation, court, year, subject, holding, source_link, verified,
+ *     equivalent_citations?, bench?, decided_on?, headnote?, treatment? }
  *
  * Rules:
  * 1. Retrieval scores each case against the facts of THIS request (category,
@@ -50,7 +51,13 @@ function toPublicRecord(c) {
     subject: c.subject,
     holding: c.holding || "",
     source_link: typeof c.source_link === "string" && /^https?:\/\//i.test(c.source_link) ? c.source_link : "",
-    verified: c.verified === true
+    verified: c.verified === true,
+    // Optional SCC-style metadata
+    equivalent_citations: Array.isArray(c.equivalent_citations) ? c.equivalent_citations.filter((x) => typeof x === "string" && x.trim()) : [],
+    bench: typeof c.bench === "string" ? c.bench : "",
+    decided_on: typeof c.decided_on === "string" ? c.decided_on : "",
+    headnote: typeof c.headnote === "string" ? c.headnote : "",
+    treatment: typeof c.treatment === "string" ? c.treatment : ""
   };
 }
 

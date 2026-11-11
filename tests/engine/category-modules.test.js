@@ -61,7 +61,7 @@ assert.strictEqual(family.generateGuidance({ ...completeAnswers(family), safetyC
 // Commercial categories unaffected
 BENCHMARK_PRESETS.forEach((p) => {
   const r = generateDeterministicAssessment(p);
-  assert.ok(r.claimStrength && r.limitation, `${p.label}: commercial report unchanged`);
+  assert.ok(r.brief && r.limitation && r.section12A, `${p.label}: commercial report still built by the rules engine`);
 });
 
 // Server never calls the AI provider for guidance categories, even with a key configured

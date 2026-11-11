@@ -230,6 +230,8 @@ for (let pIdx = 0; pIdx < BENCHMARK_PRESETS.length; pIdx++) {
   for (let run = 1; run <= 20; run++) {
     // Generate slight mock variance in phrasing to simulate stochastic LLM responses
     const mockOutput = JSON.parse(JSON.stringify(baseMock));
+    // v2 brief: prediction fields are no longer part of the AI output
+    ["claim_strength", "defence_strength", "likely_outcome_scenarios", "settlement_outlook", "confidence"].forEach((k) => delete mockOutput[k]);
     if (run % 4 === 1) {
       mockOutput.case_summary += ` Formal demand notice with 15 days cure window.`;
     } else if (run % 4 === 2) {
@@ -267,6 +269,7 @@ for (let pIdx = 0; pIdx < BENCHMARK_PRESETS.length; pIdx++) {
       retriesRequired++;
       // Simulate Attempt 2 correction (LLM removes violation)
       const correctedOutput = JSON.parse(JSON.stringify(baseMock));
+      ["claim_strength", "defence_strength", "likely_outcome_scenarios", "settlement_outlook", "confidence"].forEach((k) => delete correctedOutput[k]);
       const retryViolations = validateAITextIntegrity(correctedOutput, detReport, preset);
       if (retryViolations.length > 0) {
         fallbacksTriggered++;

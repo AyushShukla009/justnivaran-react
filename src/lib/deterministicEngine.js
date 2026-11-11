@@ -15,6 +15,7 @@
 
 import { retrieveCases } from "./caseRetrieval.js";
 import { getGuidanceModule } from "./categories/index.js";
+import { buildCaseBrief } from "./caseBrief.js";
 import { calculateAuthoritativeFee, GST_RATE, FEE_SLABS } from "./feeSchedule.js";
 
 // ============================================================================
@@ -259,7 +260,7 @@ export function checkSection12A({
     applicable: true,
     mandatory: true,
     status: "Mandatory Pre-Institution Mediation Prerequisite",
-    rationale: "Section 12A(1) of the Commercial Courts Act, 2015 is a mandatory jurisdictional prerequisite before filing a commercial suit in court. Per the Supreme Court ruling in Patil Automation Pvt. Ltd. v. Rakheja Engineers Pvt. Ltd. (2022), any commercial suit instituted without exhausting pre-institution mediation (absent urgent interim relief) is liable to be rejected under Order VII Rule 11 CPC.",
+    rationale: "Section 12A(1) of the Commercial Courts Act, 2015 is a mandatory jurisdictional prerequisite before filing a commercial suit in court. A commercial suit instituted without exhausting pre-institution mediation (absent urgent interim relief) is liable to be rejected under Order VII Rule 11 CPC.",
     statutoryAdvisory: "Statutory Compliance Note: To satisfy the threshold jurisdictional requirement of Section 12A for filing a commercial suit in court, mediation must be exhausted through the designated statutory authority under the Commercial Courts (Pre-Institution Mediation and Settlement) Rules, 2018 (conducted via State or District Legal Services Authorities - SLSA/DLSA). Institutional mediation administered by JustNivaran operates by party consent under the Mediation Act, 2023."
   };
 }
@@ -339,7 +340,7 @@ export function checkMSMEDApplicability({
       statutoryInterestRatePercent: "0%",
       estimatedStatutoryInterest: 0,
       totalClaimWithInterest: principal,
-      rationale: `Although the supplier is a ${enterpriseType} Enterprise, Udyam registration was NOT held at the date of entering into the contract. Per the Supreme Court precedent in Silpi Industries v. Kerala State Small Industries Development Corp. (2021), statutory benefits under Sections 15, 16, 18, and 19 of the MSMED Act 2006 cannot be claimed for contracts/supplies predating registration.`
+      rationale: `Although the supplier is a ${enterpriseType} Enterprise, Udyam registration was NOT held at the date of entering into the contract. Statutory benefits under Sections 15, 16, 18 and 19 of the MSMED Act, 2006 may not be available for contracts or supplies predating registration; this point requires determination.`
     };
   }
 
@@ -418,7 +419,7 @@ export function checkMSMEDApplicability({
     totalClaimWithInterest: principal + estimatedStatutoryInterest,
     // Section 19 accurate statutory phrasing
     section19PreDepositRule: "Section 19 MSMED Act: Mandatory 75% pre-deposit applies only if the buyer files an application before a court to set aside an award, decree, or order made by the Council or its designated ADR centre.",
-    rationale: `Qualifies under MSMED Act, 2006 as a registered ${enterpriseType} Enterprise. Section 15 caps credit at 45 days. Section 16 mandates penal compound interest at 3x RBI Bank Rate (${(statutoryInterestRate * 100).toFixed(2)}% p.a.) compounded monthly from the appointed day (${appointedDayStr}). Section 18 gives statutory right to initiate conciliation & arbitration before MSEFC, overriding general arbitration clauses (Gujarat State Civil Supplies Corp v. Mahakali Foods, 2023 SC). Section 19 mandates that a court shall not entertain an application by the buyer to set aside any award or decree without a 75% pre-deposit.`
+    rationale: `Qualifies under MSMED Act, 2006 as a registered ${enterpriseType} Enterprise. Section 15 caps credit at 45 days. Section 16 mandates penal compound interest at 3x RBI Bank Rate (${(statutoryInterestRate * 100).toFixed(2)}% p.a.) compounded monthly from the appointed day (${appointedDayStr}). Section 18 gives a statutory right to initiate conciliation and arbitration before the MSEFC. Section 19 mandates that a court shall not entertain an application by the buyer to set aside any award or decree without a 75% pre-deposit.`
   };
 }
 
@@ -524,7 +525,7 @@ export function determineRecommendedForum({
     return {
       recommendedForum: "Statutory MSEFC Facilitation / Institutional Mediation",
       statutoryBasis: "Section 18, MSMED Act, 2006 & Mediation Act, 2023",
-      rationale: "Claimant is a registered Micro/Small Enterprise with valid Udyam registration at contract inception. Section 18 of the MSMED Act provides statutory conciliation before MSEFC (or institutional referral) with statutory 3x RBI compound interest. Under Section 19, a mandatory 75% pre-deposit applies only if the buyer files an application before a court to set aside an award/order, overriding general arbitration clauses (Gujarat State Civil Supplies Corp v. Mahakali Foods, 2023 SC).",
+      rationale: "Claimant is a registered Micro/Small Enterprise with valid Udyam registration at contract inception. Section 18 of the MSMED Act provides statutory conciliation before MSEFC (or institutional referral) with statutory 3x RBI compound interest. Under Section 19, a mandatory 75% pre-deposit applies only if the buyer files an application before a court to set aside an award/order.",
       alternativeForum: "Fast-Track Institutional Arbitration (available if both parties consent in writing under Section 29B)"
     };
   }
@@ -561,7 +562,7 @@ export function determineRecommendedForum({
   return {
     recommendedForum: "Mandatory Pre-Institution Mediation (Court Prerequisite)",
     statutoryBasis: "Section 12A, Commercial Courts Act, 2015 & Mediation Act, 2023",
-    rationale: "No arbitration clause exists and no urgent interim relief is claimed. Exhaustion of Section 12A pre-institution mediation is a mandatory jurisdictional prerequisite before filing a commercial suit in court (Supreme Court in Patil Automation, 2022). Note: To satisfy Section 12A for court filing, claimant must exhaust mediation through the designated Legal Services Authority under the 2018 Rules.",
+    rationale: "No arbitration clause exists and no urgent interim relief is claimed. Exhaustion of Section 12A pre-institution mediation is a mandatory jurisdictional prerequisite before filing a commercial suit in court. Note: To satisfy Section 12A for court filing, claimant must exhaust mediation through the designated Legal Services Authority under the 2018 Rules.",
     alternativeForum: "Direct Assisted Negotiation"
   };
 }
@@ -808,44 +809,17 @@ export function generateDeterministicAssessment(intakeData = {}) {
   // Unique reference identifier
   const requestId = `JN-RULES-${Math.floor(100000 + Math.random() * 900000)}`;
 
-  // Formulate 3 Realistic Scenarios (Qualitative - No rupee estimates from AI)
-  const scenarios = [
-    {
-      scenario: "Primary Invoiced Claim Sustained",
-      likelihood: strength.claimantStrength === "Strong" ? "High" : "Medium",
-      explanation: "Documented invoices and delivery acknowledgments are admitted without substantial set-off, yielding primary principal recovery."
-    },
-    {
-      scenario: "Negotiated / Mediated Settlement",
-      likelihood: "High",
-      explanation: "Commercial compromise reached during structured mediation, adjusting for alleged performance variations or payment timeline concessions."
-    },
-    {
-      scenario: "Contested Defense / Set-off Deduction",
-      likelihood: strength.defenceStrength === "Strong" ? "High" : "Low",
-      explanation: "Respondent raises substantive counter-claims or procedural challenges, requiring formal adjudication."
-    }
-  ];
-
-  // Qualitative Settlement Outlook (NO percentages, NO rupee settlement figures)
-  let settlementOutlookRating = "Substantial partial recovery likely";
-  let settlementOutlookExplanation = "Substantive documentary record supports principal claim, subject to commercial negotiation adjustments.";
-
-  if (strength.claimantStrength === "Strong" && strength.defenceStrength === "Weak" && limitation.status === "In time") {
-    settlementOutlookRating = "Full recovery likely";
-    settlementOutlookExplanation = "Documented claim with verified contractual and delivery records; low procedural risk of deduction.";
-  } else if (strength.claimantStrength === "Moderate") {
-    settlementOutlookRating = "Partial recovery likely";
-    settlementOutlookExplanation = "Procedural gaps or absence of signed delivery acknowledgement warrant structured settlement or mediation.";
-  } else if (limitation.status === "Likely barred" || strength.claimantStrength === "Weak") {
-    settlementOutlookRating = "Uncertain";
-    settlementOutlookExplanation = "Statutory limitation bar or substantial evidentiary deficiencies present significant threshold litigation hurdles.";
-  }
-
-  const settlementOutlook = {
-    rating: settlementOutlookRating,
-    explanation: settlementOutlookExplanation
-  };
+  // Neutral case brief (no predictions, no strength ratings, no settlement outlook)
+  const brief = buildCaseBrief(intakeData, {
+    limitation,
+    section12A,
+    msmed,
+    forumRecommendation,
+    quantum,
+    hasArbitrationClause,
+    claimantGaps: strength.claimantGaps,
+    evidenceGaps: strength.evidenceGaps
+  });
 
   return {
     requestId,
@@ -869,43 +843,20 @@ export function generateDeterministicAssessment(intakeData = {}) {
     // Related precedents (retrieved for this request AND verified: true only)
     relatedPrecedents,
 
-    // Strength, Gaps & Evidence
-    claimStrength: {
-      rating: strength.claimantStrength,
-      reasons: strength.claimantReasons
-    },
-    defenceStrength: {
-      rating: strength.defenceStrength,
-      reasons: strength.defenceReasons
-    },
+    // Evidence & procedural gaps
     claimantGaps: strength.claimantGaps,
     evidenceGaps: strength.evidenceGaps,
 
-    // Scenarios & Qualitative Outlook (NO percentages)
-    settlementOutlook,
-    likelyOutcomeScenarios: scenarios,
+    // Neutral case brief
+    brief,
 
-    // Key Legal Issues
-    keyLegalIssues: [
-      `Limitation validity under Limitation Act 1963 (${limitation.status})`,
-      section12A.applicable
-        ? `Section 12A Commercial Courts Act 2015 pre-institution mediation compliance (${section12A.status})`
-        : "Arbitration clause governance under Arbitration & Conciliation Act 1996",
-      msmed.applicable
-        ? `Statutory 3x RBI interest under Section 16 MSMED Act 2006 (${msmed.interestRateLabel}; Overdue: ₹${msmed.estimatedStatutoryInterest.toLocaleString("en-IN")})`
-        : "Contractual damages and interest under Section 73 Indian Contract Act 1872"
-    ].filter(Boolean),
-
-    // Recommended Next Steps
+    // Procedural next steps (procedure only — never an outcome)
     recommendedNextSteps: [
-      `Initiate ${forumRecommendation.recommendedForum} under ${forumRecommendation.statutoryBasis}.`,
-      "Collate and verify the evidence checklist, addressing the identified evidentiary gaps.",
-      hasNoticeSent ? "Proceed with institutional filing." : "Serve formal legal demand notice specifying statutory timelines."
+      "Collect and verify the documents listed against each issue.",
+      hasNoticeSent ? "A notice is stated to have been served; retain proof of service." : "Consider serving a written notice stating the claim."
     ],
 
-    // Confidence Rule: Confidence cannot be "High" if any evidence gap exists
-    confidence: (strength.evidenceGaps.length === 0 && strength.claimantGaps.length === 0 && limitation.status === "In time" && hasWrittenContract) ? "High" : "Moderate",
-    disclaimer: "Institutional rules-engine indicative assessment. Not formal legal advice. Outcomes depend on evidence and the neutral's independent adjudication."
+    disclaimer: "Neutral case brief prepared from the information supplied. It records issues and applicable law; it does not predict or recommend any outcome and is not legal advice."
   };
 }
 
