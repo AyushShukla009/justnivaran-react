@@ -2275,7 +2275,12 @@ table.print-report-table tfoot {
   margin: 12mm 12mm 15mm 12mm;
 }
 
+/* Related precedents: show source URLs only on the printed brief */
+.print-only-url { display: none; }
+
 @media print {
+  .print-only-url { display: block !important; }
+
   /* 1. Hide site navigation, header, footer, buttons, cookie banner, floating dock, modals */
   header,
   footer,

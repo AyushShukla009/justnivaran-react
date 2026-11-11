@@ -13,6 +13,7 @@
  * Governance: JustNivaran Institutional Rules Engine v3.1 (Updated October 2026)
  */
 
+import { retrieveCases } from "./caseRetrieval.js";
 import { calculateAuthoritativeFee, GST_RATE, FEE_SLABS } from "./feeSchedule.js";
 
 // ============================================================================
@@ -793,6 +794,9 @@ export function generateDeterministicAssessment(intakeData = {}) {
     substantiveDefenses
   });
 
+  // 7. Case-bank retrieval: only cases retrieved for THIS request AND verified
+  const { relatedPrecedents } = retrieveCases(intakeData);
+
   // Unique reference identifier
   const requestId = `JN-RULES-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -853,6 +857,9 @@ export function generateDeterministicAssessment(intakeData = {}) {
     msmed,
     forumRecommendation,
     processComparison,
+
+    // Related precedents (retrieved for this request AND verified: true only)
+    relatedPrecedents,
 
     // Strength, Gaps & Evidence
     claimStrength: {

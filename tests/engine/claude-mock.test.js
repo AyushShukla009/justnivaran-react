@@ -19,6 +19,7 @@ import assert from "node:assert";
 import { AIAssessmentResponseSchema } from "../../src/lib/aiAssessmentSchema.js";
 import { executeAssessment, validateAITextIntegrity } from "../../api/assess.js";
 import { BENCHMARK_PRESETS } from "../../src/lib/deterministicEngine.js";
+import { TEST_VERIFIED_PRECEDENTS } from "./fixtures/verifiedPrecedents.fixture.js";
 
 const FIXED_TODAY = new Date("2026-10-27T00:00:00Z");
 
@@ -325,7 +326,9 @@ const deterministicBaseline2 = {
   claimQuantum: 450000,
   msmed: { estimatedStatutoryInterest: 65550, totalClaimWithInterest: 515550 },
   limitation: { expiryDate: "2029-01-10", effectiveStartDate: "2026-01-10" },
-  processComparison: [{ baseFee: 10000, registryFee: 5000, neutralFee: 15000, totalWithGst: 35400 }]
+  processComparison: [{ baseFee: 10000, registryFee: 5000, neutralFee: 15000, totalWithGst: 35400 }],
+  // Simulates retrieval having returned these precedents as verified for this request
+  relatedPrecedents: TEST_VERIFIED_PRECEDENTS
 };
 
 // 1. Prohibited '%' symbol detection
@@ -372,6 +375,21 @@ const cleanViolations = validateAITextIntegrity(
 );
 assert.strictEqual(cleanViolations.length, 0, "Compliant synthetic output should have 0 violations");
 console.log("  ✓ Compliant output produces 0 violations");
+
+// 6. Task 17: the same citations are rejected when they were NOT retrieved+verified for this request
+const noRetrievalViolations = validateAITextIntegrity(
+  CLAUDE_SYNTHETIC_RESPONSES.preset2,
+  { ...deterministicBaseline2, relatedPrecedents: [] },
+  BENCHMARK_PRESETS[1]
+);
+assert.ok(noRetrievalViolations.some(v => v.includes("unauthorized")), "Citations must be rejected when no verified precedent was retrieved");
+const unverifiedViolations = validateAITextIntegrity(
+  CLAUDE_SYNTHETIC_RESPONSES.preset2,
+  { ...deterministicBaseline2, relatedPrecedents: TEST_VERIFIED_PRECEDENTS.map(c => ({ ...c, verified: false })) },
+  BENCHMARK_PRESETS[1]
+);
+assert.ok(unverifiedViolations.some(v => v.includes("unauthorized")), "Citations must be rejected when retrieved precedents are verified: false");
+console.log("  ✓ Citations rejected when not retrieved, or retrieved but unverified (Task 17)");
 console.log("");
 
 // ----------------------------------------------------------------------------

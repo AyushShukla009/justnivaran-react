@@ -18,8 +18,7 @@ import { generateDeterministicAssessment } from "../src/lib/deterministicEngine.
 import { AIAssessmentResponseSchema } from "../src/lib/aiAssessmentSchema.js";
 import {
   CLAUDE_SYSTEM_PROMPT,
-  buildClaudePrompt,
-  ALLOWED_CASE_AUTHORITIES
+  buildClaudePrompt
 } from "../src/lib/claudeAssessmentPrompt.js";
 
 // Rate limiting configurations (Sliding window)
@@ -104,7 +103,8 @@ function cleanJsonOutput(text) {
  * 1. Prohibits "%" symbol anywhere in AI-generated text.
  * 2. Prohibits rupee figures not supplied by the engine (principal, statutory interest, total, fees).
  * 3. Prohibits dates not present in intake inputs or deterministic baseline.
- * 4. Forbids citing any case or party not in the ALLOWED_CASE_AUTHORITIES list.
+ * 4. Forbids citing any case or party unless it was retrieved from the case bank for THIS
+ *    request AND is marked verified: true (deterministicReport.relatedPrecedents).
  */
 export function validateAITextIntegrity(aiData, deterministicReport, intakeData = {}) {
   const violations = [];
@@ -245,9 +245,17 @@ export function validateAITextIntegrity(aiData, deterministicReport, intakeData 
   }
 
   // 4. Case and Party Citation Check
+  // Only precedents retrieved for this request AND marked verified: true may be cited.
+  const verifiedPrecedents = (Array.isArray(deterministicReport.relatedPrecedents) ? deterministicReport.relatedPrecedents : [])
+    .filter((c) => c && c.verified === true && typeof c.citation === "string");
+  const normalize = (t) => String(t).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const allowedCitationsNorm = verifiedPrecedents.map((c) => normalize(c.citation));
+  const allowedFirstParties = verifiedPrecedents
+    .map((c) => normalize(String(c.citation).split(/\s+(?:v\.|vs\.?)\s+/i)[0].replace(/^.*?\s[—–]\s*/, "")))
+    .filter((fp) => fp.length >= 3);
+
   const caseMatchRegex = /([A-Z][A-Za-z0-9&.,\s]{2,30})\s+(?:v\.|vs\.)\s+([A-Z][A-Za-z0-9&.,\s]{2,30})/g;
   let cMatch;
-  const allowedCasesJoined = ALLOWED_CASE_AUTHORITIES.join(" ").toLowerCase();
   while ((cMatch = caseMatchRegex.exec(fullText)) !== null) {
     const party1 = cMatch[1].trim().toLowerCase();
     // Exclude generic procedural, statutory, or conceptual comparisons
@@ -262,17 +270,24 @@ export function validateAITextIntegrity(aiData, deterministicReport, intakeData 
     ) {
       continue;
     }
-    const isAllowed = [
-      "patil automation",
-      "silpi industries",
-      "gujarat state civil supplies",
-      "kailash nath",
-      "saw pipes",
-      "cognizance for extension"
-    ].some((allowedKeyword) => party1.includes(allowedKeyword) || allowedCasesJoined.includes(party1));
+    const party1Norm = normalize(party1);
+    const isAllowed =
+      party1Norm.length > 0 &&
+      (allowedCitationsNorm.some((c) => c.includes(party1Norm)) ||
+        allowedFirstParties.some((fp) => party1Norm.endsWith(fp)));
 
     if (!isAllowed) {
-      violations.push(`AI cited unauthorized case or party: "${cMatch[0]}"`);
+      violations.push(`AI cited unauthorized case or party: "${cMatch[0]}" (only verified precedents retrieved for this request may be cited)`);
+    }
+  }
+
+  // 4b. Law-report citations (SCC / SCR / AIR / SCC OnLine) must belong to a verified retrieved precedent
+  const reporterRegex = /\(\d{4}\)\s*\d+\s*(?:SCC|SCR)\s*\d+|\d{4}\s*SCC\s*OnLine\s*[A-Za-z]+\s*\d+|AIR\s*\d{4}\s*[A-Za-z]+\s*\d+/g;
+  let rMatch;
+  while ((rMatch = reporterRegex.exec(fullText)) !== null) {
+    const refNorm = normalize(rMatch[0]);
+    if (!allowedCitationsNorm.some((c) => c.includes(refNorm))) {
+      violations.push(`AI cited unauthorized law-report citation: "${rMatch[0]}" (only verified precedents retrieved for this request may be cited)`);
     }
   }
 
@@ -440,6 +455,7 @@ export async function executeAssessment(intakeData = {}, options = {}) {
     processComparison: deterministicReport.processComparison,
     claimQuantum: deterministicReport.claimQuantum,
     claimQuantumFormatted: deterministicReport.claimQuantumFormatted,
+    relatedPrecedents: deterministicReport.relatedPrecedents || [],
 
     // Enforce deterministic strength ratings programmatically
     claimStrength: {

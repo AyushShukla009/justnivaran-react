@@ -16,6 +16,7 @@
 import assert from "node:assert";
 import { validateAITextIntegrity, executeAssessment } from "../../api/assess.js";
 import { BENCHMARK_PRESETS } from "../../src/lib/deterministicEngine.js";
+import { TEST_VERIFIED_PRECEDENTS } from "./fixtures/verifiedPrecedents.fixture.js";
 
 const FIXED_TODAY = new Date("2026-10-27T00:00:00Z");
 
@@ -253,7 +254,9 @@ for (let pIdx = 0; pIdx < BENCHMARK_PRESETS.length; pIdx++) {
       claimStrength: { rating: baseMock.claim_strength.rating },
       defenceStrength: { rating: baseMock.defence_strength.rating },
       processComparison: [{ baseFee: 10000, registryFee: 5000, neutralFee: 15000, totalWithGst: 35400 }],
-      evidenceGaps: mockOutput.evidence_gaps
+      evidenceGaps: mockOutput.evidence_gaps,
+      // Simulates retrieval having returned the cited precedents as verified for this request
+      relatedPrecedents: TEST_VERIFIED_PRECEDENTS
     };
 
     const violations = validateAITextIntegrity(mockOutput, detReport, preset);

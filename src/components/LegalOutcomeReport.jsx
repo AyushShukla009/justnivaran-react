@@ -74,6 +74,10 @@ export default function LegalOutcomeReport({ report, onReset }) {
   const processComparison = report.processComparison || [];
   const claimantStrength = report.claimStrength || { rating: "Moderate", reasons: [] };
   const defenceStrength = report.defenceStrength || { rating: "Moderate", reasons: [] };
+  // Task 17: only precedents retrieved for this request AND verified are ever shown
+  const relatedPrecedents = (Array.isArray(report.relatedPrecedents) ? report.relatedPrecedents : []).filter(
+    (c) => c && c.verified === true && c.citation
+  );
   const settlementOutlook = report.settlementOutlook || {
     rating: "Substantial partial recovery likely",
     explanation: "Substantive documentary record supports principal recovery, subject to procedural negotiations."
@@ -107,7 +111,7 @@ ${msmed.applicable ? `Appointed Day: ${msmed.appointedDay} | Indicative Overdue 
 Claimant Strength: ${claimantStrength.rating}
 Defence Strength: ${defenceStrength.rating}
 Settlement Outlook: ${settlementOutlook.rating} (${settlementOutlook.explanation})
-
+${relatedPrecedents.length ? `\n6. RELATED PRECEDENTS (verified):\n${relatedPrecedents.map((c, i) => `${i + 1}. ${c.citation}${c.court ? ` — ${c.court}` : ""}${c.year ? `, ${c.year}` : ""}${c.source_link ? `\n   ${c.source_link}` : ""}`).join("\n")}\n` : ""}
 DISCLAIMER: ${report.disclaimer || "AI-assisted indicative assessment. Not legal advice."}`;
 
     navigator.clipboard.writeText(plainText).then(() => {
@@ -603,6 +607,39 @@ DISCLAIMER: ${report.disclaimer || "AI-assisted indicative assessment. Not legal
             </div>
         )}
       </section>
+
+      {/* 6A. Related Precedents (verified case-bank entries only; hidden when none) */}
+      {relatedPrecedents.length > 0 && (
+        <section className="avoid-page-break" style={{ background: "#ffffff", border: "1px solid var(--line)", borderRadius: "8px", padding: "22px 24px", marginBottom: "32px" }}>
+          <div style={{ fontFamily: "var(--mono)", fontSize: "11px", fontWeight: 700, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "14px" }}>
+            Related precedents
+          </div>
+          <ol style={{ margin: 0, paddingLeft: "20px", display: "grid", gap: "14px" }}>
+            {relatedPrecedents.map((c, idx) => (
+              <li key={`${c.citation}-${idx}`} style={{ fontSize: "13.5px", color: "#334155", lineHeight: "1.6" }}>
+                <div style={{ fontWeight: 700, color: "var(--ink)" }}>
+                  {c.source_link ? (
+                    <a href={c.source_link} target="_blank" rel="noopener noreferrer" style={{ color: "var(--ink)" }}>
+                      {c.citation}
+                    </a>
+                  ) : (
+                    c.citation
+                  )}
+                </div>
+                <div style={{ fontSize: "12px", color: "var(--slate)", fontFamily: "var(--mono)" }}>
+                  {[c.court, c.year].filter(Boolean).join(" · ")}
+                </div>
+                {c.holding && <p style={{ margin: "4px 0 0" }}>{c.holding}</p>}
+                {c.source_link && (
+                  <div className="print-only-url" style={{ fontSize: "11px", color: "var(--slate)", wordBreak: "break-all" }}>
+                    {c.source_link}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       {/* 7. Statutory Process & Authoritative Fee Comparison Table */}
       <section className="avoid-page-break" style={{ marginBottom: "36px" }}>
