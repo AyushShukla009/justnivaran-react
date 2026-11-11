@@ -106,20 +106,20 @@ function AdvancedResolutionCapabilities() {
               </h3>
 
               <p style={{ fontSize: "14.5px", color: "rgba(255, 255, 255, 0.85)", lineHeight: "1.7", maxWidth: "880px", margin: "0 0 8px" }}>
-                An AI-powered decision-support system that analyses dispute facts, contractual provisions, claims, expected defences, documentary evidence and verified legal authorities to identify probable outcome scenarios, material legal risks and settlement opportunities.
+                Prepares a neutral Case Assessment Brief from the facts you supply: the issues framed, each side's position, the applicable law with its official text, and the evidence on which each issue turns. It does not predict who will win.
               </p>
 
               <div style={{ fontSize: "12px", color: "var(--gold)", fontFamily: "var(--mono)", letterSpacing: "0.02em", marginBottom: "20px" }}>
-                Indicative assessment only &bull; Not legal advice &bull; Human review required
+                Neutral brief &bull; Not legal advice &bull; No outcome predicted
               </div>
 
-              {/* Animated Flow: Facts -> Authorities -> AI Analysis -> Outcome Scenarios */}
+              {/* Animated Flow: Facts -> Law -> Analysis -> Issues & Evidence */}
               <AIAnalysisFlow />
             </div>
 
             <div style={{ paddingTop: "24px", borderTop: "1px solid rgba(255,255,255,0.12)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "14px" }}>
               <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)" }}>
-                Zero confidential documents stored &bull; Curated Supreme Court Precedent Repository
+                Statutory text from India Code &bull; Only verified precedents are cited
               </div>
               <Link
                 to="/legal-assessment"

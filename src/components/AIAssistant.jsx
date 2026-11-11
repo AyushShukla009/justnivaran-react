@@ -4,18 +4,18 @@ const SCENARIOS = [
   {
     label: "MSME Unpaid Invoice",
     prompt: "A client hasn't cleared an overdue invoice of ₹ 18 Lakhs for over 90 days despite multiple reminders.",
-    mode: "Fast-Track Arbitration (s. 29B)",
-    time: "3 to 6 Months",
-    statute: "Arbitration & Conciliation Act, 1996",
-    reason: "Fast-track arbitration decided on documents without mandatory oral hearings provides a binding award enforceable as a court decree in minimal time."
+    mode: "MSEFC Reference or Fast-Track Arbitration",
+    time: "Depends on route",
+    statute: "MSMED Act, 2006 (s. 18) / Arbitration & Conciliation Act, 1996 (s. 29B)",
+    reason: "A registered micro or small supplier may refer the dispute to the MSE Facilitation Council under Section 18 of the MSMED Act. Fast-track arbitration under Section 29B is available only if both parties agree to it in writing."
   },
   {
     label: "Vendor Delivery Breach",
     prompt: "Supplier delivered defective industrial equipment and is refusing replacement or refund under the contract terms.",
-    mode: "Commercial Mediation (s. 27)",
-    time: "30 to 60 Days",
+    mode: "Commercial Mediation",
+    time: "[to be confirmed against the Act]",
     statute: "Mediation Act, 2023",
-    reason: "Mediation facilitates commercial settlement while preserving the ongoing supplier relationship, with the settlement having full force of a civil court decree."
+    reason: "Mediation helps the parties reach a commercial settlement while preserving the supplier relationship. Enforcement of the settlement depends on the provisions of the Mediation Act, 2023 in force at the time."
   },
   {
     label: "Partnership / Shareholder Issue",
@@ -65,13 +65,13 @@ function AIAssistant({ onOpenFileModal }) {
       <div className="wrap">
         <div style={{ maxWidth: "860px", margin: "0 auto" }}>
           <p className="eyebrow" style={{ justifyContent: "center" }}>
-            <b>AI Dispute Triage</b> Jupitice-Inspired Smart Analyzer
+            <b>Dispute Triage</b> Resolution Path Guide
           </p>
           <h2 style={{ textAlign: "center", marginBottom: "12px" }}>
             Not sure which resolution path fits your dispute?
           </h2>
           <p className="lede" style={{ textAlign: "center", margin: "0 auto 28px" }}>
-            Describe your dispute in plain words, or select a scenario. Our statutory triage engine analyzes the urgency, value, and legal basis to recommend the optimal path.
+            Describe your dispute in plain words, or select a scenario. The guide matches the urgency, value and nature of the dispute to the resolution paths available. It is general guidance, not legal advice.
           </p>
 
           {/* Quick Scenario Chips */}

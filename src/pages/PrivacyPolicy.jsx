@@ -540,7 +540,7 @@ export default function PrivacyPolicy() {
             11. Data Protection Impact Assessment (DPIA)
           </h2>
           <p>
-            If and when the Platform is notified as a <strong>Significant Data Fiduciary (SDF)</strong> under Section 10 of the DPDP Act, it will conduct a formal DPIA in accordance with Section 10(2)(a), assessing the rights of Data Principals and the reasonableness of processing against the stated purpose, and will appoint an India-based Data Protection Officer reporting directly to the Board of Directors.
+            If and when the Platform is notified as a <strong>Significant Data Fiduciary (SDF)</strong> under Section 10 of the DPDP Act, it will conduct a formal DPIA in accordance with Section 10(2)(c)(i), assessing the rights of Data Principals and the reasonableness of processing against the stated purpose, and will appoint an India-based Data Protection Officer reporting directly to the Board of Directors.
           </p>
           <p>
             Independent of any formal SDF designation, the Platform conducts an internal DPIA-equivalent risk assessment before launching any new processing activity involving:
@@ -662,7 +662,7 @@ export default function PrivacyPolicy() {
             </div>
             <div style={{ borderTop: "1px solid var(--line)", paddingTop: "12px", fontSize: "13px", color: "var(--slate)", lineHeight: "1.6" }}>
               <strong>Notice Address:</strong> JustNivaran Private Limited (CIN: U62020DC2026PTC473641), DC-12, 1st Floor, District Centre, Janakpuri, New Delhi – 110058, India.<br />
-              <strong>Statutory Service Level Agreement:</strong> Mandatory acknowledgment within <strong>24 hours</strong>; substantive resolution within <strong>15 calendar days</strong> under DPDP Act 2023 &amp; IT Rules 2021.
+              <strong>Service commitment:</strong> Acknowledgment within <strong>24 hours</strong>; substantive resolution within <strong>15 calendar days</strong>.
             </div>
           </div>
         </section>

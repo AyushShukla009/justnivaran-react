@@ -17,8 +17,8 @@ const STEPS = [
   },
   {
     step: "02",
-    label: "Verified Authorities",
-    detail: "Supreme Court Precedent Matching",
+    label: "Applicable Law",
+    detail: "Official statutory text & verified precedents",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -29,8 +29,8 @@ const STEPS = [
   },
   {
     step: "03",
-    label: "AI Reasoning",
-    detail: "Structured Issue & Precedent Mapping",
+    label: "Neutral Analysis",
+    detail: "Each issue, both positions, the law applied",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
@@ -42,8 +42,8 @@ const STEPS = [
   },
   {
     step: "04",
-    label: "Outcome Scenarios",
-    detail: "Risk Bands & Settlement Ranges",
+    label: "Case Assessment Brief",
+    detail: "Points for determination & evidence needed",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />

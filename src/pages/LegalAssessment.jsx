@@ -905,7 +905,7 @@ export default function LegalAssessment() {
             {/* Submit Action Bar */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
               <div style={{ fontSize: "12px", color: "var(--slate)" }}>
-                Institutional predictive assessment under Indian law &bull; Confidential &amp; Encrypted
+                Neutral case brief under Indian law &bull; Confidential &amp; Encrypted
               </div>
 
               <button

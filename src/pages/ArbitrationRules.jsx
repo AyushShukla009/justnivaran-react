@@ -588,7 +588,7 @@ export default function ArbitrationRules({ onOpenFileModal }) {
           fontSize: "13px",
           color: "var(--slate)"
         }}>
-          <strong>Institutional Promulgation:</strong> Promulgated by JustNivaran Private Limited (CIN: U62020DC2026PTC473641) &bull; Registered Seat: New Delhi, India &bull; Inquiries: <a href="mailto:registrar@justnivaran.in" style={{ color: "var(--gold-deep)" }}>registrar@justnivaran.in</a> &bull; Effective Date: 28 July 2026.
+          <strong>Institutional Promulgation:</strong> Promulgated by JustNivaran Private Limited (CIN: U62020DC2026PTC473641) &bull; Registered Seat: New Delhi, India &bull; Inquiries: <a href="mailto:registry@justnivaran.in" style={{ color: "var(--gold-deep)" }}>registry@justnivaran.in</a> &bull; Effective Date: 28 July 2026.
         </div>
 
         {/* Call to Actions */}

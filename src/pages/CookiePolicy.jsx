@@ -602,7 +602,7 @@ export default function CookiePolicy() {
               </div>
             </div>
             <div style={{ borderTop: "1px solid var(--line)", paddingTop: "12px", fontSize: "13.5px", color: "var(--slate)" }}>
-              <strong>Response Timeline:</strong> Formal acknowledgement within <strong>24 hours</strong>; substantive response and resolution within <strong>15 calendar days</strong> under DPDP Act 2023 &amp; IT Rules 2021.
+              <strong>Response Timeline:</strong> Formal acknowledgement within <strong>24 hours</strong>; substantive response and resolution within <strong>15 calendar days</strong> (JustNivaran service commitment).
             </div>
           </div>
           <p style={{ marginTop: "12px", fontSize: "13.5px" }}>

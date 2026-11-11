@@ -9,7 +9,7 @@ function FeeSchedule({ onOpenFileModal }) {
 
       <h1 style={{ marginBottom: "16px" }}>Institutional Fee Schedule</h1>
       <p className="lede" style={{ marginBottom: "36px" }}>
-        Predictable, capped administrative and neutral honorarium scales for Negotiation, Mediation (Mediation Act 2023), and Fast-Track Arbitration (s. 29B).
+        Published administrative and neutral fee scales for Negotiation, Mediation (Mediation Act 2023), and Fast-Track Arbitration (s. 29B).
       </p>
 
       <div style={{

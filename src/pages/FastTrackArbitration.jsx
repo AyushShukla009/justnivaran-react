@@ -262,7 +262,7 @@ export default function FastTrackArbitration({ onOpenFileModal }) {
                 Institutional Fast-Track Docket
               </div>
               <div style={{ fontSize: "20px", fontWeight: 700, color: "var(--gold-deep)", marginTop: "4px" }}>
-                {submissionResult.docket_number || "JN/FT-ARB/2026/0101"}
+                {submissionResult.docket_number || "Pending — the Registry will email it"}
               </div>
               <div style={{ fontSize: "12px", color: "var(--slate)", marginTop: "6px" }}>
                 Status: {submissionResult.status || (consentMode === "mutual" ? "Tribunal Constitution Active" : "Counterparty Notice Queued")} &bull; Mode: Section 29B
@@ -433,7 +433,7 @@ export default function FastTrackArbitration({ onOpenFileModal }) {
                     name="claimantEmail"
                     value={formData.claimantEmail}
                     onChange={handleInputChange}
-                    placeholder="counsel@acme.com"
+                    placeholder="name@example.in"
                     style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--line)", borderRadius: "4px", fontSize: "14px" }}
                   />
                 </div>
@@ -446,7 +446,7 @@ export default function FastTrackArbitration({ onOpenFileModal }) {
                     name="claimantPhone"
                     value={formData.claimantPhone}
                     onChange={handleInputChange}
-                    placeholder="+91 98765 43210"
+                    placeholder="+91 XXXXX XXXXX"
                     style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--line)", borderRadius: "4px", fontSize: "14px" }}
                   />
                 </div>
@@ -500,7 +500,7 @@ export default function FastTrackArbitration({ onOpenFileModal }) {
                     name="respondentEmail"
                     value={formData.respondentEmail}
                     onChange={handleInputChange}
-                    placeholder="legal@zenith.com"
+                    placeholder="name@example.in"
                     style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--line)", borderRadius: "4px", fontSize: "14px" }}
                   />
                   <span style={{ fontSize: "11px", color: "var(--slate)", marginTop: "4px", display: "block" }}>

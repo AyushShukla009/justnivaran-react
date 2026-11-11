@@ -189,9 +189,9 @@ const ROUTE_SEO = {
     keywords: "Legal disclaimer, dispute resolution provider, administrative registry notice"
   },
   "/legal-assessment": {
-    title: "AI-Assisted Legal Risk & Outcome Assessment (Beta) — JustNivaran ODR",
-    description: "Institutional decision-support for commercial disputes: structured issue mapping, statutory cross-referencing under Indian law, and evidentiary readiness evaluation.",
-    keywords: "AI legal risk assessment, commercial dispute evaluation, Indian Contract Act 1872, Arbitration Act 1996, litigation risk mapping"
+    title: "Legal Outcome Predictor — Neutral Case Assessment Brief (Beta) — JustNivaran ODR",
+    description: "A neutral case brief for Indian disputes: issues framed, each side's position, the applicable law with its official text, and the evidence on which each issue turns. No outcome is predicted.",
+    keywords: "case assessment brief, dispute issues, Indian Contract Act 1872, Arbitration Act 1996, Limitation Act 1963, MSMED Act, online dispute resolution"
   },
   "/fast-track-arbitration": {
     title: "Fast-Track Arbitration under Section 29B — JustNivaran ODR",

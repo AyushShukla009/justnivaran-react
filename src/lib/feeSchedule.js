@@ -48,8 +48,8 @@ export const FEE_SLABS = [
     label: "Above ₹ 1,00,00,000 (Commercial High-Value)",
     negotiationFee: 20000,
     mediationFeeRate: 0.0035, // 0.35% of claim
-    fastTrackArbitrationDescription: "As per Fourth Schedule (Arbitration Act)",
-    arbitratorType: "Sole Arbitrator / Three-Member Tribunal",
+    fastTrackArbitrationDescription: "₹ 65,000 + 0.5% of the claim above ₹ 1 crore",
+    arbitratorType: "Sole Arbitrator",
     targetDays: "60 – 90 Days"
   }
 ];
@@ -82,7 +82,7 @@ export function calculateAuthoritativeFee(claimAmount, track = "arbitration") {
     } else if (track === "mediation") {
       baseFee = Math.round(quantum * slab.mediationFeeRate);
     } else {
-      // Model Fourth Schedule for > 1 Cr: ₹ 65,000 + 0.5% of claim amount above ₹ 1 Cr (capped)
+      // Above ₹ 1 Cr: ₹ 65,000 + 0.5% of the claim amount above ₹ 1 Cr (institutional schedule; not the Fourth Schedule)
       baseFee = Math.round(65000 + (quantum - 10000000) * 0.005);
     }
   }

@@ -41,27 +41,27 @@ const GUIDELINES_DATA = {
   },
   MED: {
     title: "Mediation Procedural Rules",
-    statute: "Mediation Act, 2023 · s. 27 & s. 28",
+    statute: "Mediation Act, 2023",
     tag: "Facilitative & Neutral",
-    timeline: "120 Days (Statutory)",
+    timeline: "[to be confirmed against the Act]",
     summary:
-      "An institutional mediation process facilitated by a certified neutral mediator under the Mediation Act, 2023. Mediated settlement agreements are enforceable as a decree of the Civil Court.",
+      "An institutional mediation process facilitated by a certified neutral mediator under the Mediation Act, 2023. Enforcement of mediated settlement agreements is governed by the Mediation Act, 2023, on commencement of the relevant provisions (see the Status of provisions on the Mediation page).",
     sections: [
       {
         heading: "1. Institutional Appointment of Certified Mediator",
-        body: "The JustNivaran Registry appoints a certified mediator from the institutional panel based on domain expertise and Schedule V/VII conflict-of-interest disclosures."
+        body: "The JustNivaran Registry appoints a certified mediator from the institutional panel based on domain expertise, after the mediator discloses any circumstances that may give rise to a conflict of interest."
       },
       {
         heading: "2. Joint Sessions & Private Caucuses",
         body: "Mediators conduct joint virtual hearings and confidential private caucuses within the statutory timeline [to be confirmed against the Act]."
       },
       {
-        heading: "3. Absolute Confidentiality (Section 22)",
-        body: "All statements, admissions, and proposals made during mediation remain strictly confidential and privileged under Section 22 of the Mediation Act, 2023."
+        heading: "3. Confidentiality",
+        body: "Statements, admissions and proposals made during mediation are kept confidential under the JustNivaran Mediation Rules. Statutory confidentiality under the Mediation Act, 2023 applies on commencement of the relevant provisions."
       },
       {
-        heading: "4. Enforceability as a Civil Court Decree (Section 27)",
-        body: "A Mediated Settlement Agreement authenticated and registered by JustNivaran possesses the same legal force and binding enforceability as a judgment or decree of a Civil Court."
+        heading: "4. Enforceability of Settlement",
+        body: "Under Section 27 of the Mediation Act, 2023, a mediated settlement agreement is enforceable as a judgment or decree of a court. That section takes effect on its commencement; check the Status of provisions on the Mediation page."
       }
     ]
   },

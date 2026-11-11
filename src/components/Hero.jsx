@@ -65,12 +65,12 @@ function Hero({ onOpenFileModal }) {
           {/* Elevated Institutional Metrics */}
           <dl className="hero-foot" style={{ marginBottom: "12px" }}>
             <div>
-              <dt>TARGET TIMELINE</dt>
-              <dd>28–45 Days* <span style={{ fontSize: "11px", color: "var(--slate)", display: "block", fontWeight: 400 }}>Fast-Track ODR Target</span></dd>
+              <dt>FAST-TRACK AWARD</dt>
+              <dd>6 Months* <span style={{ fontSize: "11px", color: "var(--slate)", display: "block", fontWeight: 400 }}>From reference, s. 29B(4)</span></dd>
             </div>
             <div>
-              <dt>SETTLEMENT RATE</dt>
-              <dd>85–90%* <span style={{ fontSize: "11px", color: "var(--slate)", display: "block", fontWeight: 400 }}>Projected Target Benchmark</span></dd>
+              <dt>FILING</dt>
+              <dd>100% Online <span style={{ fontSize: "11px", color: "var(--slate)", display: "block", fontWeight: 400 }}>Digital docket &amp; e-notices</span></dd>
             </div>
             <div>
               <dt>HEARINGS</dt>
@@ -83,7 +83,7 @@ function Hero({ onOpenFileModal }) {
           </dl>
 
           <p style={{ fontSize: "11px", color: "var(--slate)", margin: "0 0 20px", lineHeight: "1.4" }}>
-            *Timelines and success rates represent target operational benchmarks for administered institutional ODR proceedings in comparison with traditional multi-year court litigation (NJDG data).
+            *Statutory period under Section 29B(4) of the Arbitration and Conciliation Act, 1996 where both parties agree to the fast-track procedure. Actual duration depends on the parties and the tribunal.
           </p>
         </div>
 

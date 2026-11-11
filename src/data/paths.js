@@ -19,8 +19,8 @@ export const PATHS = [
   {
     key: "MED",
     name: "Mediation",
-    basis: "Mediated settlement enforceable as a judgment or decree",
-    statute: "Mediation Act, 2023 · s. 27",
+    basis: "Mediated settlement agreement (enforcement on commencement of s. 27)",
+    statute: "Mediation Act, 2023",
     timeline: "[to be confirmed against the Act]",
     outcome: "Mediated settlement agreement",
     docket: "JN/MED/2026/0417",

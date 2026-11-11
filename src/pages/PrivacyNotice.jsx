@@ -133,7 +133,7 @@ export default function PrivacyNotice() {
             <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink)", marginTop: "3px" }}>grievance@justnivaran.in</div>
           </div>
           <div>
-            <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Statutory SLA</span>
+            <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Service commitment</span>
             <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink)", marginTop: "3px" }}>24h Ack &bull; 15d Resolution</div>
           </div>
         </div>
@@ -229,7 +229,7 @@ export default function PrivacyNotice() {
           </div>
           <div style={{ fontSize: "14.5px", color: "#2B3C52", lineHeight: "1.75" }}>
             <p>
-              <strong>“Just Nivaran Private Limited”</strong> (also referred to as (<strong>“Platform”/ “Just Nivaran”</strong>) shall collectively refer to Just Nivaran. <strong>“You” / “Yourself” / “User”/ “Visitor”</strong> shall collectively be interpreted in a way to refer to the ‘User’ of the website whether it means any Individual/Entity/Organization/Company accessing the website.
+              <strong>“JustNivaran Private Limited”</strong> (also referred to as the <strong>“Platform”</strong> or <strong>“JustNivaran”</strong>) shall collectively refer to Just Nivaran. <strong>“You” / “Yourself” / “User”/ “Visitor”</strong> shall collectively be interpreted in a way to refer to the ‘User’ of the website whether it means any Individual/Entity/Organization/Company accessing the website.
             </p>
           </div>
         </section>

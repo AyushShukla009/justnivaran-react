@@ -27,7 +27,7 @@ function USPCards() {
               <h3 className="usp-card-heading">Legal Outcome Predictor</h3>
 
               <p className="usp-card-summary">
-                Assess dispute merits, liability exposure, and data-driven settlement probabilities before formal filing.
+                Get a neutral Case Assessment Brief before filing: the issues, the applicable law with its official text, and the evidence each issue turns on.
               </p>
             </div>
 

@@ -41,7 +41,7 @@ export default function Footer() {
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "6px", fontSize: "12.5px", lineHeight: "1.35" }}>
               <li><Link to="/" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Home</Link></li>
               <li><Link to="/legal-assessment" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>AI Legal Assessment</Link></li>
-              <li><Link to="/fast-track-arbitration" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Fast-Track Arbitration (s. 29B)</Link></li>
+              <li><Link to="/fast-track-arbitration" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Fast-Track Arbitration</Link></li>
               <li><Link to="/emergency-arbitration" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Emergency Arbitration</Link></li>
               <li><Link to="/for-neutrals" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Neutral Empanelment</Link></li>
               <li><Link to="/our-neutrals" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Our Neutrals</Link></li>

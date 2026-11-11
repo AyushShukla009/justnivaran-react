@@ -72,7 +72,7 @@ const STAGES = [
     preview: {
       tag: "Seamless Escalation",
       docket: "Auto-Transferred to Fast-Track Panel",
-      status: "Sole Arbitrator Assigned in 48 Hours",
+      status: "Sole Arbitrator Appointed by the Registry",
       metric: "Time Saved: 6+ Months"
     }
   }

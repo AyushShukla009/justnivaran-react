@@ -242,7 +242,7 @@ function CostCalculator({ onOpenFileModal }) {
               </div>
 
               <div style={{ fontSize: "13px", color: "#AEC0D6", display: "grid", gap: "6px" }}>
-                <div>⏱️ <strong>Target Timeline:</strong> {feeInfo.targetDays} ({feeInfo.arbitratorType})</div>
+                <div>⏱️ <strong>Institutional target:</strong> {feeInfo.targetDays} ({feeInfo.arbitratorType}); statutory limit for the award: 6 months from reference</div>
                 <div>📍 <strong>Hearings:</strong> 100% Encrypted Virtual Video Rooms</div>
                 <div>
                   💰 <strong>Estimated Cost Savings:</strong>{" "}
@@ -278,7 +278,7 @@ function CostCalculator({ onOpenFileModal }) {
             • <strong>Court Litigation Estimates:</strong> Duration modeled from National Judicial Data Grid (NJDG) commercial dispute disposal metrics across Indian District &amp; High Courts (typically averaging 3–5 years from filing to final decree). Court expenses are estimated based on state ad-valorem court fee enactments plus standard per-hearing legal representation and procedural compliance expenses.
           </div>
           <div style={{ marginTop: "4px" }}>
-            • <strong>JustNivaran Fee Schedule:</strong> Authoritative capped administrative schedule governed under Institutional Fee Schedule Version 2.4 (September 2026). All institutional dispute filings strictly adhere to the published slabs.
+            • <strong>JustNivaran Fee Schedule:</strong> Published institutional fee schedule (Version 2.4, September 2026). Fees for every filing follow the published slabs.
           </div>
         </div>
 
@@ -325,7 +325,7 @@ function CostCalculator({ onOpenFileModal }) {
                   Institutional Fee Schedule (Exclusive of 18% GST)
                 </h3>
               </div>
-              <span style={{ fontSize: "12px", color: "var(--slate)" }}>*Capped statutory neutral honorarium</span>
+              <span style={{ fontSize: "12px", color: "var(--slate)" }}>*Neutral honorarium as per the published schedule</span>
             </div>
 
             <div style={{ overflowX: "auto" }}>
