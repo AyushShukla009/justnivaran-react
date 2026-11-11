@@ -21,7 +21,7 @@ export const PATHS = [
     name: "Mediation",
     basis: "Mediated settlement enforceable as a judgment or decree",
     statute: "Mediation Act, 2023 · s. 27",
-    timeline: "120 days, extendable by 60 (s. 18)",
+    timeline: "[to be confirmed against the Act]",
     outcome: "Mediated settlement agreement",
     docket: "JN/MED/2026/0417",
     steps: [

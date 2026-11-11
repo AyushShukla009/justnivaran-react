@@ -53,7 +53,7 @@ const GUIDELINES_DATA = {
       },
       {
         heading: "2. Joint Sessions & Private Caucuses",
-        body: "Mediators conduct joint virtual hearings and confidential private caucuses within the statutory 120-day window (extendable by 60 days with mutual party consent)."
+        body: "Mediators conduct joint virtual hearings and confidential private caucuses within the statutory timeline [to be confirmed against the Act]."
       },
       {
         heading: "3. Absolute Confidentiality (Section 22)",

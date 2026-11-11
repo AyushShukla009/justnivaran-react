@@ -218,7 +218,7 @@ function AdvancedResolutionCapabilities() {
             </div>
           </TiltCard>
 
-          {/* Card 3: Emergency Arbitration & Interim Relief */}
+          {/* Card 3: Emergency Arbitration (links to /emergency-arbitration) */}
           <TiltCard
             style={{
               background: "#ffffff",
@@ -261,12 +261,12 @@ function AdvancedResolutionCapabilities() {
                     textTransform: "uppercase"
                   }}
                 >
-                  48–72h Window
+                  Coming Soon
                 </span>
               </div>
 
               <h3 style={{ fontSize: "19px", fontFamily: "var(--serif)", color: "var(--ink)", margin: "0 0 10px" }}>
-                Emergency Arbitration &amp; Interim Relief
+                Emergency Arbitration
               </h3>
 
               <p style={{ fontSize: "13.5px", color: "var(--slate)", lineHeight: "1.6", margin: "0 0 20px" }}>
@@ -276,7 +276,7 @@ function AdvancedResolutionCapabilities() {
 
             <div style={{ paddingTop: "16px", borderTop: "1px solid var(--line-soft)" }}>
               <Link
-                to="/emergency-relief"
+                to="/emergency-arbitration"
                 className="btn ghost"
                 style={{
                   width: "100%",
@@ -286,7 +286,7 @@ function AdvancedResolutionCapabilities() {
                   textDecoration: "none"
                 }}
               >
-                Request Emergency Relief →
+                View Emergency Arbitration →
               </Link>
             </div>
           </TiltCard>

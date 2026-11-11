@@ -45,7 +45,7 @@ function USPCards() {
                 <div className="usp-card-icon" aria-hidden="true">
                   🛡️
                 </div>
-                <span className="usp-card-badge">Expedited Relief &bull; 48–72h</span>
+                <span className="usp-card-badge">Flagship &bull; Coming Soon</span>
               </div>
 
               <h3 className="usp-card-heading">Emergency Arbitration</h3>

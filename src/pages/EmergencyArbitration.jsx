@@ -111,18 +111,6 @@ function EmergencyArbitration({ onOpenFileModal }) {
             </button>
           ) : null}
           <Link
-            to="/emergency-relief"
-            className="btn ghost"
-            style={{
-              padding: "12px 24px",
-              textDecoration: "none",
-              color: "#ffffff",
-              borderColor: "rgba(255, 255, 255, 0.3)"
-            }}
-          >
-            Interim Relief Desk →
-          </Link>
-          <Link
             to="/"
             className="btn ghost"
             style={{

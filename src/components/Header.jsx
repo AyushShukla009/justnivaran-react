@@ -144,8 +144,11 @@ function Header({ onOpenFileModal }) {
           <Link to="/arbitration-rules" style={linkStyle("/arbitration-rules")}>
             Arbitration
           </Link>
-          <Link to="/for-neutrals" style={linkStyle("/for-neutrals")}>
-            Neutral Empanelment
+          <Link to="/emergency-arbitration" style={linkStyle("/emergency-arbitration")}>
+            Emergency Arbitration
+          </Link>
+          <Link to="/for-neutrals" style={linkStyle("/for-neutrals")} title="Neutral Empanelment">
+            Empanelment
           </Link>
           <Link to="/our-neutrals" style={linkStyle("/our-neutrals")}>
             Our Neutrals
@@ -204,7 +207,7 @@ function Header({ onOpenFileModal }) {
             ⚖️ Mediation Rules (2023 Act)
           </Link>
           <Link to="/arbitration-rules" onClick={() => setIsMobileMenuOpen(false)}>
-            📑 Arbitration Rules (s. 29A/29B)
+            📑 Arbitration Rules
           </Link>
           <Link to="/legal-assessment" onClick={() => setIsMobileMenuOpen(false)}>
             ✨ Legal Outcome AI Predictor
@@ -212,8 +215,8 @@ function Header({ onOpenFileModal }) {
           <Link to="/fast-track-arbitration" onClick={() => setIsMobileMenuOpen(false)}>
             ⚡ Fast-Track Arbitration (s. 29B)
           </Link>
-          <Link to="/emergency-relief" onClick={() => setIsMobileMenuOpen(false)}>
-            🚨 Emergency Relief (48–72h)
+          <Link to="/emergency-arbitration" onClick={() => setIsMobileMenuOpen(false)}>
+            🚨 Emergency Arbitration
           </Link>
           <Link to="/for-neutrals" onClick={() => setIsMobileMenuOpen(false)}>
             👨‍⚖️ Neutral Empanelment

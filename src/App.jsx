@@ -24,7 +24,6 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 // Advanced Resolution Capabilities
 const LegalAssessment = lazy(() => import("./pages/LegalAssessment"));
 const FastTrackArbitration = lazy(() => import("./pages/FastTrackArbitration"));
-const EmergencyRelief = lazy(() => import("./pages/EmergencyRelief"));
 const EmergencyArbitration = lazy(() => import("./pages/EmergencyArbitration"));
 
 // Statutory Legal & Compliance Pages
@@ -91,8 +90,8 @@ const ROUTE_SEO = {
   },
   "/arbitration-rules": {
     title: "Institutional Arbitration Rules — JustNivaran ODR",
-    description: "Standard and Fast-Track Arbitration Rules under the Arbitration and Conciliation Act, 1996 (Sections 29A & 29B).",
-    keywords: "Arbitration Rules, Fast Track Arbitration 29B, Section 29A, Section 34 challenge"
+    description: "JustNivaran Institutional Arbitration Rules under the Arbitration and Conciliation Act, 1996.",
+    keywords: "Arbitration Rules, institutional arbitration, Arbitration and Conciliation Act 1996, online arbitration India"
   },
   "/for-neutrals": {
     title: "Empanelment of Neutrals — JustNivaran ODR",
@@ -199,11 +198,6 @@ const ROUTE_SEO = {
     description: "Statutory 6-month fast-track arbitration under Section 29B of the Arbitration & Conciliation Act, 1996. Sole arbitrator tribunal, written pleadings, and binding court-enforceable awards.",
     keywords: "Fast-Track Arbitration, Section 29B Arbitration Act, 6-month arbitral award, sole arbitrator, commercial arbitration India"
   },
-  "/emergency-relief": {
-    title: "Emergency Arbitration & Interim Relief (48–72h) — JustNivaran ODR",
-    description: "Urgent institutional emergency arbitrator appointment within 48–72 hours for critical interim protective measures prior to tribunal constitution under Indian law.",
-    keywords: "Emergency Arbitration, interim relief, Section 9 Arbitration Act, bank guarantee stay, emergency arbitrator India"
-  },
   "/emergency-arbitration": {
     title: "Emergency Arbitration (Coming Soon) — JustNivaran ODR",
     description: "Expedited institutional emergency arbitration and interim relief portal under JustNivaran institutional rules.",
@@ -302,8 +296,7 @@ function App() {
 
   const hideFloatingDock =
     pathname === "/legal-assessment" ||
-    pathname === "/admin" ||
-    pathname === "/emergency-relief";
+    pathname === "/admin";
 
   // High-Performance 60fps Scroll Progress (Zero React Re-renders on Scroll)
   useEffect(() => {
@@ -433,10 +426,10 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/admin" element={<AdminDashboard />} />
 
-            {/* Advanced Capabilities Routes */}
+            {/* Advanced Capabilities Routes (old /emergency-relief redirects to /emergency-arbitration) */}
             <Route path="/legal-assessment" element={<LegalAssessment />} />
             <Route path="/fast-track-arbitration" element={<FastTrackArbitration onOpenFileModal={handleOpenFileModal} />} />
-            <Route path="/emergency-relief" element={<EmergencyRelief onOpenFileModal={handleOpenFileModal} />} />
+            <Route path="/emergency-relief" element={<Navigate to="/emergency-arbitration" replace />} />
             <Route path="/emergency-arbitration" element={<EmergencyArbitration onOpenFileModal={handleOpenFileModal} />} />
 
             {/* Statutory Legal & Institutional Policy Routes */}

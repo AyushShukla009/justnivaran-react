@@ -261,7 +261,7 @@ header {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: clamp(16px, 1.8vw, 24px);
+  gap: clamp(12px, 1.3vw, 22px);
   font-size: 13.5px;
   color: #31445E;
   white-space: nowrap;
@@ -407,7 +407,7 @@ header {
   background: rgba(18, 41, 74, 0.1);
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1365px) {
   .nav-links {
     display: none;
   }
