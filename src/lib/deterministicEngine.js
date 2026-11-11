@@ -14,6 +14,7 @@
  */
 
 import { retrieveCases } from "./caseRetrieval.js";
+import { getGuidanceModule } from "./categories/index.js";
 import { calculateAuthoritativeFee, GST_RATE, FEE_SLABS } from "./feeSchedule.js";
 
 // ============================================================================
@@ -711,6 +712,13 @@ export function calculateStrengthRatings({
  * @returns {Object} Structured institutional assessment
  */
 export function generateDeterministicAssessment(intakeData = {}) {
+  // Guidance-only categories (Family / Non-commercial civil / Miscellaneous) use their own
+  // rules modules and never touch commercial logic (MSMED, Section 12A, commercial limitation).
+  const guidanceModule = getGuidanceModule(intakeData.category);
+  if (guidanceModule) {
+    return guidanceModule.generateGuidance(intakeData);
+  }
+
   const quantum = Math.max(0, Number(intakeData.claimValue) || 0);
   const enterpriseType = intakeData.enterpriseType || "None";
   const udyamRegisteredAtContract = Boolean(intakeData.udyamRegisteredAtContract);

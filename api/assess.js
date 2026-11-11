@@ -15,6 +15,7 @@
 import crypto from "crypto";
 import Anthropic from "@anthropic-ai/sdk";
 import { generateDeterministicAssessment } from "../src/lib/deterministicEngine.js";
+import { getGuidanceModule } from "../src/lib/categories/index.js";
 import { AIAssessmentResponseSchema } from "../src/lib/aiAssessmentSchema.js";
 import {
   CLAUDE_SYSTEM_PROMPT,
@@ -298,6 +299,14 @@ export function validateAITextIntegrity(aiData, deterministicReport, intakeData 
  * Core Assessment Engine Handler
  */
 export async function executeAssessment(intakeData = {}, options = {}) {
+  // Guidance-only categories never call the AI provider (no approved rules to ground it on,
+  // and these forms can hold sensitive personal data). The browser normally handles them
+  // locally; this is a server-side safety net.
+  const guidanceModule = getGuidanceModule(intakeData.category);
+  if (guidanceModule) {
+    return { success: true, data: guidanceModule.generateGuidance(intakeData) };
+  }
+
   // 1. Generate Deterministic Statutory Baseline (Plain Code, Zero Hallucination)
   const deterministicReport = generateDeterministicAssessment(intakeData);
 

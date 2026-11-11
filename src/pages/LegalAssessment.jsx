@@ -9,6 +9,15 @@ import { useState, useEffect, useRef } from "react";
 import { fetchAILegalOutcome, checkAIEngineHealth, generateClientInstitutionalAssessment } from "../lib/api";
 import { BENCHMARK_PRESETS } from "../lib/deterministicEngine";
 import LegalOutcomeReport from "../components/LegalOutcomeReport";
+import GuidanceIntake from "../components/GuidanceIntake";
+import GuidanceReport from "../components/GuidanceReport";
+import { GUIDANCE_MODULES, getGuidanceModule } from "../lib/categories";
+
+const COMMERCIAL_TRACK = "commercial";
+const TRACK_TABS = [
+  { id: COMMERCIAL_TRACK, label: "Commercial" },
+  ...GUIDANCE_MODULES.map((m) => ({ id: m.category, label: m.category }))
+];
 
 const ALLOWED_CATEGORIES = [
   "Commercial Contract & Supply Default",
@@ -102,6 +111,7 @@ export default function LegalAssessment() {
   const abortControllerRef = useRef(null);
 
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+  const [track, setTrack] = useState(COMMERCIAL_TRACK);
 
   useEffect(() => {
     let isMounted = true;
@@ -274,12 +284,60 @@ export default function LegalAssessment() {
           AI Dispute Assessment
         </h1>
         <p className="lede" style={{ color: "var(--slate)", margin: 0, maxWidth: "900px" }}>
-          Authoritative institutional analysis uniting deterministic Indian statutory rules (Limitation Act 1963, Commercial Courts Act 2015, MSMED Act 2006) with advanced Claude Sonnet 5.5 legal reasoning.
+          {track === COMMERCIAL_TRACK
+            ? "Authoritative institutional analysis uniting deterministic Indian statutory rules (Limitation Act 1963, Commercial Courts Act 2015, MSMED Act 2006) with advanced Claude Sonnet 5.5 legal reasoning."
+            : "General process guidance for family, non-commercial civil and miscellaneous matters. No AI is used and nothing you enter leaves your browser."}
         </p>
       </div>
 
+      {activeView !== "report" && (
+        <div className="no-print" role="tablist" aria-label="Type of matter" style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "24px" }}>
+          {TRACK_TABS.map((t) => {
+            const active = track === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => {
+                  setTrack(t.id);
+                  setErrorMessage("");
+                }}
+                style={{
+                  background: active ? "var(--ink)" : "#ffffff",
+                  color: active ? "#ffffff" : "var(--ink)",
+                  border: `1px solid ${active ? "var(--ink)" : "var(--line)"}`,
+                  padding: "9px 16px",
+                  borderRadius: "6px",
+                  fontSize: "13.5px",
+                  fontWeight: 600,
+                  cursor: "pointer"
+                }}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {activeView === "report" && aiReport ? (
-        <LegalOutcomeReport report={aiReport} onReset={handleReset} />
+        aiReport.reportType === "guidance" ? (
+          <GuidanceReport report={aiReport} onReset={handleReset} />
+        ) : (
+          <LegalOutcomeReport report={aiReport} onReset={handleReset} />
+        )
+      ) : track !== COMMERCIAL_TRACK ? (
+        <GuidanceIntake
+          key={track}
+          module={getGuidanceModule(track)}
+          onResult={(guidance) => {
+            setAiReport(guidance);
+            setActiveView("report");
+            window.scrollTo({ top: 120, behavior: "smooth" });
+          }}
+        />
       ) : (
         <div style={{ display: "grid", gap: "32px" }}>
           {/* Preset Benchmark Quick-Load Bar */}
