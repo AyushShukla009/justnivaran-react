@@ -14,7 +14,7 @@ export default function ArbitrationRules({ onOpenFileModal }) {
     { id: "tribunal", label: "Arbitral Tribunal (R. 12–17)" },
     { id: "conduct", label: "Conduct of Proceedings (R. 18–23)" },
     { id: "hearings", label: "Hearings & Defaults (R. 24–25)" },
-    { id: "jurisdiction-interim", label: "Jurisdiction & Interim (R. 26–28)" },
+    { id: "jurisdiction-interim", label: "Jurisdiction & Interim (R. 26–27)" },
     { id: "seat-venue", label: "Seat, Venue & Language (R. 29–31)" },
     { id: "award", label: "The Award & Costs (R. 32–35)" },
     { id: "correction", label: "Correction & Clarification (R. 36)" },
@@ -76,10 +76,6 @@ export default function ArbitrationRules({ onOpenFileModal }) {
           <div>
             <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Effective Date</span>
             <div style={{ fontWeight: 600, color: "var(--ink)", marginTop: "4px", fontSize: "14.5px" }}>28 July 2026 (28.07.2026)</div>
-          </div>
-          <div>
-            <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Emergency Relief</span>
-            <div style={{ fontWeight: 600, color: "var(--gold)", marginTop: "4px", fontSize: "14.5px" }}>Rule 28 &bull; 14-Day Emergency Procedure</div>
           </div>
         </div>
       </div>
@@ -468,10 +464,10 @@ export default function ArbitrationRules({ onOpenFileModal }) {
           </div>
         </section>
 
-        {/* JURISDICTION & INTERIM MEASURES (RULES 26–28) */}
+        {/* JURISDICTION & INTERIM MEASURES (RULES 26–27) */}
         <section id="jurisdiction-interim" style={{ scrollMarginTop: "150px" }}>
           <h2 style={{ fontSize: "22px", color: "var(--ink)", borderBottom: "1px solid var(--line)", paddingBottom: "6px", marginBottom: "16px" }}>
-            JURISDICTION AND INTERIM MEASURES (RULES 26 – 28)
+            JURISDICTION AND INTERIM MEASURES (RULES 26 – 27)
           </h2>
 
           <div style={{ display: "grid", gap: "16px" }}>
@@ -483,29 +479,20 @@ export default function ArbitrationRules({ onOpenFileModal }) {
               <h3 style={{ fontSize: "16px", color: "var(--ink)", margin: "0 0 8px" }}>Rule 27: Interim Measures by Tribunal</h3>
               <p style={{ margin: 0 }}>Tribunal grants protective interim orders under Section 17 (preservation of property, securing claim amounts, interim injunctions, receiver appointment).</p>
             </div>
-            <div style={{
-              background: "linear-gradient(135deg, rgba(209, 154, 52, 0.08) 0%, rgba(18, 41, 74, 0.04) 100%)",
-              border: "1.5px solid rgba(209, 154, 52, 0.45)",
-              borderRadius: "6px",
-              padding: "20px"
+            <p style={{
+              margin: 0,
+              background: "var(--paper-hi)",
+              border: "1px solid var(--line)",
+              borderRadius: "4px",
+              padding: "12px 18px",
+              fontSize: "14.5px",
+              color: "var(--ink)"
             }}>
-              <h3 style={{ fontSize: "17px", color: "var(--ink)", margin: "0 0 10px", display: "flex", alignItems: "center", gap: "8px" }}>
-                <span>🚨</span>
-                <span>Rule 28: Emergency and Urgent Relief (Emergency Arbitrator)</span>
-              </h3>
-              <p style={{ margin: "0 0 8px" }}>
-                <strong>28.1–28.3 Appointment in 2 Business Days:</strong> Urgent pre-constitution interim relief application. Emergency Arbitrator appointed within two (2) business days upon fee deposit.
-              </p>
-              <p style={{ margin: "0 0 8px" }}>
-                <strong>28.4–28.6 14-Day Timeline:</strong> Emergency proceedings concluded within fourteen (14) calendar days. Written reasoned order issued.
-              </p>
-              <p style={{ margin: "0 0 8px" }}>
-                <strong>28.7–28.8 Tribunal Authority:</strong> Emergency Arbitrator does not sit on the final Tribunal. Upon constitution, Arbitral Tribunal may confirm, vary, or vacate the emergency order.
-              </p>
-              <p style={{ margin: 0 }}>
-                <strong>28.9 Court Recourse:</strong> Preserves statutory rights to seek Section 9 interim relief from competent courts.
-              </p>
-            </div>
+              For Emergency Arbitration, visit the{" "}
+              <Link to="/emergency-arbitration" style={{ color: "var(--gold-deep)", fontWeight: 600, textDecoration: "underline" }}>
+                Emergency Arbitration page →
+              </Link>
+            </p>
           </div>
         </section>
 
