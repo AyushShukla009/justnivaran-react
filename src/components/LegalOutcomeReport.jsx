@@ -379,7 +379,7 @@ export default function LegalOutcomeReport({ report, onReset }) {
                 <button type="button" onClick={handlePrint} className="btn ghost" style={{ padding: "12px 24px", fontSize: "14px" }}>
                   📄 Download Case Assessment Brief (PDF)
                 </button>
-                <a href="/#arbitration-filing" className="btn gold" style={{ padding: "12px 28px", fontSize: "14.5px", fontWeight: 700, textDecoration: "none" }}>
+                <a href="/#file" className="btn gold" style={{ padding: "12px 28px", fontSize: "14.5px", fontWeight: 700, textDecoration: "none" }}>
                   Proceed to file with the Registry →
                 </a>
               </div>

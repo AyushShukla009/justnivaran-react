@@ -552,7 +552,7 @@ export default async function handler(req, res) {
       keyConfigured: isConfigured,
       message: isConfigured
         ? "JustNivaran AI Assessment Engine Active • Claude Sonnet 5.5"
-        : "JustNivaran Rules-Engine Active (AI Key not configured • Deterministic mode)"
+        : "Rules engine active"
     });
   }
 

@@ -106,7 +106,7 @@ export default function LegalAssessment() {
     status: "active",
     keyConfigured: true,
     model: "Anthropic Claude Sonnet 5.5",
-    message: "AI Dispute Assessment Active"
+    message: "Checking engine status…"
   });
   const [aiReport, setAiReport] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
@@ -280,7 +280,7 @@ export default function LegalAssessment() {
           }}
         >
           <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#16a34a" }} />
-          <span>{engineHealth.message || "AI Dispute Assessment Active"}</span>
+          <span>{engineHealth.message || "Checking engine status…"}</span>
         </div>
       </div>
 
@@ -881,7 +881,7 @@ export default function LegalAssessment() {
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", color: "var(--ink)", fontWeight: 600 }}>
                 <span>🔒</span> Privacy &amp; AI Processing Notice
               </div>
-              Dispute facts, timeline events, and claims entered into this form are securely transmitted to Anthropic&rsquo;s Claude API (<code>claude-sonnet-5-5</code>) for institutional case analysis. Case submissions are not used to train Anthropic&rsquo;s models under its commercial terms; retained temporarily per Anthropic&rsquo;s data policy (see{" "}
+              When AI-assisted analysis is active, the facts, dates and claims entered in this form are sent securely to Anthropic&rsquo;s Claude API (<code>claude-sonnet-5-5</code>) to draft the analysis; otherwise the brief is prepared by our rules engine and nothing is sent to an AI provider. Case submissions are not used to train Anthropic&rsquo;s models under its commercial terms; retained temporarily per Anthropic&rsquo;s data policy (see{" "}
               <a href="https://www.anthropic.com/legal/commercial-terms" style={{ color: "var(--gold-deep)", textDecoration: "underline" }} target="_blank" rel="noopener noreferrer">
                 Anthropic Commercial Terms
               </a>{" "}

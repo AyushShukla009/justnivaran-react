@@ -695,7 +695,7 @@ export async function checkAIEngineHealth() {
       keyConfigured: false,
       providerVerified: true,
       model: "JustNivaran Institutional Rules Engine (Deterministic v3.1)",
-      message: "Rules-Engine Active • Deterministic Mode"
+      message: "Rules engine active"
     };
   } catch {
     return {
@@ -703,7 +703,7 @@ export async function checkAIEngineHealth() {
       keyConfigured: false,
       providerVerified: true,
       model: "JustNivaran Institutional Rules Engine (Deterministic v3.1)",
-      message: "Rules-Engine Active • Deterministic Mode"
+      message: "Rules engine active"
     };
   }
 }
