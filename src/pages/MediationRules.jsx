@@ -38,71 +38,90 @@ export default function MediationRules({ onOpenFileModal }) {
 
   return (
     <main className="wrap" style={{ paddingBlock: "48px 90px", maxWidth: "1080px" }}>
-      {/* Top Institutional Header */}
-      <div style={{ marginBottom: "32px" }}>
+      {/* Mediation Act, 2023 — Statutory Framework (Task 15) */}
+      <div style={{ marginBottom: "40px" }}>
         <p className="eyebrow">
-          <b>Statutory Procedure Framework</b> Mediation Act, 2023 &bull; Effective 28.07.2026
+          <b>Statutory Framework</b> Mediation Act, 2023
         </p>
 
         <h1 style={{ fontSize: "clamp(28px, 4vw, 42px)", lineHeight: "1.15", margin: "0 0 14px", color: "var(--ink)" }}>
-          JustNivaran Mediation (Mediation Procedure) Rules, 2026
+          Mediation under the Mediation Act, 2023
         </h1>
-        
+
         <p className="lede" style={{ color: "#33455F", maxWidth: "900px", margin: "0 0 28px" }}>
-          Official statutory rules governing voluntary, pre-litigation, court-referred, and institutional online mediations administered through the JustNivaran Online Dispute Resolution (ODR) Platform.
+          Mediation on JustNivaran is administered with reference to the Mediation Act, 2023. Only some provisions of the Act are currently in force; the status below shows which.
         </p>
 
-        {/* Metadata Grid */}
-        <div style={{
-          background: "var(--paper-hi)",
-          border: "1px solid var(--line)",
-          borderRadius: "6px",
-          padding: "20px 24px",
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "18px",
-          boxShadow: "0 2px 8px rgba(11,27,49,0.03)"
-        }}>
-          <div>
-            <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              Statutory Authority
-            </span>
-            <div style={{ fontWeight: 600, color: "var(--ink)", marginTop: "4px" }}>
-              Mediation Act, 2023
+        {/* Status of Provisions */}
+        <section
+          aria-labelledby="provision-status-heading"
+          style={{
+            background: "var(--paper-hi)",
+            border: "1px solid var(--line)",
+            borderLeft: "4px solid var(--gold)",
+            borderRadius: "6px",
+            padding: "22px 24px",
+            marginBottom: "18px",
+            boxShadow: "0 2px 8px rgba(11,27,49,0.03)"
+          }}
+        >
+          <h2 id="provision-status-heading" style={{ fontSize: "19px", color: "var(--ink)", margin: "0 0 14px" }}>
+            Status of provisions
+          </h2>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: "16px" }}>
+            <div>
+              <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "#15803d", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700 }}>
+                In force
+              </span>
+              <p style={{ margin: "6px 0 0", fontSize: "14.5px", color: "var(--ink)", lineHeight: 1.6 }}>
+                Sections <strong>1, 3, 26, 31 to 38, 45 to 47, 50 to 54 and 56 to 57</strong> came into force on <strong>9 October 2023</strong> by notification <strong>S.O. 4384(E)</strong>.
+              </p>
             </div>
-            <div style={{ fontSize: "12px", color: "var(--slate)" }}>Read with Section 12A Commercial Courts Act</div>
+            <div>
+              <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "#b45309", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700 }}>
+                All other sections
+              </span>
+              <p style={{ margin: "6px 0 0", fontSize: "14.5px", color: "var(--ink)", lineHeight: 1.6 }}>
+                Pending notification &mdash; verify current status.
+              </p>
+            </div>
           </div>
 
-          <div>
-            <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              Effective Date &amp; Status
-            </span>
-            <div style={{ fontWeight: 600, color: "var(--gold-deep)", marginTop: "4px" }}>
-              28.07.2026
-            </div>
-            <div style={{ fontSize: "12px", color: "var(--slate)" }}>Institutional ODR Rules</div>
-          </div>
+          <p style={{ margin: "16px 0 0", fontSize: "12.5px", fontFamily: "var(--mono)", color: "var(--slate)" }}>
+            Status last verified on [date]
+          </p>
+        </section>
 
-          <div>
-            <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              Statutory Timeline
-            </span>
-            <div style={{ fontWeight: 600, color: "var(--ink)", marginTop: "4px" }}>
-              120 Days (+60 Days Ext.)
-            </div>
-            <div style={{ fontSize: "12px", color: "var(--slate)" }}>Expeditious Digital Proceedings</div>
-          </div>
-
-          <div>
-            <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              Legal Enforceability
-            </span>
-            <div style={{ fontWeight: 600, color: "var(--ink)", marginTop: "4px" }}>
-              Decree of Civil Court
-            </div>
-            <div style={{ fontSize: "12px", color: "var(--slate)" }}>Section 27 Mediation Act, 2023</div>
+        {/* Statutory Timeline */}
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid var(--line)",
+            borderRadius: "6px",
+            padding: "16px 24px"
+          }}
+        >
+          <span style={{ fontSize: "11px", fontFamily: "var(--mono)", color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Statutory Timeline
+          </span>
+          <div style={{ fontWeight: 600, color: "var(--ink)", marginTop: "4px" }}>
+            [to be confirmed against the Act]
           </div>
         </div>
+      </div>
+
+      {/* JustNivaran Mediation & Conciliation Rules (content kept as-is; see Task 12) */}
+      <div style={{ marginBottom: "24px" }}>
+        <p className="eyebrow">
+          <b>Institutional Rules</b> Effective 28.07.2026
+        </p>
+        <h2 style={{ fontSize: "clamp(24px, 3.2vw, 32px)", lineHeight: "1.2", margin: "0 0 12px", color: "var(--ink)" }}>
+          JustNivaran Mediation (Mediation Procedure) Rules, 2026
+        </h2>
+        <p style={{ color: "#33455F", maxWidth: "900px", margin: 0, fontSize: "15px", lineHeight: 1.7 }}>
+          Official rules governing voluntary, pre-litigation, court-referred, and institutional online mediations administered through the JustNivaran Online Dispute Resolution (ODR) Platform.
+        </p>
       </div>
 
       {/* Sticky Quick Jump Navigation */}
