@@ -1361,7 +1361,8 @@ footer {
 .site-footer {
   background: var(--ink-deep);
   color: #ffffff;
-  padding: 56px 0 28px;
+  /* bottom space keeps the floating File Dispute / Consultation pill clear of the text */
+  padding: 56px 0 96px;
   border-top: 3px solid var(--gold);
 }
 
