@@ -31,6 +31,34 @@ const LiveClock = memo(function LiveClock() {
   return <span>{currentTime} IST</span>;
 });
 
+const MOBILE_MENU = [
+  {
+    title: "Resolve a dispute",
+    links: [
+      { to: "/negotiation-guidelines", label: "Negotiation" },
+      { to: "/mediation-rules", label: "Mediation" },
+      { to: "/arbitration-rules", label: "Arbitration" },
+      { to: "/fast-track-arbitration", label: "Fast-Track Arbitration" },
+      { to: "/emergency-arbitration", label: "Emergency Arbitration" }
+    ]
+  },
+  {
+    title: "Tools",
+    links: [
+      { to: "/legal-assessment", label: "Legal Outcome Predictor" },
+      { to: "/fee-schedule", label: "Fee Schedule" }
+    ]
+  },
+  {
+    title: "Panel & Registry",
+    links: [
+      { to: "/our-neutrals", label: "Our Neutrals" },
+      { to: "/for-neutrals", label: "Join the Panel" },
+      { to: "/contact", label: "Contact the Registry" }
+    ]
+  }
+];
+
 function Header({ onOpenFileModal }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -196,37 +224,23 @@ function Header({ onOpenFileModal }) {
 
       {/* Mobile Menu Drawer */}
       {isMobileMenuOpen && (
-        <div className="mobile-drawer">
-          <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>
-            🏠 Home
-          </Link>
-          <Link to="/negotiation-guidelines" onClick={() => setIsMobileMenuOpen(false)}>
-            📜 Negotiation Guidelines
-          </Link>
-          <Link to="/mediation-rules" onClick={() => setIsMobileMenuOpen(false)}>
-            ⚖️ Mediation Rules (2023 Act)
-          </Link>
-          <Link to="/arbitration-rules" onClick={() => setIsMobileMenuOpen(false)}>
-            📑 Arbitration Rules
-          </Link>
-          <Link to="/legal-assessment" onClick={() => setIsMobileMenuOpen(false)}>
-            ✨ Legal Outcome AI Predictor
-          </Link>
-          <Link to="/fast-track-arbitration" onClick={() => setIsMobileMenuOpen(false)}>
-            ⚡ Fast-Track Arbitration (s. 29B)
-          </Link>
-          <Link to="/emergency-arbitration" onClick={() => setIsMobileMenuOpen(false)}>
-            🚨 Emergency Arbitration
-          </Link>
-          <Link to="/for-neutrals" onClick={() => setIsMobileMenuOpen(false)}>
-            👨‍⚖️ Neutral Empanelment
-          </Link>
-          <Link to="/our-neutrals" onClick={() => setIsMobileMenuOpen(false)}>
-            🧑‍⚖️ Our Neutrals
-          </Link>
-          <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)}>
-            📞 Contact &amp; Consultation
-          </Link>
+        <nav className="mobile-drawer" aria-label="Main menu">
+          {MOBILE_MENU.map((group) => (
+            <div key={group.title} className="drawer-group">
+              <p className="drawer-title">{group.title}</p>
+              {group.links.map((l) => (
+                <Link
+                  key={l.to}
+                  to={l.to}
+                  className={isActive(l.to) ? "drawer-link is-active" : "drawer-link"}
+                  aria-current={isActive(l.to) ? "page" : undefined}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+          ))}
           <div style={{ display: "grid", gap: "10px", marginTop: "14px" }}>
             <button
               className="nav-btn-file"
@@ -261,7 +275,7 @@ function Header({ onOpenFileModal }) {
               <span>Track Active Docket</span>
             </button>
           </div>
-        </div>
+        </nav>
       )}
     </header>
   );

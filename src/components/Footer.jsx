@@ -1,125 +1,116 @@
 import { Link } from "react-router-dom";
 import logo from "../assets/logo1.jpeg";
 
+const COLUMNS = [
+  {
+    title: "Services",
+    links: [
+      { to: "/legal-assessment", label: "Legal Outcome Predictor" },
+      { to: "/emergency-arbitration", label: "Emergency Arbitration" },
+      { to: "/fast-track-arbitration", label: "Fast-Track Arbitration" },
+      { href: "/#tracker", label: "Track a Case" },
+      { to: "/fee-schedule", label: "Fee Schedule" },
+      { href: "/#calculator", label: "Cost Calculator" }
+    ]
+  },
+  {
+    title: "Rules & Procedure",
+    links: [
+      { to: "/negotiation-guidelines", label: "Negotiation Guidelines" },
+      { to: "/mediation-rules", label: "Mediation Rules" },
+      { to: "/conciliation-rules", label: "Conciliation Rules" },
+      { to: "/arbitration-rules", label: "Arbitration Rules" },
+      { to: "/neutral-code-of-conduct", label: "Code of Conduct" },
+      { href: "/#clause", label: "Model Contract Clause" }
+    ]
+  },
+  {
+    title: "Panel",
+    links: [
+      { to: "/our-neutrals", label: "Our Neutrals" },
+      { to: "/for-neutrals", label: "Join the Panel" },
+      { to: "/contact", label: "Contact the Registry" }
+    ]
+  },
+  {
+    title: "Legal & Privacy",
+    links: [
+      { to: "/privacy-notice", label: "Privacy Notice" },
+      { to: "/privacy-policy", label: "Privacy Policy" },
+      { to: "/cookie-policy", label: "Cookie Policy" },
+      { to: "/terms-of-use", label: "Terms of Use" },
+      { to: "/refund-policy", label: "Refund & Cancellation" },
+      { to: "/data-retention", label: "Data Retention" },
+      { to: "/grievance", label: "Grievance Redressal" },
+      { to: "/legal-disclaimer", label: "Legal Disclaimer" }
+    ]
+  }
+];
+
+function FooterLink({ link }) {
+  return link.to ? (
+    <Link to={link.to} className="f-link">{link.label}</Link>
+  ) : (
+    <a href={link.href} className="f-link">{link.label}</a>
+  );
+}
+
 export default function Footer() {
   return (
-    <footer style={{ background: "#0B1B31", color: "#ffffff", padding: "36px 0 54px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+    <footer className="site-footer">
       <div className="wrap">
         <div className="f-grid">
-          
-          {/* Brand Overview */}
-          <div className="f-brand" style={{ maxWidth: "300px" }}>
-            <Link to="/" style={{ display: "inline-block", marginBottom: "10px" }}>
-              <img
-                src={logo}
-                alt="JustNivaran"
-                style={{
-                  height: "42px",
-                  width: "auto",
-                  objectFit: "contain",
-                  background: "rgba(255,255,255,0.95)",
-                  padding: "3px 8px",
-                  borderRadius: "4px"
-                }}
-              />
+          {/* Brand & registry contact */}
+          <div className="f-brand">
+            <Link to="/" className="f-logo" aria-label="JustNivaran home">
+              <img src={logo} alt="JustNivaran" width="76" height="72" loading="lazy" decoding="async" />
             </Link>
-            <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "12px", lineHeight: "1.45", margin: "0 0 10px" }}>
-              <strong>JustNivaran</strong> &bull; Online Dispute Resolution Platform<br />
-              Institutional digital dispute resolution for negotiation, mediation, conciliation, and arbitration.
+            <p className="f-name">JustNivaran</p>
+            <p className="f-tagline">
+              Online dispute resolution for negotiation, mediation, conciliation and arbitration.
             </p>
-            <div style={{ fontSize: "11px", color: "var(--gold)", fontFamily: "var(--mono)", lineHeight: "1.5" }}>
-              📞 <a href="tel:+911149876500" style={{ color: "var(--gold)", textDecoration: "none" }}>+91 11 4987 6500</a><br />
-              ✉️ <a href="mailto:registry@justnivaran.in" style={{ color: "var(--gold)", textDecoration: "none" }}>registry@justnivaran.in</a> &bull; <a href="mailto:grievance@justnivaran.in" style={{ color: "var(--gold)", textDecoration: "none" }}>grievance@justnivaran.in</a>
-            </div>
+
+            <address className="f-contact">
+              <span className="f-label">Registered office</span>
+              DC-12, 1st Floor, District Centre, Janakpuri, New Delhi – 110058
+              <span className="f-label">Registry</span>
+              <a href="tel:+911149876500">+91 11 4987 6500</a>
+              <a href="mailto:registry@justnivaran.in">registry@justnivaran.in</a>
+              <span className="f-label">Grievances</span>
+              <a href="mailto:grievance@justnivaran.in">grievance@justnivaran.in</a>
+            </address>
           </div>
 
-          {/* Platform Navigation */}
-          <div>
-            <h2 style={{ color: "var(--gold)", fontSize: "11px", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 10px" }}>
-              Centre &amp; Services
-            </h2>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "6px", fontSize: "12.5px", lineHeight: "1.35" }}>
-              <li><Link to="/" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Home</Link></li>
-              <li><Link to="/legal-assessment" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>AI Legal Assessment</Link></li>
-              <li><Link to="/fast-track-arbitration" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Fast-Track Arbitration</Link></li>
-              <li><Link to="/emergency-arbitration" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Emergency Arbitration</Link></li>
-              <li><Link to="/for-neutrals" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Neutral Empanelment</Link></li>
-              <li><Link to="/our-neutrals" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Our Neutrals</Link></li>
-              <li><Link to="/fee-schedule" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Fee Schedule</Link></li>
-              <li><a href="/#tracker" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Live Docket Tracker</a></li>
-              <li><a href="/#calculator" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Cost Calculator</a></li>
-              <li><Link to="/contact" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Registry Contact</Link></li>
-            </ul>
-          </div>
-
-          {/* Procedural Rules */}
-          <div>
-            <h2 style={{ color: "var(--gold)", fontSize: "11px", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 10px" }}>
-              Procedural Framework
-            </h2>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "6px", fontSize: "12.5px", lineHeight: "1.35" }}>
-              <li><Link to="/negotiation-guidelines" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Negotiation Guidelines</Link></li>
-              <li><Link to="/mediation-rules" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Mediation Rules (2023 Act)</Link></li>
-              <li><Link to="/conciliation-rules" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Conciliation Rules 2026</Link></li>
-              <li><Link to="/arbitration-rules" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Arbitration Rules</Link></li>
-              <li><Link to="/neutral-code-of-conduct" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Core Values &amp; Code of Conduct</Link></li>
-              <li><a href="/#clause" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Model Contract Clause</a></li>
-            </ul>
-          </div>
-
-          {/* Legal & Privacy */}
-          <div>
-            <h2 style={{ color: "var(--gold)", fontSize: "11px", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 10px" }}>
-              Legal &amp; Privacy
-            </h2>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "6px", fontSize: "12.5px", lineHeight: "1.35" }}>
-              <li><Link to="/privacy-notice" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Public Privacy Notice</Link></li>
-              <li><Link to="/privacy-policy" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Privacy Policy (DPDP Act)</Link></li>
-              <li><Link to="/cookie-policy" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Cookie Policy Framework</Link></li>
-              <li><Link to="/terms-of-use" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Terms of Use</Link></li>
-              <li><Link to="/refund-policy" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Refund &amp; Cancellation</Link></li>
-              <li><Link to="/data-retention" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Data Retention Policy</Link></li>
-              <li><Link to="/grievance" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Grievance Redressal</Link></li>
-              <li><Link to="/legal-disclaimer" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Legal Disclaimer</Link></li>
-              <li>
-                <button
-                  type="button"
-                  onClick={() => window.dispatchEvent(new CustomEvent("jn_open_cookie_preferences"))}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    color: "rgba(255,255,255,0.55)",
-                    fontSize: "12px",
-                    cursor: "pointer",
-                    textDecoration: "underline",
-                    textAlign: "left",
-                    fontFamily: "inherit"
-                  }}
-                >
-                  ⚙️ Cookie Settings
-                </button>
-              </li>
-            </ul>
-          </div>
+          {COLUMNS.map((col) => (
+            <nav key={col.title} className="f-col" aria-label={col.title}>
+              <h2 className="f-col-title">{col.title}</h2>
+              <ul>
+                {col.links.map((l) => (
+                  <li key={l.label}>
+                    <FooterLink link={l} />
+                  </li>
+                ))}
+                {col.title === "Legal & Privacy" && (
+                  <li>
+                    <button
+                      type="button"
+                      className="f-link f-link-button"
+                      onClick={() => window.dispatchEvent(new CustomEvent("jn_open_cookie_preferences"))}
+                    >
+                      Cookie Settings
+                    </button>
+                  </li>
+                )}
+              </ul>
+            </nav>
+          ))}
         </div>
 
-        {/* Bottom Bar */}
-        <div
-          style={{
-            borderTop: "1px solid rgba(255,255,255,0.08)",
-            paddingTop: "14px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "10px",
-            fontSize: "11.5px",
-            color: "rgba(255,255,255,0.62)"
-          }}
-        >
+        <div className="f-bottom">
           <span>&copy; 2026 JustNivaran Private Limited. All rights reserved.</span>
-          <span>Online Dispute Resolution Platform</span>
+          <span className="f-note">
+            JustNivaran administers dispute resolution proceedings. It is not a court and does not give legal advice.
+          </span>
         </div>
       </div>
     </footer>
