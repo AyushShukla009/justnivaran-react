@@ -182,10 +182,11 @@ function ModelClause() {
 
               <div style={{ display: "grid", gap: "12px" }}>
                 <div>
-                  <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                  <label htmlFor="mc-field-1" style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
                     Resolution Framework
                   </label>
                   <select
+ id="mc-field-1"
                     value={track}
                     onChange={(e) => setTrack(e.target.value)}
                     style={{
@@ -207,10 +208,11 @@ function ModelClause() {
                 {track === "full-arbitration" ? (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "10px" }}>
                     <div>
-                      <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                      <label htmlFor="mc-field-2" style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
                         Institution / Rules
                       </label>
                       <select
+ id="mc-field-2"
                         value={rules}
                         onChange={(e) => setRules(e.target.value)}
                         style={{
@@ -230,10 +232,11 @@ function ModelClause() {
                     </div>
 
                     <div>
-                      <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                      <label htmlFor="mc-field-3" style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
                         Number of Arbitrators
                       </label>
                       <select
+ id="mc-field-3"
                         value={arbitratorCount}
                         onChange={(e) => setArbitratorCount(e.target.value)}
                         style={{
@@ -253,10 +256,11 @@ function ModelClause() {
                     </div>
 
                     <div>
-                      <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                      <label htmlFor="mc-field-4" style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
                         Juridical Seat
                       </label>
                       <select
+ id="mc-field-4"
                         value={seat}
                         onChange={(e) => setSeat(e.target.value)}
                         style={{
@@ -280,10 +284,11 @@ function ModelClause() {
                     </div>
 
                     <div>
-                      <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                      <label htmlFor="mc-field-5" style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
                         Language of Arbitration
                       </label>
                       <select
+ id="mc-field-5"
                         value={language}
                         onChange={(e) => setLanguage(e.target.value)}
                         style={{
@@ -304,10 +309,11 @@ function ModelClause() {
                     </div>
 
                     <div>
-                      <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                      <label htmlFor="mc-field-6" style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
                         Governing Law
                       </label>
                       <select
+ id="mc-field-6"
                         value={governingLaw}
                         onChange={(e) => setGoverningLaw(e.target.value)}
                         style={{
@@ -328,10 +334,11 @@ function ModelClause() {
                     </div>
 
                     <div>
-                      <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                      <label htmlFor="mc-field-7" style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
                         Contract Title (Optional)
                       </label>
                       <input
+ id="mc-field-7"
                         type="text"
                         placeholder="e.g. Master Service Agreement"
                         value={contractName}
@@ -352,10 +359,11 @@ function ModelClause() {
                 ) : (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "10px" }}>
                     <div>
-                      <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                      <label htmlFor="mc-field-8" style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
                         Seat of Proceedings
                       </label>
                       <select
+ id="mc-field-8"
                         value={seat}
                         onChange={(e) => setSeat(e.target.value)}
                         style={{
@@ -378,10 +386,11 @@ function ModelClause() {
                       </select>
                     </div>
                     <div>
-                      <label style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
+                      <label htmlFor="mc-field-9" style={{ fontSize: "12px", fontFamily: "var(--mono)", color: "var(--slate)", display: "block", marginBottom: "4px", textTransform: "uppercase" }}>
                         Contract Title (Optional)
                       </label>
                       <input
+ id="mc-field-9"
                         type="text"
                         placeholder="e.g. Master Service Agreement"
                         value={contractName}

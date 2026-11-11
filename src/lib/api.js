@@ -22,6 +22,8 @@ export async function getPublicDocketStatus(docketNumber) {
   } catch {
     // ignore
   }
+  // Exact docket matching only: LIKE wildcards are not allowed in user input
+  cleanDocket = cleanDocket.replace(/[%_*\\]/g, "");
 
   if (!cleanDocket) {
     return { success: false, error: "INVALID_DOCKET", message: "Please enter a valid docket number." };
@@ -70,15 +72,6 @@ export async function getPublicDocketStatus(docketNumber) {
         }
       }
 
-      // If user searched a partial docket identifier (e.g. 6908)
-      if (!data && /^[A-Z0-9]+$/i.test(cleanDocket) && cleanDocket.length >= 4) {
-        const partialRes = await supabase.from("disputes").select("*").ilike("docket_number", `%${cleanDocket}%`).limit(1).maybeSingle();
-        if (partialRes.data) {
-          data = partialRes.data;
-          error = null;
-        }
-      }
-
       if (!error && data) {
         return {
           success: true,
@@ -119,6 +112,8 @@ export async function verifyDocketPin(docketNumber, pin) {
   } catch {
     // ignore
   }
+  // Exact docket matching only: LIKE wildcards are not allowed in user input
+  cleanDocket = cleanDocket.replace(/[%_*\\]/g, "");
   const cleanPin = String(pin || "").trim();
 
   if (!cleanDocket || !cleanPin) {
@@ -172,22 +167,13 @@ export async function verifyDocketPin(docketNumber, pin) {
         }
       }
 
-      if (!data && /^[A-Z0-9]+$/i.test(cleanDocket) && cleanDocket.length >= 4) {
-        const partialRes = await supabase.from("disputes").select("*").ilike("docket_number", `%${cleanDocket}%`).limit(1).maybeSingle();
-        if (partialRes.data) {
-          data = partialRes.data;
-          error = null;
-        }
-      }
-
       if (!error && data) {
         const pinMatch = String(data.dispute_summary || "").match(/\[(?:Case Access PIN|PIN|Case PIN):\s*([A-Za-z0-9]+)\]/i);
         const pinInSummary = pinMatch && pinMatch[1].trim().toLowerCase() === cleanPin.toLowerCase();
-        const rawSummaryContains = String(data.dispute_summary || "").toLowerCase().includes(cleanPin.toLowerCase());
         const pinInCode = data.access_code && String(data.access_code).trim().toLowerCase() === cleanPin.toLowerCase();
         const pinInCol = data.pin && String(data.pin).trim().toLowerCase() === cleanPin.toLowerCase();
 
-        if (pinInSummary || rawSummaryContains || pinInCode || pinInCol) {
+        if (cleanPin.length >= 4 && (pinInSummary || pinInCode || pinInCol)) {
           return { success: true, data };
         }
       }
@@ -499,28 +485,10 @@ export async function submitFastTrackRequest(payload) {
       }
     }
 
-    // Resilient fallback
-    return {
-      success: true,
-      data: {
-        docket_number: docketNumber,
-        access_pin: accessPin,
-        status: initialStatus,
-        mode: "FT-ARB"
-      }
-    };
+    return { success: false, error: "The fast-track filing could not be saved. Please try again in a minute." };
   } catch (err) {
     console.error("Fast track reference submission error:", err);
-    const fallbackDocket = `JN/FT-ARB/2026/${Math.floor(1000 + Math.random() * 9000)}`;
-    return {
-      success: true,
-      data: {
-        docket_number: fallbackDocket,
-        access_pin: String(Math.floor(100000 + Math.random() * 900000)),
-        status: "Counterparty Notice Queued",
-        mode: "FT-ARB"
-      }
-    };
+    return { success: false, error: formatDbError(err?.message) };
   }
 }
 
@@ -563,28 +531,10 @@ export async function submitEmergencyReliefRequest(payload) {
       }
     }
 
-    // Resilient fallback
-    return {
-      success: true,
-      data: {
-        docket_number: docketNumber,
-        access_pin: accessPin,
-        status: initialStatus,
-        mode: "EA"
-      }
-    };
+    return { success: false, error: "The emergency filing could not be saved. Please try again in a minute." };
   } catch (err) {
     console.error("Emergency relief submission error:", err);
-    const fallbackDocket = `JN/EA/2026/${Math.floor(1000 + Math.random() * 9000)}`;
-    return {
-      success: true,
-      data: {
-        docket_number: fallbackDocket,
-        access_pin: String(Math.floor(100000 + Math.random() * 900000)),
-        status: "Emergency Triage Active",
-        mode: "EA"
-      }
-    };
+    return { success: false, error: formatDbError(err?.message) };
   }
 }
 

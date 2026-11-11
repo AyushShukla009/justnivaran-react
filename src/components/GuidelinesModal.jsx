@@ -164,9 +164,10 @@ function GuidelinesModal({ isOpen, onClose, defaultMode = "NEG" }) {
         </div>
 
         {/* Mode Selector */}
-        <div className="modes" style={{ padding: "0 20px" }}>
+        <div className="modes" role="tablist" aria-label="Guideline type" style={{ padding: "0 20px" }}>
           <button
             className="mode"
+            role="tab"
             type="button"
             aria-selected={activeTab === "NEG"}
             onClick={() => setActiveTab("NEG")}
@@ -175,6 +176,7 @@ function GuidelinesModal({ isOpen, onClose, defaultMode = "NEG" }) {
           </button>
           <button
             className="mode"
+            role="tab"
             type="button"
             aria-selected={activeTab === "MED"}
             onClick={() => setActiveTab("MED")}
@@ -183,6 +185,7 @@ function GuidelinesModal({ isOpen, onClose, defaultMode = "NEG" }) {
           </button>
           <button
             className="mode"
+            role="tab"
             type="button"
             aria-selected={activeTab === "ARB"}
             onClick={() => setActiveTab("ARB")}

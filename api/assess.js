@@ -57,17 +57,17 @@ const MAX_TOTAL_INPUT_CHARS = 15000;
 const CLAUDE_TIMEOUT_MS = 12000; // 12 seconds hard timeout
 
 function getHashedClientId(req) {
+  // Prefer the client IP set by the Vercel edge (not spoofable by the caller).
+  // The User-Agent is deliberately NOT part of the key: changing it must not reset the quota.
   const ip =
+    req.headers["x-real-ip"] ||
+    req.headers["x-vercel-forwarded-for"]?.split(",")[0]?.trim() ||
     req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
     req.socket?.remoteAddress ||
     "127.0.0.1";
-  const userAgent = req.headers["user-agent"] || "unknown-agent";
   const secret = process.env.RATE_LIMIT_HMAC_SECRET || "justnivaran-hmac-secret-2026";
 
-  return crypto
-    .createHmac("sha256", secret)
-    .update(`${ip}:${userAgent}`)
-    .digest("hex");
+  return crypto.createHmac("sha256", secret).update(String(ip)).digest("hex");
 }
 
 function checkRateLimit(clientId) {

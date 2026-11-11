@@ -420,10 +420,11 @@ export default function LegalAssessment() {
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px" }}>
                 <div>
-                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                  <label htmlFor="la-field-1" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
                     Commercial Dispute Category <span style={{ color: "#dc2626" }}>*</span>
                   </label>
                   <select
+ id="la-field-1"
                     name="category"
                     value={formData.category}
                     onChange={handleInputChange}
@@ -470,10 +471,11 @@ export default function LegalAssessment() {
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px", marginBottom: "16px" }}>
                 <div>
-                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                  <label htmlFor="la-field-2" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
                     Enterprise Category (MSMED Act)
                   </label>
                   <select
+ id="la-field-2"
                     name="enterpriseType"
                     value={formData.enterpriseType}
                     onChange={handleInputChange}
@@ -518,10 +520,11 @@ export default function LegalAssessment() {
               {(formData.enterpriseType === "Micro" || formData.enterpriseType === "Small") && formData.udyamRegisteredAtContract && (
                 <div style={{ background: "rgba(209, 154, 52, 0.08)", border: "1px solid rgba(209, 154, 52, 0.3)", borderRadius: "6px", padding: "16px 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px" }}>
                   <div>
-                    <label style={{ display: "block", fontSize: "12.5px", fontWeight: 600, color: "var(--ink)", marginBottom: "4px" }}>
+                    <label htmlFor="la-field-3" style={{ display: "block", fontSize: "12.5px", fontWeight: 600, color: "var(--ink)", marginBottom: "4px" }}>
                       Date of Goods / Service Acceptance
                     </label>
                     <input
+ id="la-field-3"
                       type="date"
                       name="acceptanceDate"
                       value={formData.acceptanceDate}
@@ -530,10 +533,11 @@ export default function LegalAssessment() {
                     />
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: "12.5px", fontWeight: 600, color: "var(--ink)", marginBottom: "4px" }}>
+                    <label htmlFor="la-field-4" style={{ display: "block", fontSize: "12.5px", fontWeight: 600, color: "var(--ink)", marginBottom: "4px" }}>
                       Agreed Credit Days (Max 45 Days per Sec 15)
                     </label>
                     <input
+ id="la-field-4"
                       type="number"
                       max="45"
                       min="0"
@@ -558,10 +562,11 @@ export default function LegalAssessment() {
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px", marginBottom: "16px" }}>
                 <div>
-                  <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                  <label htmlFor="la-field-5" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
                     Date of Breach / Cause of Action <span style={{ color: "#dc2626" }}>*</span>
                   </label>
                   <input
+ id="la-field-5"
                     type="date"
                     name="breachDate"
                     value={formData.breachDate}
@@ -603,10 +608,11 @@ export default function LegalAssessment() {
               {formData.signedWrittenAcknowledgment && (
                 <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "6px", padding: "16px 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px", marginBottom: "16px" }}>
                   <div>
-                    <label style={{ display: "block", fontSize: "12.5px", fontWeight: 600, color: "var(--ink)", marginBottom: "4px" }}>
+                    <label htmlFor="la-field-6" style={{ display: "block", fontSize: "12.5px", fontWeight: 600, color: "var(--ink)", marginBottom: "4px" }}>
                       Date of Written Acknowledgment / Part-Payment
                     </label>
                     <input
+ id="la-field-6"
                       type="date"
                       name="acknowledgmentDate"
                       value={formData.acknowledgmentDate}
@@ -615,10 +621,11 @@ export default function LegalAssessment() {
                     />
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: "12.5px", fontWeight: 600, color: "var(--ink)", marginBottom: "4px" }}>
+                    <label htmlFor="la-field-7" style={{ display: "block", fontSize: "12.5px", fontWeight: 600, color: "var(--ink)", marginBottom: "4px" }}>
                       Document Nature (e.g. Joint Site Sheet, Balance Confirmation)
                     </label>
                     <input
+ id="la-field-7"
                       type="text"
                       name="acknowledgmentDocumentType"
                       value={formData.acknowledgmentDocumentType}
@@ -631,10 +638,11 @@ export default function LegalAssessment() {
               )}
 
               <div>
-                <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
+                <label htmlFor="la-field-8" style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
                   Material Dispute Facts &amp; Contractual Summary <span style={{ color: "#dc2626" }}>*</span>
                 </label>
                 <textarea
+ id="la-field-8"
                   rows="4"
                   name="factsSummary"
                   value={formData.factsSummary}

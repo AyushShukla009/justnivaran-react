@@ -5,6 +5,8 @@
   --ink-deep: #0B1B31;
   --gold: #D19A34;
   --gold-soft: #F0E0C2;
+  /* Darker gold for text on light backgrounds (WCAG AA contrast >= 4.5:1 on --paper) */
+  --gold-deep: #8A5A12;
   --paper: #EDF1F5;
   --paper-hi: #F7F9FB;
   --slate: #5A6B82;

@@ -58,7 +58,7 @@ section[id],
 }
 
 .eyebrow b {
-  color: var(--gold);
+  color: var(--gold-deep);
   font-weight: 500;
 }
 
@@ -1036,7 +1036,7 @@ h1 em {
 
 .fig .n small {
   font-size: .42em;
-  color: var(--gold);
+  color: var(--gold-deep);
   margin-left: 4px;
   font-family: var(--sans);
 }
@@ -1097,7 +1097,7 @@ h1 em {
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: .14em;
-  color: var(--gold);
+  color: var(--gold-deep);
 }
 
 .cell h3 {
@@ -1355,8 +1355,13 @@ footer ul {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 6px;
+  gap: 0;
   line-height: 1.35;
+}
+
+footer ul a {
+  display: inline-block;
+  padding: 4px 0;
 }
 
 footer a {

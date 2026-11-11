@@ -35,9 +35,9 @@ export default function Footer() {
 
           {/* Platform Navigation */}
           <div>
-            <h4 style={{ color: "var(--gold)", fontSize: "11px", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 10px" }}>
+            <h2 style={{ color: "var(--gold)", fontSize: "11px", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 10px" }}>
               Centre &amp; Services
-            </h4>
+            </h2>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "6px", fontSize: "12.5px", lineHeight: "1.35" }}>
               <li><Link to="/" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Home</Link></li>
               <li><Link to="/legal-assessment" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>AI Legal Assessment</Link></li>
@@ -54,9 +54,9 @@ export default function Footer() {
 
           {/* Procedural Rules */}
           <div>
-            <h4 style={{ color: "var(--gold)", fontSize: "11px", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 10px" }}>
+            <h2 style={{ color: "var(--gold)", fontSize: "11px", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 10px" }}>
               Procedural Framework
-            </h4>
+            </h2>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "6px", fontSize: "12.5px", lineHeight: "1.35" }}>
               <li><Link to="/negotiation-guidelines" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Negotiation Guidelines</Link></li>
               <li><Link to="/mediation-rules" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Mediation Rules (2023 Act)</Link></li>
@@ -69,9 +69,9 @@ export default function Footer() {
 
           {/* Legal & Privacy */}
           <div>
-            <h4 style={{ color: "var(--gold)", fontSize: "11px", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 10px" }}>
+            <h2 style={{ color: "var(--gold)", fontSize: "11px", fontFamily: "var(--mono)", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 10px" }}>
               Legal &amp; Privacy
-            </h4>
+            </h2>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "6px", fontSize: "12.5px", lineHeight: "1.35" }}>
               <li><Link to="/privacy-notice" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Public Privacy Notice</Link></li>
               <li><Link to="/privacy-policy" style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none" }}>Privacy Policy (DPDP Act)</Link></li>
@@ -115,7 +115,7 @@ export default function Footer() {
             flexWrap: "wrap",
             gap: "10px",
             fontSize: "11.5px",
-            color: "rgba(255,255,255,0.45)"
+            color: "rgba(255,255,255,0.62)"
           }}
         >
           <span>&copy; 2026 JustNivaran Private Limited. All rights reserved.</span>

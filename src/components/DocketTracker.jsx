@@ -230,6 +230,17 @@ function DocketTracker() {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
 
+    // Escape every party-supplied value before it goes into the print HTML (prevents stored XSS),
+    // and never print the case access PIN.
+    const escapeHtml = (v) =>
+      String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    const safe = Object.fromEntries(
+      Object.entries(caseData).map(([k, v]) => [k, typeof v === "string" ? escapeHtml(v) : v])
+    );
+    if (typeof caseData.dispute_summary === "string") {
+      safe.dispute_summary = escapeHtml(caseData.dispute_summary.replace(/\[(?:Case Access PIN|PIN|Case PIN):\s*[A-Za-z0-9]+\]/gi, "").trim());
+    }
+
     const todayStr = new Date().toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "long",
@@ -247,7 +258,7 @@ function DocketTracker() {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>JustNivaran - Certified Case Dossier (${caseData.docket_number})</title>
+          <title>JustNivaran - Certified Case Dossier (${safe.docket_number})</title>
           <style>
             @page { size: A4; margin: 18mm; }
             body { font-family: 'Times New Roman', Times, serif; color: #0B1B31; line-height: 1.5; padding: 20px; }
@@ -273,8 +284,8 @@ function DocketTracker() {
               </td>
               <td style="text-align: right; vertical-align: top;">
                 <div class="badge-box">
-                  DOCKET: ${caseData.docket_number}<br/>
-                  STATUS: ${caseData.status || "Active Proceeding"}
+                  DOCKET: ${safe.docket_number}<br/>
+                  STATUS: ${safe.status || "Active Proceeding"}
                 </div>
               </td>
             </tr>
@@ -285,37 +296,37 @@ function DocketTracker() {
           <table class="grid-table">
             <tr>
               <td class="label">Docket Number</td>
-              <td style="font-family: monospace; font-weight: bold; color: #0B1B31;">${caseData.docket_number}</td>
+              <td style="font-family: monospace; font-weight: bold; color: #0B1B31;">${safe.docket_number}</td>
             </tr>
             <tr>
               <td class="label">Claimant / Initiating Party</td>
-              <td><strong>${caseData.claimant_name}</strong></td>
+              <td><strong>${safe.claimant_name}</strong></td>
             </tr>
             <tr>
               <td class="label">Respondent / Opposing Party</td>
-              <td><strong>${caseData.respondent_name}</strong></td>
+              <td><strong>${safe.respondent_name}</strong></td>
             </tr>
             <tr>
               <td class="label">Disputed Claim Amount</td>
-              <td><strong>₹ ${Number(caseData.claim_amount || 0).toLocaleString("en-IN")}</strong></td>
+              <td><strong>₹ ${Number(safe.claim_amount || 0).toLocaleString("en-IN")}</strong></td>
             </tr>
             <tr>
               <td class="label">ADR Proceeding Mode</td>
-              <td><strong>${caseData.mode}</strong> (Institutional Framework)</td>
+              <td><strong>${safe.mode}</strong> (Institutional Framework)</td>
             </tr>
-            ${caseData.assigned_neutral ? `
+            ${safe.assigned_neutral ? `
             <tr>
               <td class="label">Presiding Arbitrator / Neutral</td>
-              <td><strong>${caseData.assigned_neutral}</strong> (Section 29B Tribunal)</td>
+              <td><strong>${safe.assigned_neutral}</strong> (Section 29B Tribunal)</td>
             </tr>` : ""}
-            ${caseData.hearing_date ? `
+            ${safe.hearing_date ? `
             <tr>
               <td class="label">Scheduled Virtual Hearing</td>
-              <td><strong>${caseData.hearing_date} at ${caseData.hearing_time || "11:00 AM IST"}</strong><br/><span style="font-family: monospace; font-size: 8.5pt; color: #555;">Room: ${caseData.hearing_room_url || "Secure Registry Jitsi"}</span></td>
+              <td><strong>${safe.hearing_date} at ${safe.hearing_time || "11:00 AM IST"}</strong><br/><span style="font-family: monospace; font-size: 8.5pt; color: #555;">Room: ${safe.hearing_room_url || "Secure Registry Jitsi"}</span></td>
             </tr>` : ""}
             <tr>
               <td class="label">Current Procedural Status</td>
-              <td><strong style="color: #0B1B31;">${caseData.status || "Notice Issued"}</strong></td>
+              <td><strong style="color: #0B1B31;">${safe.status || "Notice Issued"}</strong></td>
             </tr>
             <tr>
               <td class="label">Registry Timestamp</td>
@@ -327,7 +338,7 @@ function DocketTracker() {
             Case Record &amp; Statement of Facts:
           </div>
           <div class="summary-box">
-            ${(caseData.dispute_summary || "Institutional dispute record filed via online registry.").replace(/\n/g, "<br/>")}
+            ${(safe.dispute_summary || "Institutional dispute record filed via online registry.").replace(/\n/g, "<br/>")}
           </div>
 
           <div class="cert-box">

@@ -158,7 +158,7 @@ function InstitutionalVision({ onOpenFileModal }) {
                       fontSize: "10.5px",
                       letterSpacing: ".14em",
                       textTransform: "uppercase",
-                      color: "var(--gold)",
+                      color: "var(--gold-deep)",
                       fontWeight: 600,
                       display: "block"
                     }}
@@ -205,7 +205,7 @@ function InstitutionalVision({ onOpenFileModal }) {
                     fontSize: "10.5px",
                     letterSpacing: ".12em",
                     textTransform: "uppercase",
-                    color: "var(--gold)",
+                    color: "var(--gold-deep)",
                     fontWeight: 600
                   }}
                 >
@@ -243,7 +243,7 @@ function InstitutionalVision({ onOpenFileModal }) {
                     fontSize: "10.5px",
                     letterSpacing: ".12em",
                     textTransform: "uppercase",
-                    color: "var(--gold)",
+                    color: "var(--gold-deep)",
                     fontWeight: 600
                   }}
                 >
@@ -281,7 +281,7 @@ function InstitutionalVision({ onOpenFileModal }) {
                     fontSize: "10.5px",
                     letterSpacing: ".12em",
                     textTransform: "uppercase",
-                    color: "var(--gold)",
+                    color: "var(--gold-deep)",
                     fontWeight: 600
                   }}
                 >

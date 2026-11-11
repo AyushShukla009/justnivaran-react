@@ -29,7 +29,7 @@ const CONSULTATION_STATUS_CONFIG = {
 const CONSULTATION_STATUS_OPTIONS = Object.keys(CONSULTATION_STATUS_CONFIG);
 
 function AdminDashboard() {
-  const [adminEmail, setAdminEmail] = useState("admin@justnivaran.in");
+  const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [totpCode, setTotpCode] = useState("");
   const [mfaStep, setMfaStep] = useState("none"); // 'none' | 'totp'
@@ -39,23 +39,9 @@ function AdminDashboard() {
   const [authError, setAuthError] = useState("");
   const [authSuccessMsg, setAuthSuccessMsg] = useState("");
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const [currentUser, setCurrentUser] = useState(() => {
-    try {
-      const saved = sessionStorage.getItem("justnivaran_admin_session");
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // ignore
-    }
-    return null;
-  });
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    try {
-      const saved = sessionStorage.getItem("justnivaran_admin_session");
-      return !!saved;
-    } catch {
-      return false;
-    }
-  });
+  // Access is granted ONLY by a real Supabase Auth session (restored in the effect below).
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState("disputes");
   const [disputes, setDisputes] = useState([]);
   const [neutrals, setNeutrals] = useState([]);
@@ -364,10 +350,6 @@ function AdminDashboard() {
         return;
       }
 
-      // Check Master Key credentials
-      const validMasterKeys = ["Admin@JN2026!", "090909", "Admin@JN2026", "Admin@2026!", "admin123"];
-      const isMasterKey = validMasterKeys.includes(pwd.trim());
-
       let authUser = null;
 
       if (supabase) {
@@ -384,18 +366,6 @@ function AdminDashboard() {
         }
       }
 
-      // Master key administrative fallback
-      if (!authUser && isMasterKey) {
-        authUser = {
-          id: "admin-registry-master",
-          email: email || "admin@justnivaran.in",
-          role: "authenticated",
-          aud: "authenticated",
-          app_metadata: { provider: "master_key", role: "admin" },
-          user_metadata: { name: "Institutional Registry Administrator" }
-        };
-      }
-
       if (!authUser) {
         setAuthError("Invalid administrative credentials or unauthorized account.");
         setIsAuthenticating(false);
@@ -403,7 +373,7 @@ function AdminDashboard() {
       }
 
       // Check Multi-Factor Authentication (MFA / TOTP) level if Supabase session
-      if (supabase && authUser.id !== "admin-registry-master") {
+      if (supabase) {
         try {
           const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
           if (aalData?.nextLevel === "aal2" && aalData?.currentLevel === "aal1") {
@@ -1145,7 +1115,7 @@ function AdminDashboard() {
 
               <div style={{ marginBottom: "18px" }}>
                 <label htmlFor="admin-login-password" style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--ink)", marginBottom: "6px" }}>
-                  Password / Master Key
+                  Password
                 </label>
                 <input
                   id="admin-login-password"

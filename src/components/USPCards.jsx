@@ -5,7 +5,7 @@ function USPCards() {
     <section className="usp-cards-section" id="key-usps">
       <div className="wrap">
         <div className="usp-section-head">
-          <p className="eyebrow" style={{ color: "var(--gold)" }}>
+          <p className="eyebrow" style={{ color: "var(--gold-deep)" }}>
             CORE CAPABILITIES &bull; INSTITUTIONAL ODR
           </p>
           <h2 className="usp-section-title">

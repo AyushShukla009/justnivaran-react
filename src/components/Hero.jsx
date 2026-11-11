@@ -96,9 +96,10 @@ function Hero({ onOpenFileModal }) {
               <span className="docket">{activePath.docket || "JN/ODR/2026/0417"}</span>
             </div>
 
-            <div className="modes">
+            <div className="modes" role="tablist" aria-label="Modes of resolution">
               <button
                 className="mode"
+                role="tab"
                 type="button"
                 aria-selected={activeKey === "NEG"}
                 onClick={() => setActiveKey("NEG")}
@@ -107,6 +108,7 @@ function Hero({ onOpenFileModal }) {
               </button>
               <button
                 className="mode"
+                role="tab"
                 type="button"
                 aria-selected={activeKey === "MED"}
                 onClick={() => setActiveKey("MED")}
@@ -115,6 +117,7 @@ function Hero({ onOpenFileModal }) {
               </button>
               <button
                 className="mode"
+                role="tab"
                 type="button"
                 aria-selected={activeKey === "CON"}
                 onClick={() => setActiveKey("CON")}
@@ -123,6 +126,7 @@ function Hero({ onOpenFileModal }) {
               </button>
               <button
                 className="mode"
+                role="tab"
                 type="button"
                 aria-selected={activeKey === "ARB_FAST"}
                 onClick={() => setActiveKey("ARB_FAST")}
@@ -131,6 +135,7 @@ function Hero({ onOpenFileModal }) {
               </button>
               <button
                 className="mode"
+                role="tab"
                 type="button"
                 aria-selected={activeKey === "ARB"}
                 onClick={() => setActiveKey("ARB")}
