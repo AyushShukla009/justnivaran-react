@@ -19,8 +19,32 @@ import { getGuidanceModule } from "../src/lib/categories/index.js";
 import { AIAssessmentResponseSchema } from "../src/lib/aiAssessmentSchema.js";
 import {
   CLAUDE_SYSTEM_PROMPT,
-  buildClaudePrompt
+  buildClaudePrompt,
+  ALLOWED_STATUTORY_AUTHORITIES
 } from "../src/lib/claudeAssessmentPrompt.js";
+
+/**
+ * Extract base section numbers referenced as "Section(s) …" (expands "15 to 18", "15–19").
+ */
+export function extractSectionNumbers(text) {
+  const nums = new Set();
+  const re = /\bSections?\s+((?:\d+[A-Z]{0,2}(?:\(\w+\))*\s*(?:,|and|&|to|–|-|or)?\s*)+)/g;
+  let m;
+  while ((m = re.exec(String(text || ""))) !== null) {
+    const chunk = m[1].replace(/\(\w+\)/g, "");
+    const rangeRe = /(\d+)\s*(?:to|–|-)\s*(\d+)/g;
+    let r;
+    while ((r = rangeRe.exec(chunk)) !== null) {
+      const a = Number(r[1]);
+      const b = Number(r[2]);
+      if (b > a && b - a <= 30) for (let n = a; n <= b; n++) nums.add(String(n));
+    }
+    (chunk.match(/\d+[A-Z]{0,2}/g) || []).forEach((n) => nums.add(n));
+  }
+  return nums;
+}
+
+const BASE_ALLOWED_SECTIONS = extractSectionNumbers(ALLOWED_STATUTORY_AUTHORITIES.join(" \n "));
 
 // Rate limiting configurations (Sliding window)
 const memoryRateLimitStore = new Map();
@@ -290,6 +314,23 @@ export function validateAITextIntegrity(aiData, deterministicReport, intakeData 
     const refNorm = normalize(rMatch[0]);
     if (!allowedCitationsNorm.some((c) => c.includes(refNorm))) {
       violations.push(`AI cited unauthorized law-report citation: "${rMatch[0]}" (only verified precedents retrieved for this request may be cited)`);
+    }
+  }
+
+  // 6. Law-data only: every section number must come from the allowed list, the framed issues or the supplied statutory text
+  const allowedSections = new Set(BASE_ALLOWED_SECTIONS);
+  const brief = deterministicReport.brief;
+  if (brief) {
+    extractSectionNumbers(
+      [
+        ...brief.issues.flatMap((i) => [...(i.applicableLaw || []), ...(i.provisions || []).map((p) => `Section ${p.section}`)]),
+        ...(brief.statutoryChecks || []).map((c) => c.basis)
+      ].join(" \n ")
+    ).forEach((n) => allowedSections.add(n));
+  }
+  for (const n of extractSectionNumbers(fullText)) {
+    if (!allowedSections.has(n)) {
+      violations.push(`AI referred to Section ${n}, which is not in the legal data supplied for this request.`);
     }
   }
 

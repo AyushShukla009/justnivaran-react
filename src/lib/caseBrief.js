@@ -12,6 +12,8 @@
  * - Engine findings are computed from the stated dates/values and are labelled as such.
  */
 
+import { getVerifiedProvisions, PROVISION_IDS } from "./statuteRetrieval.js";
+
 export const NOT_ON_RECORD = "Not on record.";
 
 const EVIDENCE_LABELS = {
@@ -180,6 +182,13 @@ export function buildCaseBrief(intake = {}, det = {}) {
     ],
     finding: "This issue turns on evidence. No finding can be made on the material supplied.",
     evidenceNeeded: evidenceNeeded.length ? evidenceNeeded : ["Primary documents proving the contract, performance and non-payment."]
+  });
+
+  // ---- Attach verbatim statutory text (official source, verified only) ----
+  const penaltyInPlay = /liquidated|penalt|section 74/i.test(`${respondentStated} ${facts}`);
+  issues.forEach((issue) => {
+    const ids = [...(PROVISION_IDS[issue.id] || []), ...(issue.id === "MERITS" && penaltyInPlay ? PROVISION_IDS.MERITS_PENALTY : [])];
+    issue.provisions = getVerifiedProvisions(ids);
   });
 
   // ---- Points for determination (framed as a neutral would frame them) ----

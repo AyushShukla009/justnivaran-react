@@ -71,8 +71,9 @@ NON-NEGOTIABLE RULES
    Use only facts in the case data. Attribute every fact to its source ("The claimant states that ..."). Never invent facts, dates, documents, communications or contract terms. Where a position or fact is not supplied, write exactly "Not on record."
    The respondent has NOT been heard. Never put words in the respondent's mouth: if "expectedDefenses" is empty, the respondent's position is "Not on record."
 
-3. LAW ONLY FROM THE ALLOWED LISTS.
-   Refer only to provisions in ALLOWED STATUTORY AUTHORITIES. Cite or name a judgment ONLY if it appears in ALLOWED CASE AUTHORITIES (verified precedents retrieved for this request). If that list says NONE, cite no case law at all. Never cite a law-report reference that is not in the list.
+3. LAW ONLY FROM THE SUPPLIED LEGAL DATA — NEVER FROM GENERAL KNOWLEDGE.
+   Refer only to provisions in ALLOWED STATUTORY AUTHORITIES or in STATUTORY TEXT. Any other section number will be rejected.
+   Where STATUTORY TEXT is supplied for an issue, the analysis must apply that text: quote its operative words in double quotes and tie each element of the provision to the stated facts (or record that the fact is not on record). Do not add requirements, tests or exceptions that are not in the text. Cite or name a judgment ONLY if it appears in ALLOWED CASE AUTHORITIES (verified precedents retrieved for this request). If that list says NONE, cite no case law at all. Never cite a law-report reference that is not in the list.
 
 4. ENGINE FINDINGS ARE FIXED.
    The RULES-ENGINE FINDINGS (limitation dates, Section 12A status, MSMED status, amounts) are computed and must not be recalculated, contradicted or restated with different numbers or dates.
@@ -119,6 +120,15 @@ export function buildClaudePrompt({ intakeData, deterministicData }) {
   const framedIssues = brief.issues
     .map((i) => `  - issue_id: ${i.id}\n    issue: ${i.title}\n    engine_finding: ${i.finding}\n    applicable_law: ${i.applicableLaw.join("; ")}`)
     .join("\n");
+  const provisionTexts = [];
+  const seenProv = new Set();
+  brief.issues.forEach((i) =>
+    (i.provisions || []).forEach((p) => {
+      if (seenProv.has(p.id)) return;
+      seenProv.add(p.id);
+      provisionTexts.push(`  [${p.id}] Section ${p.section}, ${p.act} — ${p.heading} (used in issue ${i.id})\n${p.text.map((t) => `    "${t}"`).join("\n")}`);
+    })
+  );
   const engineChecks = brief.statutoryChecks
     .map((c) => `  - ${c.title} (${c.basis}): ${c.result}. ${c.detail}`)
     .join("\n");
@@ -153,6 +163,9 @@ ${engineChecks}
 
 ### FRAMED ISSUES (ANALYSE EACH ONE; KEEP issue_id EXACTLY)
 ${framedIssues}
+
+### STATUTORY TEXT (VERBATIM FROM THE OFFICIAL SOURCE — APPLY THIS TEXT)
+${provisionTexts.length ? provisionTexts.join("\n") : "  (none supplied for this request)"}
 
 ### ALLOWED STATUTORY AUTHORITIES
 ${allowedSectionsText}

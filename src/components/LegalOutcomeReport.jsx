@@ -245,6 +245,30 @@ export default function LegalOutcomeReport({ report, onReset }) {
                         <ul style={{ margin: 0, paddingLeft: "18px" }}>
                           {(issue.applicableLaw || []).map((l) => <li key={l}>{l}</li>)}
                         </ul>
+                        {(issue.provisions || []).map((p) => (
+                          <blockquote
+                            key={p.id}
+                            className="avoid-page-break"
+                            style={{ margin: "12px 0 0", padding: "12px 16px", background: "#fbf8f1", borderLeft: "3px solid var(--gold)", borderRadius: "0 6px 6px 0", fontSize: "13.5px", lineHeight: 1.7, color: "#24364F" }}
+                          >
+                            <div style={{ fontWeight: 700, color: "var(--ink)", marginBottom: "6px", fontFamily: "var(--serif, Georgia, serif)" }}>
+                              Section {p.section}, {p.act} &mdash; {p.heading}
+                            </div>
+                            {p.text.map((t, k) => (
+                              <p key={k} style={{ margin: "0 0 6px" }}>{t}</p>
+                            ))}
+                            <div style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "var(--slate)", marginTop: "6px" }}>
+                              Text: {p.source_name || "Official source"}
+                              {p.retrieved_on ? `, retrieved ${p.retrieved_on}` : ""}
+                              {p.source_link ? (
+                                <>
+                                  {" · "}
+                                  <a href={p.source_link} target="_blank" rel="noopener noreferrer" style={{ color: "var(--slate)" }}>source</a>
+                                </>
+                              ) : null}
+                            </div>
+                          </blockquote>
+                        ))}
                       </dd>
                       {issue.finding && (
                         <>
