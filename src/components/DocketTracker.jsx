@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "../lib/supabase";
-import { getPublicDocketStatus, verifyDocketPin } from "../lib/api";
+import { getPublicDocketStatus, verifyDocketPin, addSupplementaryStatement } from "../lib/api";
 import VerifiedCaseJourney from "./VerifiedCaseJourney";
 
 function DocketTracker() {
@@ -171,36 +170,16 @@ function DocketTracker() {
     if (!addendumText.trim() || !caseData) return;
 
     setIsSubmittingNote(true);
-    const timeStamp = new Date().toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric"
-    });
-    const updatedSummary = `${caseData.dispute_summary || ""}\n\n[Supplementary Statement — ${timeStamp}]:\n${addendumText.trim()}`;
-
     try {
-      if (supabase && caseData.id) {
-        const { error } = await supabase
-          .from("disputes")
-          .update({ dispute_summary: updatedSummary })
-          .eq("id", caseData.id);
-
-        if (error) {
-          console.error("Supabase update error:", error);
-          alert("Could not update Supabase: " + error.message);
-        } else {
-          setCaseData({ ...caseData, dispute_summary: updatedSummary });
-          setAddendumText("");
-          setShowAddendum(false);
-          setCopiedToast("✓ Supplementary statement added to case record.");
-          setTimeout(() => setCopiedToast(""), 3000);
-        }
-      } else {
-        setCaseData({ ...caseData, dispute_summary: updatedSummary });
+      const res = await addSupplementaryStatement(caseData.docket_number, pinInput, addendumText.trim());
+      if (res.success) {
+        setCaseData({ ...caseData, dispute_summary: res.dispute_summary });
         setAddendumText("");
         setShowAddendum(false);
         setCopiedToast("✓ Supplementary statement added to case record.");
         setTimeout(() => setCopiedToast(""), 3000);
+      } else {
+        alert(res.error || "The statement could not be added. Please try again.");
       }
     } catch (err) {
       console.error("Addendum error:", err);

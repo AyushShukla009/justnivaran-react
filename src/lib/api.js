@@ -16,88 +16,24 @@ const FUNCTIONS_BASE_URL = `${SUPABASE_URL}/functions/v1`;
  * Returns strictly non-sensitive procedural metadata (no party names, emails, phone, or claim values).
  */
 export async function getPublicDocketStatus(docketNumber) {
-  let cleanDocket = String(docketNumber || "").trim().toUpperCase();
-  try {
-    cleanDocket = decodeURIComponent(cleanDocket).trim().toUpperCase();
-  } catch {
-    // ignore
-  }
-  // Exact docket matching only: LIKE wildcards are not allowed in user input
-  cleanDocket = cleanDocket.replace(/[%_*\\]/g, "");
-
+  const cleanDocket = String(docketNumber || "").trim();
   if (!cleanDocket) {
     return { success: false, error: "INVALID_DOCKET", message: "Please enter a valid docket number." };
   }
-
+  // Public status comes ONLY from the jn_docket_status database function:
+  // docket, mode, status and filing date. No personal data is returned.
   try {
-    const res = await fetch(`${FUNCTIONS_BASE_URL}/docket-service`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
-      },
-      body: JSON.stringify({
-        action: "status",
-        docket_number: cleanDocket
-      })
-    });
-
-    if (res.ok) {
-      const result = await res.json();
-      if (result && result.success && result.data) {
-        return result;
-      }
+    const { data, error } = await supabase.rpc("jn_docket_status", { p_docket: cleanDocket });
+    if (!error && data?.success && data.data) {
+      return { success: true, data: data.data };
     }
   } catch (err) {
-    console.warn("Edge function status fallback:", err);
+    console.error("Docket status lookup error:", err);
   }
-
-  // Graceful direct database query fallback
-  if (supabase) {
-    try {
-      let { data, error } = await supabase
-        .from("disputes")
-        .select("*")
-        .ilike("docket_number", cleanDocket)
-        .maybeSingle();
-
-      // Check format variations (e.g. '/' vs '-')
-      if (!data && (cleanDocket.includes("-") || cleanDocket.includes("/"))) {
-        const altDocket = cleanDocket.includes("-") ? cleanDocket.replace(/-/g, "/") : cleanDocket.replace(/\//g, "-");
-        const altRes = await supabase.from("disputes").select("*").ilike("docket_number", altDocket).maybeSingle();
-        if (altRes.data) {
-          data = altRes.data;
-          error = null;
-        }
-      }
-
-      if (!error && data) {
-        return {
-          success: true,
-          data: {
-            id: data.id,
-            docket_number: data.docket_number,
-            mode: data.mode || "ARB",
-            status: data.status || "Notice Issued",
-            created_at: data.created_at,
-            relief_sought: data.relief_sought,
-            hearing_date: data.hearing_date || null,
-            hearing_time: data.hearing_time || null,
-            hearing_room_url: data.hearing_room_url || null,
-            assigned_neutral: data.assigned_neutral || null
-          }
-        };
-      }
-    } catch (dbErr) {
-      console.error("Direct status lookup error:", dbErr);
-    }
-  }
-
   return {
     success: false,
     error: "NOT_FOUND",
-    message: `No institutional dispute record matching "${cleanDocket}" was found in the JustNivaran Registry index.`
+    message: `No dispute record matching "${cleanDocket}" was found in the JustNivaran Registry.`
   };
 }
 
@@ -106,87 +42,43 @@ export async function getPublicDocketStatus(docketNumber) {
  * Enforces rate limiting per (client IP + docket) and returns short-lived signed URLs.
  */
 export async function verifyDocketPin(docketNumber, pin) {
-  let cleanDocket = String(docketNumber || "").trim().toUpperCase();
-  try {
-    cleanDocket = decodeURIComponent(cleanDocket).trim().toUpperCase();
-  } catch {
-    // ignore
-  }
-  // Exact docket matching only: LIKE wildcards are not allowed in user input
-  cleanDocket = cleanDocket.replace(/[%_*\\]/g, "");
+  const cleanDocket = String(docketNumber || "").trim();
   const cleanPin = String(pin || "").trim();
-
   if (!cleanDocket || !cleanPin) {
-    return {
-      success: false,
-      error: "INVALID_CREDENTIALS",
-      message: "The docket number or access PIN provided is invalid."
-    };
+    return { success: false, error: "INVALID_CREDENTIALS", message: "The docket number or access PIN provided is invalid." };
   }
-
+  // PIN check runs in the database (jn_verify_pin): exact match, 5 failures per docket per 15 minutes -> locked.
   try {
-    const res = await fetch(`${FUNCTIONS_BASE_URL}/docket-service`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
-      },
-      body: JSON.stringify({
-        action: "verify-pin",
-        docket_number: cleanDocket,
-        pin: cleanPin
-      })
-    });
-
-    if (res.ok) {
-      const result = await res.json();
-      if (result && result.success && result.data) {
-        return result;
-      }
+    const { data, error } = await supabase.rpc("jn_verify_pin", { p_docket: cleanDocket, p_pin: cleanPin });
+    if (!error && data?.success && data.data) {
+      return { success: true, data: data.data };
+    }
+    if (data?.error === "LOCKED") {
+      return { success: false, error: "RATE_LIMITED", message: data.message };
     }
   } catch (err) {
-    console.warn("Edge function PIN verification fallback:", err);
+    console.error("PIN verification error:", err);
   }
+  return { success: false, error: "INVALID_CREDENTIALS", message: "Invalid Case Access PIN. Authentication failed." };
+}
 
-  // Direct Supabase fallback
-  if (supabase) {
-    try {
-      let { data, error } = await supabase
-        .from("disputes")
-        .select("*")
-        .ilike("docket_number", cleanDocket)
-        .maybeSingle();
-
-      if (!data && (cleanDocket.includes("-") || cleanDocket.includes("/"))) {
-        const altDocket = cleanDocket.includes("-") ? cleanDocket.replace(/-/g, "/") : cleanDocket.replace(/\//g, "-");
-        const altRes = await supabase.from("disputes").select("*").ilike("docket_number", altDocket).maybeSingle();
-        if (altRes.data) {
-          data = altRes.data;
-          error = null;
-        }
-      }
-
-      if (!error && data) {
-        const pinMatch = String(data.dispute_summary || "").match(/\[(?:Case Access PIN|PIN|Case PIN):\s*([A-Za-z0-9]+)\]/i);
-        const pinInSummary = pinMatch && pinMatch[1].trim().toLowerCase() === cleanPin.toLowerCase();
-        const pinInCode = data.access_code && String(data.access_code).trim().toLowerCase() === cleanPin.toLowerCase();
-        const pinInCol = data.pin && String(data.pin).trim().toLowerCase() === cleanPin.toLowerCase();
-
-        if (cleanPin.length >= 4 && (pinInSummary || pinInCode || pinInCol)) {
-          return { success: true, data };
-        }
-      }
-    } catch (dbErr) {
-      console.error("Direct PIN verification error:", dbErr);
+/**
+ * Party adds a supplementary statement to their own case (PIN required, checked in the database).
+ */
+export async function addSupplementaryStatement(docketNumber, pin, text) {
+  try {
+    const { data, error } = await supabase.rpc("jn_add_supplement", {
+      p_docket: String(docketNumber || ""),
+      p_pin: String(pin || ""),
+      p_text: String(text || "")
+    });
+    if (!error && data?.success) {
+      return { success: true, dispute_summary: data.dispute_summary };
     }
+    return { success: false, error: data?.message || error?.message || "The statement could not be added." };
+  } catch (err) {
+    return { success: false, error: err?.message || "The statement could not be added." };
   }
-
-  return {
-    success: false,
-    error: "INVALID_CREDENTIALS",
-    message: "Invalid Case Access PIN. Authentication failed."
-  };
 }
 
 /**
@@ -207,25 +99,6 @@ export function formatDbError(msg) {
 }
 
 export async function submitDisputeFiling(payload) {
-  try {
-    const res = await fetch(`${FUNCTIONS_BASE_URL}/submit-dispute`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (res.ok) {
-      const result = await res.json();
-      if (result.success && result.data) return result;
-    }
-  } catch (err) {
-    console.warn("Edge function dispute filing fallback:", err);
-  }
-
   // Database insert fallback
   if (supabase) {
     // 1. Try RPC if available on backend
@@ -279,20 +152,12 @@ export async function submitDisputeFiling(payload) {
         status: "Notice Issued"
       };
 
-      const { data, error } = await supabase
-        .from("disputes")
-        .insert([insertPayload])
-        .select()
-        .single();
+      const { error } = await supabase.from("disputes").insert([insertPayload]);
 
-      if (!error && data) {
+      if (!error) {
         return {
           success: true,
-          data: {
-            ...data,
-            docket_number: data.docket_number || docketNumber,
-            access_pin: accessPin
-          }
+          data: { ...insertPayload, dispute_summary: cleanSummary, docket_number: docketNumber, access_pin: accessPin }
         };
       }
 
@@ -449,93 +314,44 @@ export async function submitBetaAssessmentRequest(payload) {
  * Submit Fast-Track Arbitration Reference (Section 29B)
  */
 export async function submitFastTrackRequest(payload) {
-  try {
-    const year = new Date().getFullYear();
-    const randNum = Math.floor(1000 + Math.random() * 9000);
-    const docketNumber = `JN/FT-ARB/${year}/${randNum}`;
-    const accessPin = String(Math.floor(100000 + Math.random() * 900000));
-    const initialStatus = payload.consent_mode === "mutual" ? "Tribunal Constitution Active" : "Counterparty Notice Queued";
-    const cleanSummary = (payload.claim_summary || "").trim();
-    const summaryWithPin = cleanSummary ? `${cleanSummary}\n[Case Access PIN: ${accessPin}]` : `[Case Access PIN: ${accessPin}]`;
-
-    if (supabase) {
-      const { data, error } = await supabase
-        .from("disputes")
-        .insert([
-          {
-            docket_number: docketNumber,
-            claimant_name: payload.claimant_name,
-            claimant_email: payload.claimant_email,
-            claimant_phone: payload.claimant_phone,
-            respondent_name: payload.respondent_name,
-            respondent_email: payload.respondent_email,
-            respondent_phone: payload.respondent_phone || "",
-            claim_amount: Number(payload.claim_amount) || 0,
-            mode: "FT-ARB",
-            dispute_summary: summaryWithPin,
-            relief_sought: payload.relief_sought || "",
-            status: initialStatus
-          }
-        ])
-        .select()
-        .maybeSingle();
-
-      if (!error && data) {
-        return { success: true, data: { ...data, access_pin: accessPin } };
-      }
-    }
-
-    return { success: false, error: "The fast-track filing could not be saved. Please try again in a minute." };
-  } catch (err) {
-    console.error("Fast track reference submission error:", err);
-    return { success: false, error: formatDbError(err?.message) };
-  }
+  const summary = [
+    payload.contract_title ? `Contract: ${payload.contract_title}${payload.contract_date ? ` (${payload.contract_date})` : ""}` : "",
+    payload.clause_text ? `Arbitration clause: ${payload.clause_text}` : "",
+    `Fast-track consent: ${payload.consent_mode === "mutual" ? "both parties" : "claimant; respondent to be notified"}`,
+    (payload.claim_summary || "").trim()
+  ].filter(Boolean).join("\n");
+  const res = await submitDisputeFiling({
+    claimant_name: payload.claimant_entity ? `${payload.claimant_name} (${payload.claimant_entity})` : payload.claimant_name,
+    claimant_email: payload.claimant_email,
+    claimant_phone: payload.claimant_phone,
+    respondent_name: payload.respondent_entity ? `${payload.respondent_name} (${payload.respondent_entity})` : payload.respondent_name,
+    respondent_email: payload.respondent_email,
+    respondent_phone: payload.respondent_phone || "",
+    claim_amount: Number(payload.claim_amount) || 0,
+    mode: "FT-ARB",
+    dispute_summary: summary,
+    relief_sought: payload.relief_sought || ""
+  });
+  return res.success ? res : { success: false, error: res.error || "The fast-track filing could not be saved. Please try again in a minute." };
 }
 
 /**
  * Submit Emergency Interim Relief Application (48-72h)
  */
 export async function submitEmergencyReliefRequest(payload) {
-  try {
-    const year = new Date().getFullYear();
-    const randNum = Math.floor(1000 + Math.random() * 9000);
-    const docketNumber = `JN/EA/${year}/${randNum}`;
-    const accessPin = String(Math.floor(100000 + Math.random() * 900000));
-    const initialStatus = "Emergency Triage Active";
-    const summary = `[EMERGENCY RELIEF: ${payload.relief_category}] Urgency: ${payload.urgency_reason}. Irreparable Harm: ${payload.irreparable_harm}\n[Case Access PIN: ${accessPin}]`;
-
-    if (supabase) {
-      const { data, error } = await supabase
-        .from("disputes")
-        .insert([
-          {
-            docket_number: docketNumber,
-            claimant_name: payload.applicant_name,
-            claimant_email: payload.applicant_email,
-            claimant_phone: payload.applicant_phone,
-            respondent_name: payload.respondent_name,
-            respondent_email: payload.respondent_email,
-            respondent_phone: payload.respondent_phone || "",
-            claim_amount: Number(payload.claim_amount) || 0,
-            mode: "EA",
-            dispute_summary: summary,
-            relief_sought: payload.relief_category,
-            status: initialStatus
-          }
-        ])
-        .select()
-        .maybeSingle();
-
-      if (!error && data) {
-        return { success: true, data: { ...data, access_pin: accessPin } };
-      }
-    }
-
-    return { success: false, error: "The emergency filing could not be saved. Please try again in a minute." };
-  } catch (err) {
-    console.error("Emergency relief submission error:", err);
-    return { success: false, error: formatDbError(err?.message) };
-  }
+  const res = await submitDisputeFiling({
+    claimant_name: payload.applicant_name,
+    claimant_email: payload.applicant_email,
+    claimant_phone: payload.applicant_phone,
+    respondent_name: payload.respondent_name,
+    respondent_email: payload.respondent_email,
+    respondent_phone: payload.respondent_phone || "",
+    claim_amount: Number(payload.claim_amount) || 0,
+    mode: "EA",
+    dispute_summary: `[EMERGENCY RELIEF: ${payload.relief_category}] Urgency: ${payload.urgency_reason}. Irreparable Harm: ${payload.irreparable_harm}`,
+    relief_sought: payload.relief_category || ""
+  });
+  return res.success ? res : { success: false, error: res.error || "The emergency filing could not be saved. Please try again in a minute." };
 }
 
 import { generateDeterministicAssessment } from "./deterministicEngine.js";
