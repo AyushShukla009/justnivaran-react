@@ -83,7 +83,15 @@ export function buildCaseBrief(intake = {}, det = {}) {
       basis: limitation.statutoryBasis || "Limitation Act, 1963",
       result: limitation.status || "Not computed",
       detail: limitation.expiryDate
-        ? `Computed from the stated date of breach (${fmtDate(limitation.breachDate)}). Period expires on ${fmtDate(limitation.expiryDate)}${typeof limitation.daysRemaining === "number" ? ` (${limitation.daysRemaining} days remaining)` : ""}.${limitation.covidExcludedDays ? ` ${limitation.covidExcludedDays} days excluded for the COVID-19 period.` : ""}`
+        ? `${
+            limitation.effectiveStartDate && limitation.breachDate && limitation.effectiveStartDate !== limitation.breachDate
+              ? `Breach stated as ${fmtDate(limitation.breachDate)}; a fresh period is computed from the written acknowledgment dated ${fmtDate(limitation.effectiveStartDate)} (Section 18, Limitation Act, 1963), subject to proof of that acknowledgment.`
+              : `Computed from the stated date of breach (${fmtDate(limitation.breachDate)}).`
+          } ${
+            limitation.status === "Likely barred"
+              ? `On these dates the period expired on ${fmtDate(limitation.expiryDate)}.`
+              : `The period expires on ${fmtDate(limitation.expiryDate)}${typeof limitation.daysRemaining === "number" ? ` (${limitation.daysRemaining} days remaining)` : ""}.`
+          }${limitation.covidExcludedDays ? ` ${limitation.covidExcludedDays} days are excluded under the Supreme Court's order for 15 March 2020 to 28 February 2022.` : ""}`
         : "The date of breach was not supplied, so limitation could not be computed."
     }
   ];

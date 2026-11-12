@@ -340,7 +340,7 @@ export function checkMSMEDApplicability({
       statutoryInterestRatePercent: "0%",
       estimatedStatutoryInterest: 0,
       totalClaimWithInterest: principal,
-      rationale: `Although the supplier is a ${enterpriseType} Enterprise, Udyam registration was NOT held at the date of entering into the contract. Statutory benefits under Sections 15, 16, 18 and 19 of the MSMED Act, 2006 may not be available for contracts or supplies predating registration; this point requires determination.`
+      rationale: `Although the supplier is a ${enterpriseType} Enterprise, Udyam registration was not held on the date of the contract. Statutory benefits under Sections 15, 16, 18 and 19 of the MSMED Act, 2006 may not be available for contracts or supplies predating registration; this point requires determination.`
     };
   }
 
@@ -419,7 +419,7 @@ export function checkMSMEDApplicability({
     totalClaimWithInterest: principal + estimatedStatutoryInterest,
     // Section 19 accurate statutory phrasing
     section19PreDepositRule: "Section 19 MSMED Act: Mandatory 75% pre-deposit applies only if the buyer files an application before a court to set aside an award, decree, or order made by the Council or its designated ADR centre.",
-    rationale: `Qualifies under MSMED Act, 2006 as a registered ${enterpriseType} Enterprise. Section 15 caps credit at 45 days. Section 16 mandates penal compound interest at 3x RBI Bank Rate (${(statutoryInterestRate * 100).toFixed(2)}% p.a.) compounded monthly from the appointed day (${appointedDayStr}). Section 18 gives a statutory right to initiate conciliation and arbitration before the MSEFC. Section 19 mandates that a court shall not entertain an application by the buyer to set aside any award or decree without a 75% pre-deposit.`
+    rationale: `On the stated facts the claimant is a ${enterpriseType} Enterprise registered on the date of the contract. Under Section 15, payment falls due on the agreed date, which cannot exceed 45 days from acceptance. Section 16 provides for compound interest with monthly rests at three times the Bank Rate notified by the Reserve Bank (${(statutoryInterestRate * 100).toFixed(2)}% p.a.) from the appointed day (${appointedDayStr}). Section 18 allows either party to refer the dispute to the Micro and Small Enterprises Facilitation Council. Under Section 19, an application by the buyer to set aside an award or decree is entertained only on deposit of 75% of the amount awarded.`
   };
 }
 
@@ -515,7 +515,7 @@ export function determineRecommendedForum({
     return {
       recommendedForum: "Pre-Litigation Institutional Mediation",
       statutoryBasis: "Mediation Act, 2023",
-      rationale: "Because the claim appears barred by limitation under the Limitation Act 1963, formal court litigation or arbitration faces immediate threshold dismissal under Order VII Rule 11 CPC or Section 16 ACA. Consensual Institutional Mediation offers the only realistic avenue to negotiate a commercial compromise without limitation dismissal.",
+      rationale: "On the stated dates the limitation period appears to have expired. Limitation is likely to be raised as a threshold objection in any suit or arbitration; whether any extension or acknowledgment applies is a matter for determination. Consensual mediation does not depend on the limitation period.",
       alternativeForum: "Direct Assisted Negotiation"
     };
   }
@@ -536,7 +536,7 @@ export function determineRecommendedForum({
       return {
         recommendedForum: "Institutional Commercial Mediation (Pre-Arbitration)",
         statutoryBasis: "Mediation Act, 2023 & JustNivaran Rules",
-        rationale: "An arbitration clause exists. Initiating institutional mediation first affords a rapid 30-day resolution window preserving commercial relations. If unresolved, the dispute seamlessly escalates to Fast-Track Arbitration under Section 29B (available if both parties consent in writing).",
+        rationale: "An arbitration clause is stated to exist. Mediation can be attempted first without affecting the right to arbitrate. If it does not resolve the dispute, arbitration under the clause remains available, including the fast-track procedure under Section 29B where both parties agree in writing.",
         alternativeForum: "Fast-Track Arbitration (Section 29B ACA 1996, upon mutual written consent)"
       };
     }
@@ -544,8 +544,18 @@ export function determineRecommendedForum({
     return {
       recommendedForum: "Fast-Track Institutional Arbitration",
       statutoryBasis: "Arbitration & Conciliation Act, 1996 (Section 29B)",
-      rationale: "Valid institutional arbitration agreement exists. Fast-track procedure under Section 29B provides a sole arbitrator and a binding decree-grade award within 6 months on written pleadings (available if both parties consent in writing).",
+      rationale: "An arbitration clause is stated to exist. Under Section 29B, where both parties agree in writing, a sole arbitrator decides the dispute on written pleadings and documents, and the award is to be made within six months of the tribunal entering upon the reference.",
       alternativeForum: "Institutional Commercial Mediation (Mediation Act, 2023)"
+    };
+  }
+
+  // No arbitration clause, below the Commercial Courts specified value: Section 12A does not apply
+  if (quantum < COMMERCIAL_COURT_SPECIFIED_VALUE_MIN) {
+    return {
+      recommendedForum: urgentInterimRelief ? "Civil Court (Interim Relief) & Institutional Mediation" : "Institutional Mediation or Assisted Negotiation",
+      statutoryBasis: "Mediation Act, 2023 (Section 12A, Commercial Courts Act, 2015 does not apply below the specified value)",
+      rationale: "The amount claimed is below the specified value of ₹3,00,000, so the dispute is not a commercial dispute of specified value and Section 12A pre-institution mediation does not apply. The parties may mediate voluntarily; otherwise the ordinary civil court has jurisdiction.",
+      alternativeForum: "Direct Assisted Negotiation"
     };
   }
 
