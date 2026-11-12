@@ -3,7 +3,7 @@
  *
  * Engine Architecture:
  * 1. Executes deterministic rules engine first (limitation, Sec 12A, MSMED, fee schedule, forum).
- * 2. Injects deterministic findings as IMMUTABLE ground truth into Claude Sonnet 5.5.
+ * 2. Injects deterministic findings as IMMUTABLE ground truth into Claude.
  * 3. Validates AI response strictly with Zod schema (with one retry on malformed JSON).
  * 4. Programmatically overwrites and locks all statutory parameters with deterministic facts.
  * 5. If ANTHROPIC_API_KEY is unset, slow (>12s), or fails, immediately returns authoritative
@@ -54,7 +54,7 @@ const MAX_REQUESTS_PER_WINDOW = isDemoMode
   ? 1000 // Raised limit for live presentations & bench demonstrations
   : (Number(process.env.AI_REQUESTS_PER_HOUR) || 10);
 const MAX_TOTAL_INPUT_CHARS = 15000;
-const CLAUDE_TIMEOUT_MS = 12000; // 12 seconds hard timeout
+const CLAUDE_TIMEOUT_MS = 25000; // 25s per attempt (the function may run 30s; current models think before answering)
 
 function getHashedClientId(req) {
   // Prefer the client IP set by the Vercel edge (not spoofable by the caller).
@@ -410,7 +410,7 @@ export async function executeAssessment(intakeData = {}, options = {}) {
   const deterministicReport = generateDeterministicAssessment(intakeData);
 
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
-  const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
+  const model = process.env.ANTHROPIC_MODEL || "claude-opus-5-5";
 
   // If no Claude API key configured or demo mode forced, return deterministic rules-engine assessment
   if (!apiKey || options.forceFallback) {
@@ -450,20 +450,34 @@ export async function executeAssessment(intakeData = {}, options = {}) {
         });
       }
 
-      const response = await anthropic.messages.create(
+      // Current Claude models: no temperature (rejected), thinking always on, depth set by effort.
+      // Server-side fallbacks re-run a declined request on another model inside the same call.
+      const response = await anthropic.beta.messages.create(
         {
           model,
-          temperature: 0.1,
-          max_tokens: 3500,
+          max_tokens: 16000,
+          output_config: { effort: process.env.ANTHROPIC_EFFORT || "medium" },
+          betas: ["server-side-fallback-2026-07-01"],
+          fallbacks: "default",
           system: CLAUDE_SYSTEM_PROMPT,
           messages
         },
         { signal: controller.signal }
       );
+      if (response.stop_reason === "refusal") {
+        throw new Error("MODEL_REFUSAL");
+      }
+      if (response.stop_reason === "max_tokens") {
+        throw new Error("MODEL_OUTPUT_TRUNCATED");
+      }
 
       clearTimeout(timeoutHandle);
 
-      const contentText = response.content?.[0]?.text || "";
+      // The reply may start with thinking blocks: read only the text blocks
+      const contentText = (response.content || [])
+        .filter((b) => b.type === "text")
+        .map((b) => b.text)
+        .join("");
       rawJson = cleanJsonOutput(contentText);
       const parsedObj = JSON.parse(rawJson);
       validatedAiData = AIAssessmentResponseSchema.parse(parsedObj);
@@ -523,7 +537,7 @@ export async function executeAssessment(intakeData = {}, options = {}) {
     requestId: `JN-AI-${Math.floor(100000 + Math.random() * 900000)}`,
     generatedAt: new Date().toISOString(),
     engineType: "AI-assisted assessment (Claude)",
-    modelUsed: `Anthropic Claude Sonnet 5.5 (${model})`,
+    modelUsed: `Anthropic Claude (${model})`,
     isLiveAI: true,
     brief: mergeBriefWithAI(deterministicReport.brief, validatedAiData),
     evidenceGaps: Array.from(new Set([...(deterministicReport.evidenceGaps || []), ...(validatedAiData.evidence_gaps || [])])),
@@ -548,10 +562,10 @@ export default async function handler(req, res) {
     return res.status(200).json({
       status: "active",
       provider: "anthropic",
-      model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5",
+      model: process.env.ANTHROPIC_MODEL || "claude-opus-5-5",
       keyConfigured: isConfigured,
       message: isConfigured
-        ? "JustNivaran AI Assessment Engine Active • Claude Sonnet 5.5"
+        ? "AI-assisted analysis active"
         : "Rules engine active"
     });
   }

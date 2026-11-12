@@ -30,6 +30,7 @@ console.log("===================================================================
 const realFetch = globalThis.fetch;
 let scripted = [];
 let calls = 0;
+let lastBody = null;
 function anthropicReply(obj) {
   return new Response(
     JSON.stringify({
@@ -37,7 +38,8 @@ function anthropicReply(obj) {
       type: "message",
       role: "assistant",
       model: "claude-sonnet-5-5",
-      content: [{ type: "text", text: typeof obj === "string" ? obj : JSON.stringify(obj) }],
+      // Current models put a (possibly empty) thinking block before the text
+      content: [{ type: "thinking", thinking: "", signature: "sig" }, { type: "text", text: typeof obj === "string" ? obj : JSON.stringify(obj) }],
       stop_reason: "end_turn",
       stop_sequence: null,
       usage: { input_tokens: 1, output_tokens: 1 }
@@ -45,8 +47,9 @@ function anthropicReply(obj) {
     { status: 200, headers: { "content-type": "application/json", "request-id": "req_test" } }
   );
 }
-globalThis.fetch = async () => {
+globalThis.fetch = async (_url, init) => {
   calls++;
+  try { lastBody = JSON.parse(init?.body || "null"); } catch { lastBody = null; }
   const next = scripted.shift();
   if (!next) throw new Error("No scripted reply");
   return anthropicReply(next);
@@ -82,6 +85,13 @@ for (const preset of BENCHMARK_PRESETS) {
   assert.ok(d.brief.statementOfFacts.includes("respondent has not been heard"));
   console.log(`  ✓ ${preset.label}: compliant brief accepted, engine findings locked`);
 }
+
+// Request shape accepted by current Claude models
+assert.ok(lastBody && !("temperature" in lastBody) && !("top_p" in lastBody) && !("top_k" in lastBody), "no sampling parameters (rejected by current models)");
+assert.ok(lastBody.output_config && lastBody.output_config.effort, "effort is set");
+assert.ok(lastBody.max_tokens >= 16000, "room for thinking + the brief");
+assert.strictEqual(lastBody.model, "claude-opus-5-5", "default model");
+console.log("  ✓ Request uses current-model parameters (no temperature; effort set; thinking-first reply parsed)");
 
 // ---------------------------------------------------------------------------
 // TEST 2: prediction language triggers one corrective retry

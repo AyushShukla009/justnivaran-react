@@ -452,8 +452,8 @@ export async function checkAIEngineHealth() {
         status: "active",
         keyConfigured: Boolean(data.keyConfigured),
         providerVerified: true,
-        model: data.model || "Anthropic Claude Sonnet 5.5",
-        message: data.message || "AI Analysis Engine Active • Claude Sonnet 5.5"
+        model: data.model || "Anthropic Claude",
+        message: data.message || "AI-assisted analysis active"
       };
     }
     return {

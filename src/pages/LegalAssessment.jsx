@@ -105,7 +105,7 @@ export default function LegalAssessment() {
   const [engineHealth, setEngineHealth] = useState({
     status: "active",
     keyConfigured: true,
-    model: "Anthropic Claude Sonnet 5.5",
+    model: "Anthropic Claude",
     message: "Checking engine status…"
   });
   const [aiReport, setAiReport] = useState(null);
@@ -889,7 +889,7 @@ export default function LegalAssessment() {
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", color: "var(--ink)", fontWeight: 600 }}>
                 <span>🔒</span> Privacy &amp; AI Processing Notice
               </div>
-              When AI-assisted analysis is active, the facts, dates and claims entered in this form are sent securely to Anthropic&rsquo;s Claude API (<code>claude-sonnet-5-5</code>) to draft the analysis; otherwise the brief is prepared by our rules engine and nothing is sent to an AI provider. Case submissions are not used to train Anthropic&rsquo;s models under its commercial terms; retained temporarily per Anthropic&rsquo;s data policy (see{" "}
+              When AI-assisted analysis is active, the facts, dates and claims entered in this form are sent securely to Anthropic&rsquo;s Claude API to draft the analysis; otherwise the brief is prepared by our rules engine and nothing is sent to an AI provider. Case submissions are not used to train Anthropic&rsquo;s models under its commercial terms; retained temporarily per Anthropic&rsquo;s data policy (see{" "}
               <a href="https://www.anthropic.com/legal/commercial-terms" style={{ color: "var(--gold-deep)", textDecoration: "underline" }} target="_blank" rel="noopener noreferrer">
                 Anthropic Commercial Terms
               </a>{" "}

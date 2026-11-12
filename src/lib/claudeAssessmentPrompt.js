@@ -1,6 +1,6 @@
 /**
  * Institutional Claude Prompt Engineering Layer
- * Configured strictly for Anthropic Claude (claude-sonnet-5-5)
+ * Configured for Anthropic Claude (model set by ANTHROPIC_MODEL; default claude-opus-5-5)
  *
  * Enforces:
  * 1. Strict prompt injection boundary (user text treated strictly as data, never instructions)
