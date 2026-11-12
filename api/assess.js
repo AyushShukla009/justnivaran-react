@@ -424,6 +424,18 @@ function withTimeout(promise, ms, controller) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(handle));
 }
 
+/** Map an AI failure to a short public code (no provider error text leaves the server). */
+function fallbackCode(err) {
+  const msg = String(err?.message || "");
+  if (err?.name === "AbortError" || msg === "AI_TIMEOUT") return "AI_TIMEOUT";
+  if (msg.startsWith("POST_VALIDATION_FAILED")) return "AI_FAILED_CHECKS";
+  if (msg === "MODEL_REFUSAL") return "AI_DECLINED";
+  if (msg === "MODEL_OUTPUT_TRUNCATED" || msg === "EMPTY_AI_RESPONSE" || err instanceof SyntaxError) return "AI_BAD_OUTPUT";
+  if (/401|403|API key|UNAUTHENTICATED|PERMISSION/i.test(msg)) return "AI_KEY_INVALID";
+  if (/429|quota|rate/i.test(msg)) return "AI_RATE_LIMITED";
+  return "AI_UNAVAILABLE";
+}
+
 /** Send the conversation to the chosen provider and return the reply text. */
 export async function callAIProvider(provider, messages) {
   const controller = new AbortController();
@@ -566,7 +578,8 @@ export async function executeAssessment(intakeData = {}, options = {}) {
             engineType: "Rules-engine assessment",
             modelUsed: "JustNivaran Institutional Rules Engine (Deterministic v3.1)",
             isLiveAI: false,
-            fallbackReason: err?.name === "AbortError" ? "AI_TIMEOUT" : (err?.message || "VALIDATION_FALLBACK").slice(0, 300)
+            // Short code only: provider error text never goes to the browser
+            fallbackReason: fallbackCode(err)
           }
         };
       }
