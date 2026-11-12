@@ -1,3 +1,8 @@
+-- SUPERSEDED (12 Nov 2026): the lockdown was applied to the live database through
+--   supabase/migrations/20261112_public_rpc_layer.sql  and
+--   supabase/migrations/20261112_rls_lockdown.sql
+-- This file is kept only for reference; do not run it.
+
 -- =============================================================================
 -- JustNivaran — PRE-LAUNCH DATABASE LOCKDOWN  (prepared 12 Nov 2026)
 -- =============================================================================
