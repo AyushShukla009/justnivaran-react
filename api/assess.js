@@ -14,6 +14,7 @@
 
 import crypto from "crypto";
 import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { generateDeterministicAssessment } from "../src/lib/deterministicEngine.js";
 import { getGuidanceModule } from "../src/lib/categories/index.js";
 import { AIAssessmentResponseSchema } from "../src/lib/aiAssessmentSchema.js";
@@ -395,6 +396,93 @@ export function mergeBriefWithAI(brief, ai) {
 }
 
 /**
+ * AI provider selection. Claude is preferred; Gemini is the free-tier option
+ * (suitable for demonstrations with sample cases). Same prompt and checks for both.
+ */
+export function pickAIProvider() {
+  const anthropicKey = process.env.ANTHROPIC_API_KEY?.trim();
+  if (anthropicKey) {
+    return { name: "claude", label: "Claude", apiKey: anthropicKey, model: process.env.ANTHROPIC_MODEL || "claude-opus-5-5" };
+  }
+  const geminiKey = process.env.GEMINI_API_KEY?.trim();
+  if (geminiKey) {
+    return { name: "gemini", label: "Gemini", apiKey: geminiKey, model: process.env.GEMINI_MODEL || "gemini-3.7-flash" };
+  }
+  return null;
+}
+
+function withTimeout(promise, ms, controller) {
+  let handle;
+  const timeout = new Promise((_, reject) => {
+    handle = setTimeout(() => {
+      controller?.abort();
+      const e = new Error("AI_TIMEOUT");
+      e.name = "AbortError";
+      reject(e);
+    }, ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(handle));
+}
+
+/** Send the conversation to the chosen provider and return the reply text. */
+export async function callAIProvider(provider, messages) {
+  const controller = new AbortController();
+
+  if (provider.name === "claude") {
+    const anthropic = new Anthropic({ apiKey: provider.apiKey });
+    // Current Claude models: no temperature (rejected), thinking always on, depth set by effort.
+    // Server-side fallbacks re-run a declined request on another model inside the same call.
+    const response = await withTimeout(
+      anthropic.beta.messages.create(
+        {
+          model: provider.model,
+          max_tokens: 16000,
+          output_config: { effort: process.env.ANTHROPIC_EFFORT || "medium" },
+          betas: ["server-side-fallback-2026-07-01"],
+          fallbacks: "default",
+          system: CLAUDE_SYSTEM_PROMPT,
+          messages
+        },
+        { signal: controller.signal }
+      ),
+      CLAUDE_TIMEOUT_MS,
+      controller
+    );
+    if (response.stop_reason === "refusal") throw new Error("MODEL_REFUSAL");
+    if (response.stop_reason === "max_tokens") throw new Error("MODEL_OUTPUT_TRUNCATED");
+    // The reply may start with thinking blocks: read only the text blocks
+    return (response.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
+  }
+
+  if (provider.name === "gemini") {
+    const ai = new GoogleGenAI({ apiKey: provider.apiKey });
+    const contents = messages.map((m) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }]
+    }));
+    const response = await withTimeout(
+      ai.models.generateContent({
+        model: provider.model,
+        contents,
+        config: {
+          systemInstruction: CLAUDE_SYSTEM_PROMPT,
+          responseMimeType: "application/json",
+          maxOutputTokens: 16000,
+          abortSignal: controller.signal
+        }
+      }),
+      CLAUDE_TIMEOUT_MS,
+      controller
+    );
+    const text = response?.text || "";
+    if (!text.trim()) throw new Error("EMPTY_AI_RESPONSE");
+    return text;
+  }
+
+  throw new Error("NO_AI_PROVIDER");
+}
+
+/**
  * Core Assessment Engine Handler
  */
 export async function executeAssessment(intakeData = {}, options = {}) {
@@ -409,11 +497,10 @@ export async function executeAssessment(intakeData = {}, options = {}) {
   // 1. Generate Deterministic Statutory Baseline (Plain Code, Zero Hallucination)
   const deterministicReport = generateDeterministicAssessment(intakeData);
 
-  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
-  const model = process.env.ANTHROPIC_MODEL || "claude-opus-5-5";
+  const provider = pickAIProvider();
 
-  // If no Claude API key configured or demo mode forced, return deterministic rules-engine assessment
-  if (!apiKey || options.forceFallback) {
+  // No AI provider configured (or fallback forced): return the rules-engine brief
+  if (!provider || options.forceFallback) {
     return {
       success: true,
       data: {
@@ -425,84 +512,52 @@ export async function executeAssessment(intakeData = {}, options = {}) {
     };
   }
 
-  const anthropic = new Anthropic({ apiKey });
   const userPrompt = buildClaudePrompt({
     intakeData,
     deterministicData: deterministicReport
   });
 
-  // Call Claude with 12s timeout & single retry
+  // Up to two attempts. A failed first answer is sent back with the exact reasons,
+  // so the second attempt can correct itself; a second failure falls back to the rules engine.
   let rawJson = null;
   let validatedAiData = null;
+  let correction = null;
 
   for (let attempt = 1; attempt <= 2; attempt++) {
-    const controller = new AbortController();
-    const timeoutHandle = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
+    const messages = [{ role: "user", content: userPrompt }];
+    if (attempt === 2 && correction) {
+      if (rawJson) messages.push({ role: "assistant", content: rawJson });
+      messages.push({ role: "user", content: correction });
+    }
 
     try {
-      const messages = [{ role: "user", content: userPrompt }];
-
-      if (attempt === 2 && rawJson) {
-        messages.push({ role: "assistant", content: rawJson });
-        messages.push({
-          role: "user",
-          content: "The previous output was not valid JSON conforming to the schema. Output STRICT, VALID JSON ONLY conforming to the schema."
-        });
-      }
-
-      // Current Claude models: no temperature (rejected), thinking always on, depth set by effort.
-      // Server-side fallbacks re-run a declined request on another model inside the same call.
-      const response = await anthropic.beta.messages.create(
-        {
-          model,
-          max_tokens: 16000,
-          output_config: { effort: process.env.ANTHROPIC_EFFORT || "medium" },
-          betas: ["server-side-fallback-2026-07-01"],
-          fallbacks: "default",
-          system: CLAUDE_SYSTEM_PROMPT,
-          messages
-        },
-        { signal: controller.signal }
-      );
-      if (response.stop_reason === "refusal") {
-        throw new Error("MODEL_REFUSAL");
-      }
-      if (response.stop_reason === "max_tokens") {
-        throw new Error("MODEL_OUTPUT_TRUNCATED");
-      }
-
-      clearTimeout(timeoutHandle);
-
-      // The reply may start with thinking blocks: read only the text blocks
-      const contentText = (response.content || [])
-        .filter((b) => b.type === "text")
-        .map((b) => b.text)
-        .join("");
+      const contentText = await callAIProvider(provider, messages);
       rawJson = cleanJsonOutput(contentText);
-      const parsedObj = JSON.parse(rawJson);
-      validatedAiData = AIAssessmentResponseSchema.parse(parsedObj);
 
-      // Post-Validation Integrity Check: Prohibit %, invented rupees, unlisted dates, unlisted cases
+      let parsedObj;
+      try {
+        parsedObj = JSON.parse(rawJson);
+        validatedAiData = AIAssessmentResponseSchema.parse(parsedObj);
+      } catch (parseErr) {
+        validatedAiData = null;
+        correction = "The previous output was not valid JSON matching the required structure. Return ONLY one valid JSON object with the fields statement_of_facts, issues, additional_issues, evidence_gaps, assumptions and procedural_next_steps.";
+        throw parseErr;
+      }
+
+      // Post-validation: no %, invented rupees or dates, unverified cases, sections outside the legal data, or predictions
       const violations = validateAITextIntegrity(validatedAiData, deterministicReport, intakeData);
       if (violations.length > 0) {
-        if (attempt === 1) {
-          messages.push({ role: "assistant", content: rawJson });
-          messages.push({
-            role: "user",
-            content: `The output failed validation with the following violations:\n${violations.map((v) => `- ${v}`).join("\n")}\n\nSTRICT RULES:\n1. NEVER output the '%' symbol.\n2. Do NOT invent rupee figures.\n3. Do NOT invent any dates not in the case data or engine findings.\n4. Do NOT name any case or party not in the allowed list.\n5. Do NOT predict, rate or hint at the outcome.\nRegenerate strictly compliant JSON.`
-          });
-          continue;
-        } else {
-          // Attempt 2 also failed post-validation: trigger graceful fallback
-          throw new Error(`POST_VALIDATION_FAILED: ${violations.join("; ")}`);
-        }
+        validatedAiData = null;
+        correction = `The output failed validation with the following violations:\n${violations.map((v) => `- ${v}`).join("\n")}\n\nSTRICT RULES:\n1. NEVER output the '%' symbol.\n2. Do NOT invent rupee figures.\n3. Do NOT invent any dates not in the case data or engine findings.\n4. Do NOT name any case or party not in the allowed list, or any section not in the legal data.\n5. Do NOT predict, rate or hint at the outcome.\nRegenerate strictly compliant JSON.`;
+        throw new Error(`POST_VALIDATION_FAILED: ${violations.join("; ")}`);
       }
 
       break; // Succeeded
     } catch (err) {
-      clearTimeout(timeoutHandle);
+      if (!correction) {
+        correction = "Please answer again, returning ONLY the JSON object.";
+      }
       if (attempt === 2) {
-        // Fall back gracefully to deterministic rules engine
         return {
           success: true,
           data: {
@@ -511,7 +566,7 @@ export async function executeAssessment(intakeData = {}, options = {}) {
             engineType: "Rules-engine assessment",
             modelUsed: "JustNivaran Institutional Rules Engine (Deterministic v3.1)",
             isLiveAI: false,
-            fallbackReason: err.name === "AbortError" ? "API_TIMEOUT (>12s)" : (err.message || "SCHEMA_VALIDATION_FALLBACK")
+            fallbackReason: err?.name === "AbortError" ? "AI_TIMEOUT" : (err?.message || "VALIDATION_FALLBACK").slice(0, 300)
           }
         };
       }
@@ -536,8 +591,8 @@ export async function executeAssessment(intakeData = {}, options = {}) {
     ...deterministicReport,
     requestId: `JN-AI-${Math.floor(100000 + Math.random() * 900000)}`,
     generatedAt: new Date().toISOString(),
-    engineType: "AI-assisted assessment (Claude)",
-    modelUsed: `Anthropic Claude (${model})`,
+    engineType: `AI-assisted assessment (${provider.label})`,
+    modelUsed: `${provider.label} (${provider.model})`,
     isLiveAI: true,
     brief: mergeBriefWithAI(deterministicReport.brief, validatedAiData),
     evidenceGaps: Array.from(new Set([...(deterministicReport.evidenceGaps || []), ...(validatedAiData.evidence_gaps || [])])),
@@ -558,11 +613,12 @@ export default async function handler(req, res) {
 
   // Health check endpoint (GET /api/assess?health=1)
   if (req.method === "GET") {
-    const isConfigured = Boolean(process.env.ANTHROPIC_API_KEY?.trim());
+    const provider = pickAIProvider();
+    const isConfigured = Boolean(provider);
     return res.status(200).json({
       status: "active",
-      provider: "anthropic",
-      model: process.env.ANTHROPIC_MODEL || "claude-opus-5-5",
+      provider: provider ? provider.name : "rules-engine",
+      model: provider ? provider.model : "rules-engine",
       keyConfigured: isConfigured,
       message: isConfigured
         ? "AI-assisted analysis active"
