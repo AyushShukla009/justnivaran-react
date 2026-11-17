@@ -417,7 +417,7 @@ export async function fetchAILegalOutcome(payload, signal) {
       return {
         success: false,
         error: "ABORTED",
-        message: "AI analysis request was cancelled or timed out after 12 seconds."
+        message: "The analysis request was cancelled. Please try again."
       };
     }
     // Fallback for static preview / network drops

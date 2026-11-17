@@ -424,6 +424,33 @@ function withTimeout(promise, ms, controller) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(handle));
 }
 
+/**
+ * Verify the configured key with a free metadata call (no tokens used); cached 10 minutes.
+ */
+let keyCheckCache = { at: 0, ok: null, code: null };
+export async function verifyAIKey(provider) {
+  if (!provider) return { ok: false, code: "NO_AI_KEY" };
+  if (Date.now() - keyCheckCache.at < 10 * 60 * 1000 && keyCheckCache.provider === provider.name) {
+    return { ok: keyCheckCache.ok, code: keyCheckCache.code };
+  }
+  let ok = false;
+  let code = "AI_UNAVAILABLE";
+  try {
+    const res =
+      provider.name === "claude"
+        ? await fetch("https://api.anthropic.com/v1/models?limit=1", {
+            headers: { "x-api-key": provider.apiKey, "anthropic-version": "2023-06-01" }
+          })
+        : await fetch(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=1&key=${encodeURIComponent(provider.apiKey)}`);
+    ok = res.ok;
+    code = res.ok ? "OK" : res.status === 401 || res.status === 403 || res.status === 400 ? "AI_KEY_INVALID" : "AI_UNAVAILABLE";
+  } catch {
+    ok = false;
+  }
+  keyCheckCache = { at: Date.now(), ok, code, provider: provider.name };
+  return { ok, code };
+}
+
 /** Map an AI failure to a short public code (no provider error text leaves the server). */
 function fallbackCode(err) {
   const msg = String(err?.message || "");
@@ -627,15 +654,14 @@ export default async function handler(req, res) {
   // Health check endpoint (GET /api/assess?health=1)
   if (req.method === "GET") {
     const provider = pickAIProvider();
-    const isConfigured = Boolean(provider);
+    const check = await verifyAIKey(provider);
     return res.status(200).json({
       status: "active",
       provider: provider ? provider.name : "rules-engine",
       model: provider ? provider.model : "rules-engine",
-      keyConfigured: isConfigured,
-      message: isConfigured
-        ? "AI-assisted analysis active"
-        : "Rules engine active"
+      keyConfigured: check.ok,
+      keyStatus: check.code,
+      message: check.ok ? "AI-assisted analysis active" : "Rules engine active"
     });
   }
 
