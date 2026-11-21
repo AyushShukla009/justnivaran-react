@@ -172,9 +172,6 @@ function Header({ onOpenFileModal }) {
           <Link to="/arbitration-rules" style={linkStyle("/arbitration-rules")}>
             Arbitration
           </Link>
-          <Link to="/emergency-arbitration" style={linkStyle("/emergency-arbitration")}>
-            Emergency Arbitration
-          </Link>
           <Link to="/for-neutrals" style={linkStyle("/for-neutrals")} title="Neutral Empanelment">
             Empanelment
           </Link>

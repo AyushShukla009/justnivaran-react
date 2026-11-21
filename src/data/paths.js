@@ -83,6 +83,23 @@ export const PATHS = [
       { label: "Award", sub: "Reasoned award, scrutinised before signature." }
     ],
     note: "A challenge under s. 34 is narrow by design."
+  },
+  {
+    key: "EMERGENCY_ARB",
+    name: "Emergency Arbitration",
+    basis: "Urgent interim protective measures prior to tribunal constitution",
+    statute: "Arbitration and Conciliation Act, 1996 · Institutional Rules",
+    timeline: "[to be confirmed against rules]",
+    outcome: "Interim protective order / Emergency award",
+    docket: "JN/EA/2026/0417",
+    steps: [
+      { label: "Application", sub: "Urgent emergency relief petition filed online.", active: true },
+      { label: "Appointment", sub: "Emergency Arbitrator appointed from institutional panel." },
+      { label: "Timetable", sub: "Expedited procedural timetable fixed immediately." },
+      { label: "Hearing", sub: "Urgent virtual hearing or documentary review." },
+      { label: "Order", sub: "Binding interim order or emergency award issued." }
+    ],
+    note: "Emergency Arbitrator proceedings provide urgent preservation of assets and status quo before the main arbitral tribunal is constituted."
   }
 ];
 
@@ -92,7 +109,9 @@ const paths = {
   CON: PATHS[2],
   ARB_FAST: PATHS[3],
   FTA: PATHS[3],
-  ARB: PATHS[4]
+  ARB: PATHS[4],
+  EMERGENCY_ARB: PATHS[5],
+  EA: PATHS[5]
 };
 
 export default paths;

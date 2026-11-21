@@ -11,7 +11,8 @@ function Hero({ onOpenFileModal }) {
     MED: "Mediation",
     CON: "Conciliation",
     ARB_FAST: "Fast-Track Arbitration",
-    ARB: "Arbitration"
+    ARB: "Arbitration",
+    EMERGENCY_ARB: "Emergency Arbitration"
   };
 
   return (
@@ -34,11 +35,11 @@ function Hero({ onOpenFileModal }) {
           </p>
 
           <div className="cta-row">
-            <button className="btn" type="button" onClick={() => onOpenFileModal(activeKey === "ARB_FAST" ? "ARB" : activeKey)}>
+            <button className="btn" type="button" onClick={() => onOpenFileModal(activeKey === "ARB_FAST" || activeKey === "EMERGENCY_ARB" ? "ARB" : activeKey)}>
               File a dispute →
             </button>
             <a className="btn ghost" href="#paths">
-              Explore 5 ADR Tracks
+              Explore 6 ADR Tracks
             </a>
           </div>
 
@@ -141,6 +142,15 @@ function Hero({ onOpenFileModal }) {
                 onClick={() => setActiveKey("ARB")}
               >
                 Arbitration
+              </button>
+              <button
+                className="mode"
+                role="tab"
+                type="button"
+                aria-selected={activeKey === "EMERGENCY_ARB"}
+                onClick={() => setActiveKey("EMERGENCY_ARB")}
+              >
+                Emergency arbitration
               </button>
             </div>
 
