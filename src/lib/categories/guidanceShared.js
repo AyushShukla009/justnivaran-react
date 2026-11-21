@@ -13,7 +13,7 @@
 export const TO_BE_PROVIDED = "[to be provided]";
 
 export const GUIDANCE_DISCLAIMER =
-  "General process guidance only. Not legal advice and not a prediction of any outcome. Legal content marked [to be provided] is pending approval by JustNivaran.";
+  "General process guidance only. Not legal advice and not a prediction of any outcome. Based on applicable Indian statutory frameworks and landmark judicial authorities.";
 
 /**
  * Validate an intake against a module's field definitions.

@@ -39,7 +39,10 @@ for (const mod of GUIDANCE_MODULES) {
   assert.strictEqual(r.isLiveAI, false);
   FORBIDDEN_KEYS.forEach((k) => assert.ok(!(k in r), `${mod.label}: report must not contain ${k}`));
   assert.ok(!FORBIDDEN_TEXT.test(JSON.stringify(r)), `${mod.label}: no commercial rules or predictions in output`);
-  r.sections.forEach((s) => assert.deepStrictEqual(s.items, [TO_BE_PROVIDED], `${mod.label}/${s.key}: rule content is [to be provided]`));
+  r.sections.forEach((s) => {
+    assert.ok(Array.isArray(s.items) && s.items.length > 0, `${mod.label}/${s.key}: rule content populated`);
+    assert.ok(!s.items.includes(TO_BE_PROVIDED), `${mod.label}/${s.key}: real statutory/process guidance provided`);
+  });
 
   // Source does not reuse commercial rules
   const src = fs.readFileSync(new URL(`../../src/lib/categories/${{ "Family / Matrimonial": "familyMatrimonial", "Non-commercial civil": "nonCommercialCivil", "Miscellaneous": "miscellaneous" }[mod.label]}.js`, import.meta.url), "utf8");
